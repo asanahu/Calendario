@@ -5,6 +5,7 @@ from sqlalchemy import text
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
+from functools import wraps
 
 load_dotenv()
 
@@ -35,6 +36,14 @@ class Evento(db.Model):
     fecha_fin = db.Column(db.String(10), nullable=False)
     tipo = db.Column(db.String(20), nullable=False)  # Vacaciones, Libre, etc.
 
+def admin_required(func):
+    """ Decorador para restringir acceso solo a Administradores """
+    @wraps(func)  # 🔹 Esto evita que Flask detecte funciones con el mismo nombre
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.puesto != "Administrador/a":
+            abort(403)  # ⛔ Prohibido si no es administrador/a
+        return func(*args, **kwargs)
+    return wrapper
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -80,6 +89,64 @@ def get_color_by_puesto(puesto):
     }
     return colores.get(puesto, "#D3D3D3")  # 🔹 Gris claro por defecto
 
+@app.route('/admin/users')
+@login_required
+def admin_users():
+    # Verificar si el usuario tiene permisos de administrador
+    if current_user.puesto.lower() != "administrador/a":
+        return redirect('/calendar')
+
+    # 🔹 Obtener usuarios ordenados alfabéticamente por nombre
+    usuarios = User.query.order_by(User.nombre).all()
+
+    return render_template('admin_users.html', usuarios=usuarios)
+
+@app.route('/admin/add_user', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_user():
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        apellidos = request.form.get('apellidos')
+        usuario = request.form.get('usuario')
+        puesto = request.form.get('puesto')
+
+        if not User.query.filter_by(usuario=usuario).first():
+            nuevo_usuario = User(
+                nombre=nombre, 
+                apellidos=apellidos, 
+                usuario=usuario, 
+                puesto=puesto
+            )
+            db.session.add(nuevo_usuario)
+            db.session.commit()
+            return redirect('/admin/users')
+
+    return render_template('add_user.html')
+
+@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    usuario = db.session.get(User, user_id)
+    if usuario:
+        db.session.delete(usuario)
+        db.session.commit()
+    return redirect('/admin/users')
+
+@app.route('/admin/user_vacations/<int:user_id>')
+@login_required
+@admin_required
+def user_vacations(user_id):
+    usuario = db.session.get(User, user_id)  # ✅ Obtener el usuario
+    if not usuario:
+        abort(404)  # ⛔ Error si el usuario no existe
+
+    vacaciones = Evento.query.filter_by(trabajador=f"{usuario.nombre} {usuario.apellidos}", tipo="Vacaciones").all()
+
+    return render_template('user_vacations.html', usuario=usuario, vacaciones=vacaciones)
+
+
 @app.route('/add-vacation', methods=['GET', 'POST'])
 @login_required
 def add_vacation():
@@ -88,27 +155,46 @@ def add_vacation():
         fecha_fin = request.form.get('fecha_fin')
 
         if not fecha_inicio or not fecha_fin:
-            flash("Error: Debes seleccionar fechas válidas.", "danger")
-            return redirect('/add-vacation')
+            return jsonify({"message": "Fechas inválidas"}), 400
 
-        nombre_completo = f"{current_user.nombre} {current_user.apellidos}"
-
-        nuevo_evento = Evento(
+        nombre_completo = f"{current_user.nombre} {current_user.apellidos}"  
+        
+        # Registrar las vacaciones
+        nueva_vacacion = Evento(
             trabajador=nombre_completo,
             fecha_inicio=fecha_inicio,
             fecha_fin=fecha_fin,
             tipo="Vacaciones"
         )
-
-        db.session.add(nuevo_evento)
+        db.session.add(nueva_vacacion)
         db.session.commit()
 
-        flash("Vacaciones añadidas correctamente.", "success")
+        return redirect('/add-vacation')  # 🔹 Volver a la misma página después de añadir
 
-        return redirect('/calendar')  # 🔹 Redirige al calendario después de añadir vacaciones
+    # 🔹 Obtener vacaciones del usuario actual, ordenadas cronológicamente
+    nombre_completo = f"{current_user.nombre} {current_user.apellidos}"
+    vacaciones = Evento.query.filter_by(trabajador=nombre_completo, tipo="Vacaciones") \
+                             .order_by(Evento.fecha_inicio).all()  # 🔹 Ordenar por fecha de inicio
 
-    return render_template('add_vacation.html')
+    # 🔹 Convertir fechas a formato datetime si son strings
+    for vacacion in vacaciones:
+        if isinstance(vacacion.fecha_inicio, str):
+            vacacion.fecha_inicio = datetime.strptime(vacacion.fecha_inicio, '%Y-%m-%d')
+        if isinstance(vacacion.fecha_fin, str):
+            vacacion.fecha_fin = datetime.strptime(vacacion.fecha_fin, '%Y-%m-%d')
 
+    return render_template('add_vacation.html', vacaciones=vacaciones)
+
+@app.route('/delete-vacation/<int:vacation_id>', methods=['POST'])
+@login_required
+def delete_vacation(vacation_id):
+    vacacion = db.session.get(Evento, vacation_id)
+    
+    if vacacion and vacacion.trabajador == f"{current_user.nombre} {current_user.apellidos}":
+        db.session.delete(vacacion)
+        db.session.commit()
+    
+    return redirect('/add-vacation')  # 🔹 Volver a la página de añadir vacaciones
 
 
 @app.route('/api/events', methods=['GET', 'POST'])
@@ -271,4 +357,4 @@ def clear_sessions():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

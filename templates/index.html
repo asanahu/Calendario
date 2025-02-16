@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario de Vacaciones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     
     <!-- CSS de FullCalendar -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
@@ -33,20 +34,23 @@
 
     /* 🔹 Mejorar la visibilidad del contador dentro de cada día */
     .contador-calendario {
-        font-size: 12px;
+        font-size: 8px;
         color: black;
         font-weight: bold;
         text-align: center;
-        margin-top: 3px;
+        margin-top: 2px;
         display: block;
     }
 </style>
 </head>
 <body>
     <h1>Calendario de Vacaciones</h1>
-    <button onclick="window.location.href='/add-vacation'">Añadir Vacaciones</button>
+    <button onclick="window.location.href='/add-vacation'">Gestión de Vacaciones</button>
     <button onclick="window.location.href='/calendar'">Ver Calendario</button>
     <button onclick="window.location.href='/logout'">Cerrar Sesión</button>
+    {% if current_user.is_authenticated and current_user.puesto == "Administrador/a" %}
+    <button onclick="window.location.href='/admin/users'">Administrar Usuarios</button>
+    {% endif %}
     <div id="calendar"></div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

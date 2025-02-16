@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Usuarios</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Usuarios Registrados</h1>
+    
+    <a href="/admin/add_user" class="add-user-button">➕ Añadir Usuario</a>
+
+    <table border="1">
+        <tr>
+            <th>Nombre</th>
+            <th>Apellidos</th>
+            <th>Usuario</th>
+            <th>Puesto</th>
+            <th>Acciones</th>
+        </tr>
+        {% for usuario in usuarios %}
+        <tr>
+            <td>{{ usuario.nombre }}</td>
+            <td>{{ usuario.apellidos }}</td>
+            <td>{{ usuario.usuario }}</td>
+            <td>{{ usuario.puesto }}</td>
+            <td>
+                <a href="/admin/user_vacations/{{ usuario.id }}">📅 Ver Vacaciones</a>
+                {% if usuario.puesto != "Administrador/a" %}  <!-- 🔹 No se puede eliminar a otros administradores -->
+                <form method="POST" action="/admin/delete_user/{{ usuario.id }}" style="display:inline;">
+                    <button type="submit">❌ Eliminar</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <br>
+    <a href="/calendar">⬅️ Volver al Calendario</a>
+</body>
+</html>

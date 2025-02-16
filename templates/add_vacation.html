@@ -1,19 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
     <title>Añadir Vacaciones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h2>Añadir Vacaciones</h2>
-    <form action="/api/events" method="post">
-        <label>Fecha de Inicio:</label>
-        <input type="date" name="fecha_inicio" required>
-        <label>Fecha de Fin:</label>
-        <input type="date" name="fecha_fin" required>
-        <button type="submit">Añadir</button>
+    <h1>Añadir Vacaciones</h1>
+    
+    <form method="POST">
+        <label>Fecha de inicio:</label>
+        <input type="date" name="fecha_inicio" required><br>
+
+        <label>Fecha de fin:</label>
+        <input type="date" name="fecha_fin" required><br>
+
+        <button type="submit">✅ Registrar Vacaciones</button>
     </form>
-    <button onclick="window.location.href='/calendar'">Ver Calendario</button>
-    <button onclick="window.location.href='/logout'">Cerrar Sesión</button>
+
+    <hr>
+
+    <h2>📅 Tus Vacaciones Registradas</h2>
+
+    {% if vacaciones %}
+        <table border="1">
+            <tr>
+                <th>Fecha de inicio</th>
+                <th>Fecha de fin</th>
+                <th>Acciones</th>
+            </tr>
+            {% for vacacion in vacaciones %}
+            <tr>
+                <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>  <!-- 🔹 Formato cambiado a DD/MM/AAAA -->
+                <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>  <!-- 🔹 Formato cambiado a DD/MM/AAAA -->
+                <td>
+                    <form method="POST" action="/delete-vacation/{{ vacacion.id }}">
+                        <button type="submit">❌ Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>❌ No tienes vacaciones registradas.</p>
+    {% endif %}
+
+    <br>
+    <a href="/calendar">⬅️ Volver al Calendario</a>
 </body>
 </html>
-

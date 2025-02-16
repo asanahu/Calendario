@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Añadir Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Añadir Nuevo Usuario</h1>
+    
+    <form method="POST">
+        <label>Nombre:</label>
+        <input type="text" name="nombre" required><br>
+
+        <label>Apellidos:</label>
+        <input type="text" name="apellidos" required><br>
+
+        <label>Usuario:</label>
+        <input type="text" name="usuario" required><br>
+
+        <label>Puesto:</label>
+        <select name="puesto">
+            <option value="Administrador/a">Administrador/a</option>
+            <option value="ADM">ADM</option>
+            <option value="TS">TS</option>
+        </select><br>
+
+        <button type="submit">✅ Guardar Usuario</button>
+    </form>
+
+    <br>
+    <a href="/admin/users">⬅️ Volver a la Gestión de Usuarios</a>
+</body>
+</html>
