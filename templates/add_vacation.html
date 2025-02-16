@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Añadir Vacaciones</title>
+</head>
+<body>
+    <h2>Añadir Vacaciones</h2>
+    <form action="/api/events" method="post">
+        <label>Fecha de Inicio:</label>
+        <input type="date" name="fecha_inicio" required>
+        <label>Fecha de Fin:</label>
+        <input type="date" name="fecha_fin" required>
+        <button type="submit">Añadir</button>
+    </form>
+    <button onclick="window.location.href='/calendar'">Ver Calendario</button>
+    <button onclick="window.location.href='/logout'">Cerrar Sesión</button>
+</body>
+</html>
+

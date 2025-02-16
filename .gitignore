@@ -1,0 +1,15 @@
+# Ignorar archivos con datos sensibles
+usuarios.py
+config.py
+instance/
+.env
+
+# Archivos de base de datos (si usas SQLite)
+*.db
+__pycache__/
+*.sqlite3
+
+# Archivos de entorno virtual
+venv/
+env/
+
