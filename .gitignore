@@ -1,6 +1,5 @@
 # Ignorar archivos con datos sensibles
 config.py
-instance/
 .env
 
 # Archivos de entorno virtual
