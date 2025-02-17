@@ -102,7 +102,7 @@ td form button:hover {
 h1 {
     font-size: 3em;  /* ✅ Más grande */
     font-weight: bold;
-    color: #ffffff;  /* Mantener color oscuro */
+    color: #333;  /* Mantener color oscuro */
     margin-bottom: 20px;
 }
 
@@ -110,7 +110,7 @@ h1 {
 h2 {
     font-size: 2.5em;  /* ✅ Más grande */
     font-weight: bold;
-    color: #ffffff;
+    color: #333;
     margin-bottom: 15px;
 }
 
@@ -134,6 +134,7 @@ input[type="text"], input[type="date"], select {
     width: 25%;  /* ✅ Hace que los inputs sean más anchos */
     border: 1px solid #ccc;
     border-radius: 5px;
+    text-align: center;
 }
 
 /* 🔹 Ajustar botones para que combinen */
@@ -149,6 +150,12 @@ button {
 
 button:hover {
     background-color: #0056b3;
+}
+
+/* 🔹 Cambiar el color del mes en la cabecera */
+.fc-toolbar-title {
+    color: #333 !important;
+    font-weight: bold;
 }
 
 /* 🔹 Ajustar el tamaño de los eventos en el calendario */
@@ -175,6 +182,19 @@ button:hover {
     max-width: 90%;  /* ✅ Reduce el ancho máximo de los eventos */
 }
 
+/* 🔹 Centrar los números de los días del mes en el calendario */
+.fc-daygrid-day-number {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    width: 100%;  /* 🔹 Ocupa toda la celda */
+    height: 100%; /* 🔹 Ocupa toda la celda */
+    position: absolute; /* 🔹 Asegura que se centre dentro de la celda */
+    top: 0;
+    left: 0;
+}
 /* 🔹 Ajustar el botón "Añadir Usuario" */
 .add-user-button {
     display: inline-block;

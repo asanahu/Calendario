@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Iniciar Sesión</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Vacaciones</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h2>Iniciar Sesión</h2>
-    <form action="/login" method="post">
-        <label>Usuario:</label>
-        <input type="text" name="usuario" required>
-        <button type="submit">Ingresar</button>
-    </form>
+    <div class="container">
+        <h1>Bienvenido/a  al Calendario de Vacaciones</h1>
+        <form action="/login" method="post">
+            <label>Usuario:</label>
+            <input type="text" name="usuario" required>
+            <button type="submit">Ingresar</button>
+        </form>
+    </div>  
 </body>
 </html>
