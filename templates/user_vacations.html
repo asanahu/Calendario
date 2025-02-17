@@ -16,8 +16,8 @@
             </tr>
             {% for vacacion in vacaciones %}
             <tr>
-                <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>  <!-- 🔹 Formato cambiado a DD/MM/AAAA -->
-                <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>  <!-- 🔹 Formato cambiado a DD/MM/AAAA -->
+                <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') if vacacion.fecha_inicio else 'N/A' }}</td>
+                <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') if vacacion.fecha_fin else 'N/A' }}</td>
             </tr>
             {% endfor %}
         </table>

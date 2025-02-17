@@ -144,6 +144,16 @@ def user_vacations(user_id):
 
     vacaciones = Evento.query.filter_by(trabajador=f"{usuario.nombre} {usuario.apellidos}", tipo="Vacaciones").all()
 
+    # 🔹 Convertir fechas a formato datetime si son strings y asegurarnos de que no haya errores
+    for vacacion in vacaciones:
+        try:
+            if isinstance(vacacion.fecha_inicio, str):
+                vacacion.fecha_inicio = datetime.strptime(vacacion.fecha_inicio, '%Y-%m-%d')
+            if isinstance(vacacion.fecha_fin, str):
+                vacacion.fecha_fin = datetime.strptime(vacacion.fecha_fin, '%Y-%m-%d')
+        except Exception as e:
+            print(f"Error al convertir fechas para {vacacion}: {e}")
+
     return render_template('user_vacations.html', usuario=usuario, vacaciones=vacaciones)
 
 
