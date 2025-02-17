@@ -1,5 +1,5 @@
 Flask
 Flask-Login
 Flask-SQLAlchemy
-dotenv
 gunicorn
+python-dotenv
