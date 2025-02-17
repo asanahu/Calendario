@@ -1,5 +1,4 @@
 # Ignorar archivos con datos sensibles
-usuarios.py
 config.py
 instance/
 .env
