@@ -6,25 +6,14 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
 from functools import wraps
-import os
 
 load_dotenv()
 
 app = Flask(__name__)
-
-# Configurar SQLite en un directorio seguro dentro de Render
-DB_PATH = "/tmp/db.sqlite3"  # Se perderá si Render se reinicia
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
-# Crear la base de datos si no existe
-if not os.path.exists(DB_PATH):
-    with app.app_context():
-        db.create_all()
-        print("✅ Base de datos SQLite creada en Render.")
-
 
 # Configurar Flask-Login
 login_manager = LoginManager()
