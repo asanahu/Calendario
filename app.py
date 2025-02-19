@@ -187,23 +187,27 @@ def add_vacation():
 @login_required
 def delete_vacation(vacation_id):
     try:
-
-        # Convertir el ID en ObjectId solo si es válido
+        # 🔹 Asegurar que el ID sea un ObjectId válido
         if not ObjectId.is_valid(vacation_id):
             print("❌ ID no válido para MongoDB")
-            return jsonify({"message": "ID no válido"}), 400
+            return jsonify({"error": "ID no válido"}), 400
 
-        result = events_collection.delete_one({"_id": ObjectId(vacation_id)})
+        query = {"_id": ObjectId(vacation_id)}
+        vacacion = events_collection.find_one(query)
 
-        if result.deleted_count == 0:
-            print("❌ Vacación no encontrada en la base de datos")
-            return jsonify({"message": "Vacación no encontrada"}), 404
+        if vacacion and vacacion["trabajador"] == f"{current_user.nombre} {current_user.apellidos}":
+            events_collection.delete_one(query)
+            print("✅ Vacación eliminada correctamente")
+            return redirect('/add-vacation')
+        else:
+            print("⚠️ No tienes permiso para eliminar esta vacación")
+            return jsonify({"error": "No autorizado"}), 403
 
-        return redirect('/add-vacation')
     except Exception as e:
         print(f"⚠️ Error al eliminar la vacación: {e}")
-        return jsonify({"message": "Error interno"}), 500
-
+        return jsonify({"error": "Error interno"}), 500
+    
+    
 @app.route('/api/events', methods=['GET', 'POST'])
 @login_required
 def events():
