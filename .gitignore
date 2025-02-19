@@ -1,6 +1,6 @@
 # Ignorar archivos con datos sensibles
-
 .env
+usuarios.json
 
 # Archivos de entorno virtual
 venv/
