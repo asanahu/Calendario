@@ -1,25 +1,28 @@
-from app import db, User, Evento
-from flask import Flask
-from datetime import datetime, timedelta
+from pymongo import MongoClient
 import os
-from dotenv import load_dotenv
-from usuarios import usuarios
 import json
-# Crear contexto de aplicación para evitar errores
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
+from dotenv import load_dotenv
 
+# Cargar variables de entorno
+load_dotenv()
+
+# Conectar a MongoDB
+MONGO_URI = os.getenv("MONGO_URI")
+client = MongoClient(MONGO_URI)
+db = client["calendario"]
+users_collection = db["usuarios"]  # Colección para usuarios
+
+# Cargar usuarios desde el JSON
 def cargar_usuarios():
-    with app.app_context():
-        for u in usuarios:
-            if not User.query.filter_by(usuario=u["usuario"]).first():
-                nuevo_usuario = User(nombre=u["nombre"], apellidos=u["apellidos"], usuario=u["usuario"], puesto=u["puesto"])
-                db.session.add(nuevo_usuario)
-        
-        db.session.commit()
-        print("✅ Usuarios cargados correctamente en la base de datos.")
+    with open("usuarios.json", "r", encoding="utf-8") as file:
+        usuarios = json.load(file)
+
+    for u in usuarios:
+        # Verificar si el usuario ya existe en la base de datos
+        if users_collection.find_one({"usuario": u["usuario"]}) is None:
+            users_collection.insert_one(u)  # Insertar usuario en MongoDB
+
+    print("✅ Usuarios cargados correctamente en la base de datos.")
 
 if __name__ == "__main__":
     cargar_usuarios()

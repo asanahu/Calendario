@@ -5,153 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario de Vacaciones</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    
+
     <!-- CSS de FullCalendar -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
 
-<!-- JS de FullCalendar -->
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
-<!-- 🔹 Estilos personalizados -->
-<style>
-    /* 🔹 Forzar el color del texto de TODOS los eventos a negro */
-    .fc-event, 
-    .fc-event-title-container, 
-    .fc-event-title, 
-    .fc-daygrid-event .fc-event-title {
-        color: black !important;  /* 🔹 Asegura que el texto de todos los eventos sea negro */
-    }
-
-    /* 🔹 Personalización adicional para eventos de vacaciones */
-    .vacaciones-event {
-        background-color: #D4A5D4 !important;  /* Lila */
-        border: 1px solid red !important;
-    }
-    /* 🔹 Ajustar el estilo de los festivos */
-    .festivo-event {
-        background-color: #D3D3D3 !important;  /* Amarillo */
-        font-weight: bold;
-    }
-
-    /* 🔹 Mejorar la visibilidad del contador dentro de cada día */
-    .contador-calendario {
-        font-size: 8px;
-        color: black;
-        font-weight: bold;
-        text-align: center;
-        margin-top: 2px;
-        display: block;
-    }
-</style>
+    <!-- JS de FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
 </head>
 <body>
-    <h1>Calendario de Vacaciones</h1>
-    <button onclick="window.location.href='/add-vacation'">Gestión de Vacaciones</button>
-    <button onclick="window.location.href='/calendar'">Ver Calendario</button>
-    <button onclick="window.location.href='/logout'">Cerrar Sesión</button>
-    {% if current_user.is_authenticated and current_user.puesto == "Administrador/a" %}
-    <button onclick="window.location.href='/admin/users'">Administrar Usuarios</button>
-    {% endif %}
+
+    <h1>Calendario de {{ current_user.nombre }} {{ current_user.apellidos }}</h1>
+
+    <!-- 🔹 Contenedor de botones centrado -->
+    <div class="button-container">
+        <button onclick="window.location.href='/add-vacation'">Gestión de Vacaciones</button>
+        <button onclick="window.location.href='/calendar'">Ver Calendario</button>
+        <button onclick="window.location.href='/logout'">Cerrar Sesión</button>
+        {% if current_user.is_authenticated and current_user.puesto == "Administrador/a" %}
+        <button onclick="window.location.href='/admin/users'">Administrar Usuarios</button>
+        {% endif %}
+    </div>
+
+    <!-- 🔹 Calendario -->
     <div id="calendar"></div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
-            var contadorDisponibles = {};  // 🔹 Objeto para almacenar la disponibilidad por día
-            var festivos = ["2025-01-01", "2025-01-06", "2025-01-29", "2025-03-05", "2025-03-28", "2025-03-29",
-                            "2025-04-23", "2025-05-01", "2025-08-15", "2025-10-12", "2025-11-01", "2025-12-06",
-                            "2025-12-09", "2025-12-25", "2026-01-01"];  // 🔹 Lista de festivos
+            var contadorDisponibles = {};  
     
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
-                firstDay: 1, // 🔹 La semana empieza en lunes
+                firstDay: 1, 
                 locale: 'es',
                 selectable: true,
+                eventOrder: "title",  // 🔹 Mantener el orden enviado por el backend
                 events: function(fetchInfo, successCallback, failureCallback) {
                     fetch('/api/events')
                         .then(response => response.json())
                         .then(data => {
                             console.log("Eventos cargados:", data.eventos);
-                            contadorDisponibles = data.contador; // 🔹 Guardamos la disponibilidad
+                            contadorDisponibles = data.contador;
                             successCallback(data.eventos);
-                            actualizarContadorEnCalendario();  // 🔹 Llamamos a la función que lo muestra dentro del calendario
+                            actualizarContadorEnCalendario();
                         })
                         .catch(error => {
                             console.error("Error al cargar eventos:", error);
                         });
                 },
                 eventDidMount: function(info) {
-                    if (info.event.title === "Festivo") {
-                        info.el.classList.add('festivo-event');  // 🔹 Aplicar estilo especial a festivos
+                    if (info.event.title.includes("(Ausente)")) {
+                        info.el.classList.add('vacaciones-event');  
                     }
                 }
             });
     
             calendar.render();
     
-            function addVacation(startDate, endDate) {
-                let adjustedEndDate = new Date(endDate);
-                adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
-                let finalEndDate = adjustedEndDate.toISOString().split("T")[0];
-    
-                if (startDate === finalEndDate) {
-                    finalEndDate = startDate;  // 🔹 Si solo se selecciona un día, no modificar fecha_fin
-                }
-    
-                fetch('/api/events', {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        fecha_inicio: startDate,
-                        fecha_fin: finalEndDate
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert("Vacaciones registradas correctamente");
-                    calendar.refetchEvents();  // 🔹 Recargar eventos para reflejar cambios
-                })
-                .catch(error => alert("Error al agregar evento"));
-            }
-    
-            calendar.on('select', function(info) {
-                let start = info.startStr;
-                let end = info.endStr;
-    
-                if (confirm("¿Quieres marcar estos días como vacaciones?")) {
-                    addVacation(start, end);
-                }
-            });
-    
             function actualizarContadorEnCalendario() {
                 setTimeout(() => {
                     document.querySelectorAll('.fc-daygrid-day').forEach(dayCell => {
-                        let fecha = dayCell.getAttribute('data-date'); // 🔹 Obtener la fecha de la celda
-
-                        // 🔹 Si el día es un festivo, mostrarlo solo en la parte superior
-                        if (festivos.includes(fecha)) {
-                            let festivoDiv = dayCell.querySelector('.festivo-label');
-                            if (!festivoDiv) {
-                                festivoDiv = document.createElement('div');
-                                festivoDiv.classList.add('festivo-label');
-                            }
-                        } else {
-                            // 🔹 Mostrar el número de personas disponibles en los días laborables
-                            let contadorDiv = dayCell.querySelector('.contador-calendario');
-                            if (!contadorDiv) {
-                                contadorDiv = document.createElement('div');
-                                contadorDiv.classList.add('contador-calendario');
-                                dayCell.appendChild(contadorDiv);
-                            }
-                            let contador = contadorDisponibles[fecha] || 0;
-                            contadorDiv.innerHTML = `<span style="font-size: 12px; color: black;">${contador} disponibles</span>`;
+                        let fecha = dayCell.getAttribute('data-date');
+    
+                        let contadorDiv = dayCell.querySelector('.contador-calendario');
+                        if (!contadorDiv) {
+                            contadorDiv = document.createElement('div');
+                            contadorDiv.classList.add('contador-calendario');
+                            dayCell.appendChild(contadorDiv);
                         }
+                        let contador = contadorDisponibles[fecha] || 0;
+                        contadorDiv.innerHTML = `<span style="font-size: 12px; color: black;">${contador} disponibles</span>`;
                     });
                 }, 500);
             }
-
         });
     </script>
-    
-
-       
+ 
 </body>
 </html>

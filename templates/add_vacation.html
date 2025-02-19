@@ -31,10 +31,11 @@
             </tr>
             {% for vacacion in vacaciones %}
             <tr>
-                <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>  <!-- 🔹 Formato cambiado a DD/MM/AAAA -->
-                <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>  <!-- 🔹 Formato cambiado a DD/MM/AAAA -->
+                <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
+
                 <td>
-                    <form method="POST" action="/delete-vacation/{{ vacacion.id }}">
+                    <form method="POST" action="/delete-vacation/{{ vacacion._id|string }}">
                         <button type="submit">❌ Eliminar</button>
                     </form>
                 </td>

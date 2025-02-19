@@ -9,6 +9,7 @@ body {
     padding: 0;
 }
 
+
 /* 🔹 Contenedor principal */
 .container {
     width: 50%;
@@ -104,6 +105,7 @@ h1 {
     font-weight: bold;
     color: #333;  /* Mantener color oscuro */
     margin-bottom: 20px;
+    text-align: center;
 }
 
 /* 🔹 Aumentar tamaño de los subtítulos */
@@ -152,19 +154,35 @@ button:hover {
     background-color: #0056b3;
 }
 
+.button-container {
+    margin-bottom: 20px;
+}
+
+.button-container button {
+    margin: 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #007BFF;
+    color: white;
+}
+
 /* 🔹 Cambiar el color del mes en la cabecera */
 .fc-toolbar-title {
     color: #333 !important;
     font-weight: bold;
+    text-transform: uppercase;
 }
 
-/* 🔹 Ajustar el tamaño de los eventos en el calendario */
+/* 🔹 Ajustes generales de la tabla */
 .fc-daygrid-event {
-    font-size: 0.9em;  /* ✅ Reduce el tamaño del texto */
-    padding: 3px 5px;  /* ✅ Reduce el espacio interno */
-    white-space: nowrap;  /* ✅ Evita que el texto se divida en varias líneas */
-    overflow: hidden;  /* ✅ Asegura que el contenido no se desborde */
-    text-overflow: ellipsis; /* ✅ Agrega "..." si el texto es demasiado largo */
+    padding: 2px 5px !important; /* Espaciado interno */
+    border-radius: 4px !important; /* Bordes más suaves */
+    font-size: 12px !important; /* Texto más pequeño para que quepa mejor */
+    color: black !important; /* Fuerza el texto en negro */
+    font-weight: bold;
 }
 
 /* 🔹 Ajustar la altura de los eventos */
@@ -179,12 +197,48 @@ button:hover {
 
 /* 🔹 Ajustar el ancho de los eventos para que ocupen menos espacio */
 .fc-event {
-    max-width: 90%;  /* ✅ Reduce el ancho máximo de los eventos */
+    max-width: 90%;
+    color: black !important; /* Fuerza el texto en negro */
+    font-weight: bold;  /* ✅ Reduce el ancho máximo de los eventos */
+}
+
+/* 🔹 Ajustar la alineación del texto dentro de los eventos */
+.fc-event-title {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    text-align: center !important;
+    color: black !important; /* Fuerza el texto en negro */
+    font-weight: bold;
+}
+
+/* 🔹 Suavizar los colores de los diferentes roles */
+.administrador-event {
+    background-color: #ffec99 !important; /* Amarillo pastel */
+    color: #333 !important;
+}
+
+.admin-event {
+    background-color: #FFD700 !important; /* Amarillo dorado para Administradores */
+}
+
+.adm-event {
+    background-color: #B0FFB0 !important; /* Verde pastel */
+    color: #333 !important;
+}
+
+.ts-event {
+    background-color: #A3C4FF !important; /* Azul pastel */
+    color: #333 !important;
+}
+
+.default-event {
+    background-color: #e0e0e0 !important; /* Gris claro */
+    color: #333 !important;
 }
 
 /* 🔹 Centrar los números de los días del mes en el calendario */
 .fc-daygrid-day-number {
-    display: flex;
+    display: block;
     justify-content: center;
     align-items: center;
     font-size: 14px;
@@ -195,6 +249,7 @@ button:hover {
     top: 0;
     left: 0;
 }
+
 /* 🔹 Ajustar el botón "Añadir Usuario" */
 .add-user-button {
     display: inline-block;
@@ -210,4 +265,26 @@ button:hover {
 
 .add-user-button:hover {
     background-color: #0056b3;
+}
+
+/* 🔹 Ajustar colores para que no sean tan chillones */
+.vacaciones-event {
+    background-color: #FF9999 !important; /* Lila pastel */
+    border: 1px solid red !important;
+    color: #333 !important;
+}
+
+.festivo-event {
+    background-color: #FFD700 !important; /* Amarillo pastel */
+    font-weight: bold;
+    text-align: center;
+}
+
+/* 🔹 Mejorar la visibilidad del contador */
+.contador-calendario {
+    font-size: 10px;
+    font-weight: bold;
+    color: black;
+    text-align: center;
+    margin-top: 2px;
 }

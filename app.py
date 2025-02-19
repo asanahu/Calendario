@@ -1,73 +1,78 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from sqlalchemy import text
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-import os
 from functools import wraps
+from pymongo import MongoClient
+from bson import ObjectId
+import os
 
+# Cargar variables de entorno
 load_dotenv()
+MONGO_URI = os.getenv("MONGO_URI")
+
+# Conectar a MongoDB
+client = MongoClient(MONGO_URI)
+db = client["calendario"]
+users_collection = db["usuarios"]
+events_collection = db["eventos"]
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
 
 # Configurar Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "login"  # Redirigir automáticamente a login
+login_manager.login_view = "login"
 
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    usuario = db.Column(db.String(50), unique=True, nullable=False)
-    nombre = db.Column(db.String(100), nullable=False)
-    apellidos = db.Column(db.String(100), nullable=False)
-    puesto = db.Column(db.String(100), nullable=False)  # 🔹 Nuevo campo para el puesto
-
-
-
-class Evento(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    trabajador = db.Column(db.String(100), nullable=False)
-    fecha_inicio = db.Column(db.String(10), nullable=False)
-    fecha_fin = db.Column(db.String(10), nullable=False)
-    tipo = db.Column(db.String(20), nullable=False)  # Vacaciones, Libre, etc.
-
-def admin_required(func):
-    """ Decorador para restringir acceso solo a Administradores """
-    @wraps(func)  # 🔹 Esto evita que Flask detecte funciones con el mismo nombre
-    def wrapper(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.puesto != "Administrador/a":
-            abort(403)  # ⛔ Prohibido si no es administrador/a
-        return func(*args, **kwargs)
-    return wrapper
+class User(UserMixin):
+    def __init__(self, user_data):
+        self.id = str(user_data['_id'])
+        self.nombre = user_data['nombre']
+        self.apellidos = user_data['apellidos']
+        self.usuario = user_data['usuario']
+        self.puesto = user_data['puesto']
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))
+    """ Cargar usuario desde MongoDB por ID """
+    from bson import ObjectId
+    try:
+        user_data = users_collection.find_one({"_id": ObjectId(user_id)})
+        return User(user_data) if user_data else None
+    except Exception as e:
+        print(f"Error al cargar usuario {user_id}: {e}")
+        return None
+
+# Decorador para restringir acceso a administradores
+def admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.puesto != "Administrador/a":
+            abort(403)
+        return func(*args, **kwargs)
+    return wrapper
 
 @app.route('/')
 def home():
     if current_user.is_authenticated:
-        logout_user()  # 🔹 Cierra la sesión de cualquier usuario activo
+        logout_user()
     return redirect(url_for('login'))
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        usuario_input = request.form['usuario']  # 🔹 Usuario ingresado por el trabajador
-        usuario = User.query.filter_by(usuario=usuario_input).first()
+        usuario_input = request.form['usuario']
+        user_data = users_collection.find_one({"usuario": usuario_input})
 
-        if not usuario:
-            return "Usuario no autorizado", 401  # 🔴 Si el usuario no está en la lista, denegar acceso
-
-        login_user(usuario)
-        return redirect(url_for('calendar_page'))  # 🔹 Si existe, entra al calendario
-
+        if not user_data:
+            return "Usuario no autorizado", 401
+        
+        user = User(user_data)
+        user.id = str(user_data["_id"])  # Asegurar que el ID sea string
+        login_user(user)
+        return redirect(url_for('calendar_page'))
+    
     return render_template('login.html')
 
 @app.route('/logout')
@@ -77,28 +82,24 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/calendar')
-@login_required  #Solo usuarios logueados pueden acceder
+@login_required
 def calendar_page():
     return render_template('index.html')
 
 def get_color_by_puesto(puesto):
-    colores = {
-        "TS": "#A3C4FF",  # 🔹 Azul claro
-        "ADM": "#B0FFB0",  # 🔹 Verde claro
-        "Administrador/a": "#FFFF00",  # 🔹 Amarillo
+    clases = {
+        "TS": "ts-event",
+        "ADM": "adm-event",
+        "Administrador/a": "administrador-event",
     }
-    return colores.get(puesto, "#D3D3D3")  # 🔹 Gris claro por defecto
+    return clases.get(puesto, "default-event")  # 🔹 Si el puesto no está en la lista, usa una clase por defecto
+
 
 @app.route('/admin/users')
 @login_required
+@admin_required
 def admin_users():
-    # Verificar si el usuario tiene permisos de administrador
-    if current_user.puesto.lower() != "administrador/a":
-        return redirect('/calendar')
-
-    # 🔹 Obtener usuarios ordenados alfabéticamente por nombre
-    usuarios = User.query.order_by(User.nombre).all()
-
+    usuarios = list(users_collection.find().sort("nombre"))
     return render_template('admin_users.html', usuarios=usuarios)
 
 @app.route('/admin/add_user', methods=['GET', 'POST'])
@@ -106,53 +107,51 @@ def admin_users():
 @admin_required
 def add_user():
     if request.method == 'POST':
-        nombre = request.form.get('nombre')
-        apellidos = request.form.get('apellidos')
-        usuario = request.form.get('usuario')
-        puesto = request.form.get('puesto')
-
-        if not User.query.filter_by(usuario=usuario).first():
-            nuevo_usuario = User(
-                nombre=nombre, 
-                apellidos=apellidos, 
-                usuario=usuario, 
-                puesto=puesto
-            )
-            db.session.add(nuevo_usuario)
-            db.session.commit()
-            return redirect('/admin/users')
-
+        user_data = {
+            "nombre": request.form.get('nombre'),
+            "apellidos": request.form.get('apellidos'),
+            "usuario": request.form.get('usuario'),
+            "puesto": request.form.get('puesto')
+        }
+        if users_collection.find_one({"usuario": user_data["usuario"]}):
+            return "El usuario ya existe", 400
+        users_collection.insert_one(user_data)
+        return redirect('/admin/users')
     return render_template('add_user.html')
 
-@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@app.route('/admin/delete_user/<user_id>', methods=['POST'])
 @login_required
 @admin_required
 def delete_user(user_id):
-    usuario = db.session.get(User, user_id)
-    if usuario:
-        db.session.delete(usuario)
-        db.session.commit()
+    usuario = users_collection.find_one({"_id": ObjectId(user_id)})
+
+    if not usuario:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+
+    # 🚨 No permitir que un administrador se elimine a sí mismo
+    if usuario["usuario"] == current_user.usuario:
+        return jsonify({"message": "No puedes eliminarte a ti mismo"}), 403
+
+    users_collection.delete_one({"_id": ObjectId(user_id)})
     return redirect('/admin/users')
 
-@app.route('/admin/user_vacations/<int:user_id>')
+@app.route('/admin/user_vacations/<user_id>')
 @login_required
 @admin_required
 def user_vacations(user_id):
-    usuario = db.session.get(User, user_id)  # ✅ Obtener el usuario
+    usuario = users_collection.find_one({"_id": ObjectId(user_id)})
     if not usuario:
-        abort(404)  # ⛔ Error si el usuario no existe
+        abort(404)
 
-    vacaciones = Evento.query.filter_by(trabajador=f"{usuario.nombre} {usuario.apellidos}", tipo="Vacaciones").all()
+    # 🔹 Obtener las vacaciones, ordenarlas por fecha de inicio (ascendente)
+    vacaciones = list(events_collection.find(
+        {"trabajador": f"{usuario['nombre']} {usuario['apellidos']}", "tipo": "Vacaciones"}
+    ).sort("fecha_inicio", 1))  # 1 = Orden ascendente
 
-    # 🔹 Convertir fechas a formato datetime si son strings y asegurarnos de que no haya errores
+    # 🔹 Convertir fechas al formato DD/MM/YYYY
     for vacacion in vacaciones:
-        try:
-            if isinstance(vacacion.fecha_inicio, str):
-                vacacion.fecha_inicio = datetime.strptime(vacacion.fecha_inicio, '%Y-%m-%d')
-            if isinstance(vacacion.fecha_fin, str):
-                vacacion.fecha_fin = datetime.strptime(vacacion.fecha_fin, '%Y-%m-%d')
-        except Exception as e:
-            print(f"Error al convertir fechas para {vacacion}: {e}")
+        vacacion["fecha_inicio"] = datetime.strptime(vacacion["fecha_inicio"], "%Y-%m-%d").strftime("%d/%m/%Y")
+        vacacion["fecha_fin"] = datetime.strptime(vacacion["fecha_fin"], "%Y-%m-%d").strftime("%d/%m/%Y")
 
     return render_template('user_vacations.html', usuario=usuario, vacaciones=vacaciones)
 
@@ -161,212 +160,158 @@ def user_vacations(user_id):
 @login_required
 def add_vacation():
     if request.method == 'POST':
-        fecha_inicio = request.form.get('fecha_inicio')
-        fecha_fin = request.form.get('fecha_fin')
+        vacation_data = {
+            "trabajador": f"{current_user.nombre} {current_user.apellidos}",
+            "fecha_inicio": request.form.get('fecha_inicio'),
+            "fecha_fin": request.form.get('fecha_fin'),
+            "tipo": "Vacaciones"
+        }
+        events_collection.insert_one(vacation_data)
+        return redirect('/add-vacation')
 
-        if not fecha_inicio or not fecha_fin:
-            return jsonify({"message": "Fechas inválidas"}), 400
+    # 🔹 Obtener y convertir las fechas de string a datetime antes de enviarlas a la plantilla
+    vacaciones = list(events_collection.find({
+        "trabajador": f"{current_user.nombre} {current_user.apellidos}",
+        "tipo": "Vacaciones"
+    }).sort("fecha_inicio", 1))  # ✅ Ordenar por fecha de inicio
 
-        nombre_completo = f"{current_user.nombre} {current_user.apellidos}"  
-        
-        # Registrar las vacaciones
-        nueva_vacacion = Evento(
-            trabajador=nombre_completo,
-            fecha_inicio=fecha_inicio,
-            fecha_fin=fecha_fin,
-            tipo="Vacaciones"
-        )
-        db.session.add(nueva_vacacion)
-        db.session.commit()
-
-        return redirect('/add-vacation')  # 🔹 Volver a la misma página después de añadir
-
-    # 🔹 Obtener vacaciones del usuario actual, ordenadas cronológicamente
-    nombre_completo = f"{current_user.nombre} {current_user.apellidos}"
-    vacaciones = Evento.query.filter_by(trabajador=nombre_completo, tipo="Vacaciones") \
-                             .order_by(Evento.fecha_inicio).all()  # 🔹 Ordenar por fecha de inicio
-
-    # 🔹 Convertir fechas a formato datetime si son strings
     for vacacion in vacaciones:
-        if isinstance(vacacion.fecha_inicio, str):
-            vacacion.fecha_inicio = datetime.strptime(vacacion.fecha_inicio, '%Y-%m-%d')
-        if isinstance(vacacion.fecha_fin, str):
-            vacacion.fecha_fin = datetime.strptime(vacacion.fecha_fin, '%Y-%m-%d')
+        vacacion["fecha_inicio"] = datetime.strptime(vacacion["fecha_inicio"], "%Y-%m-%d")
+        vacacion["fecha_fin"] = datetime.strptime(vacacion["fecha_fin"], "%Y-%m-%d")
 
     return render_template('add_vacation.html', vacaciones=vacaciones)
 
-@app.route('/delete-vacation/<int:vacation_id>', methods=['POST'])
+
+
+@app.route('/delete-vacation/<vacation_id>', methods=['POST'])
 @login_required
 def delete_vacation(vacation_id):
-    vacacion = db.session.get(Evento, vacation_id)
-    
-    if vacacion and vacacion.trabajador == f"{current_user.nombre} {current_user.apellidos}":
-        db.session.delete(vacacion)
-        db.session.commit()
-    
-    return redirect('/add-vacation')  # 🔹 Volver a la página de añadir vacaciones
+    try:
 
+        # Convertir el ID en ObjectId solo si es válido
+        if not ObjectId.is_valid(vacation_id):
+            print("❌ ID no válido para MongoDB")
+            return jsonify({"message": "ID no válido"}), 400
+
+        result = events_collection.delete_one({"_id": ObjectId(vacation_id)})
+
+        if result.deleted_count == 0:
+            print("❌ Vacación no encontrada en la base de datos")
+            return jsonify({"message": "Vacación no encontrada"}), 404
+
+        return redirect('/add-vacation')
+    except Exception as e:
+        print(f"⚠️ Error al eliminar la vacación: {e}")
+        return jsonify({"message": "Error interno"}), 500
 
 @app.route('/api/events', methods=['GET', 'POST'])
 @login_required
 def events():
-    if request.method == 'POST':  # 🔹 Si se están añadiendo vacaciones
-        if request.is_json:
-            data = request.get_json()
-            fecha_inicio = data.get("fecha_inicio")
-            fecha_fin = data.get("fecha_fin")
-        else:
-            fecha_inicio = request.form.get('fecha_inicio')
-            fecha_fin = request.form.get('fecha_fin')
+    if request.method == 'POST':
+        event_data = request.get_json()
+        event_data["trabajador"] = f"{current_user.nombre} {current_user.apellidos}"
+        events_collection.insert_one(event_data)
+        return jsonify({"message": "Evento agregado correctamente"}), 201
 
-        if not fecha_inicio or not fecha_fin:
-            return jsonify({"message": "Fechas inválidas"}), 400
-
-        nombre_completo = f"{current_user.nombre} {current_user.apellidos}"  
-
-        # Registrar vacaciones en la base de datos
-        nuevo_evento = Evento(trabajador=nombre_completo, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, tipo="Vacaciones")
-
-        db.session.add(nuevo_evento)
-        db.session.commit()
-
-        return redirect('/calendar')
-
-    # 🔹 Obtener los usuarios y las vacaciones registradas
-    usuarios = User.query.all()
-    vacaciones = Evento.query.all()
-    dias_no_disponibles = {}
-
-    for v in vacaciones:
-        if v.trabajador not in dias_no_disponibles:
-            dias_no_disponibles[v.trabajador] = []
-        dias_no_disponibles[v.trabajador].append((v.fecha_inicio, v.fecha_fin))
-
-    # 🔹 Definir los festivos
+    # 🔹 Lista de festivos
     festivos = {
         "2025-01-01", "2025-01-06", "2025-01-29", "2025-03-05", "2025-03-28", "2025-03-29",
         "2025-04-23", "2025-05-01", "2025-08-15", "2025-10-12", "2025-11-01", "2025-12-06",
-        "2025-12-09", "2025-12-25", 
-        "2026-01-01"  # 🔹 Añadir Año Nuevo 2026
+        "2025-12-09", "2025-12-25", "2026-01-01"
     }
 
-    # Definir el orden de los puestos
+    # 🔹 Definir el orden de los puestos
     orden_puestos = {"Administrador/a": 1, "ADM": 2, "TS": 3}
-    usuarios_ordenados = sorted(usuarios, key=lambda u: orden_puestos.get(u.puesto, 4))
+    colores_puestos = {
+        "Administrador/a": "#FFD700",
+        "ADM": "#B0FFB0",
+        "TS": "#A3C4FF"
+    }
+
+    # 🔹 Obtener todos los usuarios y aplicar orden por puesto
+    usuarios = list(users_collection.find())
+    usuarios_ordenados = sorted(usuarios, key=lambda u: orden_puestos.get(u.get("puesto", ""), 4))
+
+    # 🔹 Obtener todas las vacaciones registradas
+    eventos = list(events_collection.find())
+
+    # 🔹 Estructura para agrupar vacaciones por trabajador
+    dias_no_disponibles = {}
+    for evento in eventos:
+        nombre = evento["trabajador"]
+        if nombre not in dias_no_disponibles:
+            dias_no_disponibles[nombre] = []
+        dias_no_disponibles[nombre].append((evento["fecha_inicio"], evento["fecha_fin"]))
 
     eventos_json = []
     contador_disponibles = {}
 
-    # 🔹 Ampliamos la generación de eventos hasta enero de 2026
-    fecha_inicio = datetime(2025, 1, 1)
-    fecha_fin = datetime(2026, 1, 31)  # 🔹 Incluir enero de 2026
+    # 🔹 Generar eventos desde el 1 de enero hasta el 31 de diciembre de 2025
+    fecha_actual = datetime(2025, 1, 1)
+    fecha_fin = datetime(2025, 12, 31)
 
-    while fecha_inicio <= fecha_fin:
-        fecha_str = fecha_inicio.strftime('%Y-%m-%d')
-        dia_semana = fecha_inicio.weekday()
+    while fecha_actual <= fecha_fin:
+        fecha_str = fecha_actual.strftime("%Y-%m-%d")
+        dia_semana = fecha_actual.weekday()
 
+        # ✅ Agregar los festivos como eventos especiales
         if fecha_str in festivos:
             eventos_json.append({
                 "id": f"Festivo-{fecha_str}",
                 "title": "Festivo",
                 "start": fecha_str,
-                "color": "#FFCC00",  # 🔹 Amarillo para festivos
+                "color": "#FFD700",
                 "classNames": ["festivo-event"]
             })
-            contador_disponibles[fecha_str] = 0  # 🔹 Ningún trabajador disponible en festivos
+            contador_disponibles[fecha_str] = 0
 
-        elif dia_semana < 5:  # 🔹 Solo de lunes a viernes
+        # ✅ Solo mostrar eventos de lunes a viernes
+        elif dia_semana < 5:
             disponibles_en_dia = 0
+            eventos_dia = []
 
             for usuario in usuarios_ordenados:
-                nombre_completo = f"{usuario.nombre} {usuario.apellidos}"
-                color = get_color_by_puesto(usuario.puesto)  
-                vacaciones_color = "#FF0000"  # 🔹 Rojo para vacaciones
+                nombre_completo = f"{usuario['nombre']} {usuario['apellidos']}"
+                color = colores_puestos.get(usuario["puesto"], "#D3D3D3")
 
-                # Verificar si el usuario tiene vacaciones en este día
+                # ¿Está el trabajador de vacaciones ese día?
                 tiene_vacaciones = any(
                     fecha_str >= inicio and fecha_str <= fin
                     for inicio, fin in dias_no_disponibles.get(nombre_completo, [])
                 )
 
-                eventos_json.append({
+                eventos_dia.append({
                     "id": f"{nombre_completo}-{fecha_str}",
-                    "title": f"{usuario.puesto} - {nombre_completo} (Ausente)" if tiene_vacaciones else f"{usuario.puesto} - {nombre_completo}",
+                    "title": f"{usuario['puesto']} - {nombre_completo} (Ausente)" if tiene_vacaciones else f"{usuario['puesto']} - {nombre_completo}",
                     "start": fecha_str,
-                    "color": vacaciones_color if tiene_vacaciones else color,
-                    "classNames": ["vacaciones-event"] if tiene_vacaciones else []  # 🔹 Aplica la clase CSS solo a vacaciones
+                    "color": "#FF0000" if tiene_vacaciones else color
                 })
 
                 if not tiene_vacaciones:
-                    disponibles_en_dia += 1  
+                    disponibles_en_dia += 1
 
+            # 🔹 Asegurar que el orden se respete dentro de cada día
+            eventos_dia.sort(key=lambda e: orden_puestos.get(e["title"].split(" - ")[0], 4))
+            eventos_json.extend(eventos_dia)
             contador_disponibles[fecha_str] = disponibles_en_dia  
 
-        fecha_inicio += timedelta(days=1)
+        fecha_actual += timedelta(days=1)
 
     return jsonify({"eventos": eventos_json, "contador": contador_disponibles})
 
-@app.route('/api/events/<int:event_id>', methods=['DELETE'])
+@app.route('/api/events/<event_id>', methods=['DELETE'])
 @login_required
 def delete_event(event_id):
-    evento = Evento.query.get(event_id)
+    evento = events_collection.find_one({"_id": ObjectId(event_id)})
     if not evento:
         return jsonify({"message": "Evento no encontrado"}), 404
 
-    if evento.trabajador != f"{current_user.nombre} {current_user.apellidos}":
-        return jsonify({"message": "No puedes eliminar eventos de otros"}), 403  # 🔹 Proteger eventos de otros usuarios
+    if evento["trabajador"] != f"{current_user.nombre} {current_user.apellidos}":
+        return jsonify({"message": "No puedes eliminar eventos de otros"}), 403
 
-    db.session.delete(evento)
-    db.session.commit()
-
+    events_collection.delete_one({"_id": ObjectId(event_id)})
     return jsonify({"message": "Evento eliminado, el usuario vuelve a estar disponible"}), 200
 
-@app.route('/api/events', methods=['POST'])
-@login_required
-def add_event():
-    # Si la solicitud es JSON (desde FullCalendar.js)
-    if request.is_json:
-        data = request.get_json()
-        fecha_inicio = data.get("fecha_inicio")
-        fecha_fin = data.get("fecha_fin")
-
-    # Si la solicitud es desde un formulario HTML (form-data)
-    else:
-        fecha_inicio = request.form.get('fecha_inicio')
-        fecha_fin = request.form.get('fecha_fin')
-
-    # Validar que las fechas no estén vacías
-    if not fecha_inicio or not fecha_fin:
-        return jsonify({"message": "Fechas inválidas"}), 400
-
-    # Crear el evento
-    nuevo_evento = Evento(trabajador=current_user.nombre, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, tipo="Vacaciones")
-    db.session.add(nuevo_evento)
-    db.session.commit()
-
-    # Redirigir al calendario si la solicitud es desde el formulario
-    if not request.is_json:
-        return redirect(url_for('calendar_page'))
-
-    return jsonify({"message": "Evento agregado correctamente"}), 201  # Respuesta para JSON (FullCalendar.js)
-
-
-
-def clear_sessions():
-    with app.app_context():
-        try:
-            db.session.execute(text("DELETE FROM flask_session"))  # 🔹 Corregido con text()
-            db.session.commit()
-        except Exception as e:
-            print("No se pudo eliminar sesiones:", e)
-
-
-"""
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(host="0.0.0.0", port=8080, debug=True)
-"""
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # Render asigna el puerto
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
