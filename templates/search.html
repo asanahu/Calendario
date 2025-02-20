@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Asistente de IA</title>
+</head>
+<body>
+    <h1>🔍 Búsqueda en Documentos</h1>
+
+    <form action="/search" method="post">
+        <label for="documento">📄 Selecciona un documento:</label>
+        <select name="documento">
+            <option value="">Todos los documentos</option>
+            {% for doc in documentos %}
+            <option value="{{ doc }}">{{ doc }}</option>
+            {% endfor %}
+        </select>
+        
+        <br><br>
+        
+        <label for="query">❓ Pregunta:</label>
+        <input type="text" name="query" required>
+        
+        <button type="submit">🔎 Buscar</button>
+    </form>
+
+    {% if resultados %}
+        <h2>📌 Respuestas:</h2>
+        <ul>
+            {% for resultado in resultados %}
+            <li>{{ resultado }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>

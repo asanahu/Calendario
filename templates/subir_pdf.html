@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Subir PDF a Pinecone</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>📂 Subir PDF a Pinecone</h1>
+
+    <form action="/subir-pdf" method="post" enctype="multipart/form-data">
+        <label for="archivo">Selecciona un archivo PDF:</label>
+        <input type="file" name="archivo" accept=".pdf" required>
+        <button type="submit">📤 Subir</button>
+        <button onclick="window.location.href='/dashboard'">🔙 Atrás</button>
+    </form>
+
+    <br>
+    <a href="/">⬅️ Volver al Inicio</a>
+</body>
+</html>

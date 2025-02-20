@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Opciones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Bienvenido, {{ current_user.nombre }}</h1>
+    
+    <div class="menu-container">
+        <button onclick="window.location.href='/calendar'">📅 Ir al Calendario</button>
+        <button onclick="window.location.href='/ai-assistant'">🤖 Ir al Asistente de IA</button>
+        <button onclick="window.location.href='/subir-pdf'">📂 Subir Documentos</button>
+        <button onclick="window.location.href='/logout'">🔒 Cerrar Sesión</button>
+    </div>
+
+</body>
+</html>

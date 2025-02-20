@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente de IA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+    <h1>🤖 Asistente de IA</h1>
+
+    <div>
+        <textarea id="user-input" placeholder="Escribe tu pregunta..." rows="3"></textarea>
+        <button onclick="sendMessage()">Enviar</button>
+        <button onclick="window.location.href='/dashboard'">🔙 Atrás</button>
+    </div>
+
+    <div id="response-container"></div>
+
+    <script>
+        function sendMessage() {
+            const userInput = document.getElementById("user-input").value;
+
+            fetch('/ai-response', {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ "message": userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("response-container").innerHTML = `<p>${data.response}</p>`;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+
+</body>
+</html>

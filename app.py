@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+import datetime
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from functools import wraps
@@ -16,6 +17,7 @@ client = MongoClient(MONGO_URI)
 db = client["calendario"]
 users_collection = db["usuarios"]
 events_collection = db["eventos"]
+historial_collection = db["historial_conversaciones"]
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
@@ -59,6 +61,12 @@ def home():
         logout_user()
     return redirect(url_for('login'))
 
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -71,8 +79,7 @@ def login():
         user = User(user_data)
         user.id = str(user_data["_id"])  # Asegurar que el ID sea string
         login_user(user)
-        return redirect(url_for('calendar_page'))
-    
+        return redirect(url_for('dashboard'))
     return render_template('login.html')
 
 @app.route('/logout')
@@ -85,6 +92,12 @@ def logout():
 @login_required
 def calendar_page():
     return render_template('index.html')
+
+@app.route('/ai-assistant')
+@login_required
+def ai_assistant():
+    return render_template('ai_assistant.html')
+
 
 def get_color_by_puesto(puesto):
     clases = {
@@ -316,6 +329,181 @@ def delete_event(event_id):
     events_collection.delete_one({"_id": ObjectId(event_id)})
     return jsonify({"message": "Evento eliminado, el usuario vuelve a estar disponible"}), 200
 
+
+# Configuramos asistente de IA
+
+import openai
+import pinecone
+from pinecone import Pinecone
+from openai import OpenAI
+from procesar_pdfs import guardar_pdf_en_pinecone, extraer_texto_pdf
+
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# 🔹 Configurar Pinecone
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_ENVIRONMENT = os.getenv("PINECONE_ENVIRONMENT")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
+# Inicializar Pinecone correctamente con la nueva sintaxis
+pc = Pinecone(api_key=PINECONE_API_KEY)
+
+# 🔹 Inicializar cliente de OpenAI
+client = OpenAI()
+
+UPLOAD_FOLDER = "uploads"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+# Verificar si el índice existe antes de usarlo
+if PINECONE_INDEX_NAME not in pc.list_indexes().names():
+    print(f"❌ El índice '{PINECONE_INDEX_NAME}' no existe en Pinecone.")
+else:
+    index = pc.Index(PINECONE_INDEX_NAME)
+
+
+@app.route('/ai-response', methods=['POST'])
+@login_required
+def ai_response():
+    data = request.get_json()
+    user_message = data.get("message")  # Extraer el mensaje del usuario
+
+    if not user_message:
+        return jsonify({"error": "Mensaje vacío"}), 400
+
+    contexto = buscar_en_pinecone(user_message)
+    contexto_str = "\n".join(contexto) if contexto else "No se encontró información relevante."
+
+    # 🔹 Recuperar el historial de conversación (últimos 5 mensajes)
+    historial = list(historial_collection.find({"usuario": current_user.usuario}).sort("timestamp", -1).limit(5))
+    historial_str = "\n".join([f"Usuario: {h['mensaje']}\nAsistente: {h['respuesta']}" for h in historial])
+
+    # 🔹 Generar respuesta con OpenAI
+    prompt = f"""
+    Contexto relevante recuperado:
+    {contexto_str}
+
+    Historial de conversación:
+    {historial_str}
+
+    Usuario: {user_message}
+    Asistente:
+    """
+    
+    response = client.chat.completions.create(
+        model="chatgpt-4o-latest",
+        messages=[{"role": "system", "content": "Eres un asistente útil que ayuda con información de la empresa."},
+                  {"role": "user", "content": prompt}]
+    )
+
+    respuesta_final = response.choices[0].message.content
+
+    # 🔹 Guardar en MongoDB
+    guardar_historial(current_user.usuario, user_message, respuesta_final)
+
+    return jsonify({"response": respuesta_final})
+
+
+def guardar_texto_en_pinecone(texto, metadata={}):
+    """Convierte un texto en embeddings y lo almacena en Pinecone."""
+    
+    # 🔹 Generar embeddings con OpenAI
+    response = openai.embeddings.create(
+        model="text-embedding-ada-002",
+        input=[texto]  # Debe ser una lista
+    )
+    
+    embedding = response["data"][0]["embedding"]
+
+    # 🔹 Guardar en Pinecone
+    id_vector = str(uuid.uuid4())  # Generar un ID único para el vector
+    index.upsert([(id_vector, embedding, metadata)])
+    
+    return id_vector
+
+def buscar_en_pinecone(texto, documento=None):
+    """Convierte un texto en embedding y busca en Pinecone con filtro opcional."""
+    response = openai.embeddings.create(
+        model="text-embedding-ada-002",
+        input=texto
+    )
+    embedding = response.data[0].embedding
+
+    # 🔹 Aplicar filtro si el usuario quiere buscar en un documento específico
+    filtro = {"documento": {"$eq": documento}} if documento else {}
+
+    resultados = index.query(vector=embedding, top_k=5, include_metadata=True, filter=filtro)
+
+    return [res["metadata"]["texto"] for res in resultados["matches"]]
+
+
+def guardar_historial(usuario, mensaje, respuesta):
+    """Guarda una conversación en MongoDB."""
+    historial_collection.insert_one({
+        "usuario": usuario,
+        "mensaje": mensaje,
+        "respuesta": respuesta,
+        "timestamp": datetime.utcnow()
+    })
+
+@app.route("/upload", methods=["GET", "POST"])
+def upload_pdf():
+    if request.method == "POST":
+        if "file" not in request.files:
+            return "❌ No se subió ningún archivo", 400
+        
+        file = request.files["file"]
+        if file.filename == "":
+            return "❌ No se seleccionó ningún archivo", 400
+
+        # 🔹 Guardar archivo en la carpeta 'uploads'
+        pdf_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+        file.save(pdf_path)
+
+        # 🔹 Procesar el PDF y guardarlo en Pinecone
+        resultado = guardar_pdf_en_pinecone(pdf_path)
+        
+        return jsonify({"message": resultado})
+
+    return render_template("upload.html")  # Página para subir archivos
+
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    documentos = index.describe_index_stats()["namespaces"].keys()  # 🔹 Obtener documentos en Pinecone
+    resultados = []
+
+    if request.method == "POST":
+        query = request.form.get("query")
+        documento = request.form.get("documento") or None  # None significa "todos los documentos"
+
+        resultados = buscar_en_pinecone(query, documento)
+
+    return render_template("search.html", documentos=documentos, resultados=resultados)
+
+# 🔹 Ruta para subir archivos desde la web
+@app.route("/subir-pdf", methods=["GET", "POST"])
+def subir_pdf():
+    if request.method == "POST":
+        if "archivo" not in request.files:
+            return jsonify({"error": "No se ha seleccionado ningún archivo."}), 400
+
+        archivo = request.files["archivo"]
+
+        if archivo.filename == "":
+            return jsonify({"error": "El archivo no tiene nombre válido."}), 400
+
+        if archivo and archivo.filename.endswith(".pdf"):
+            archivo_path = os.path.join(app.config["UPLOAD_FOLDER"], archivo.filename)
+            archivo.save(archivo_path)
+
+            # Guardar el PDF en Pinecone
+            resultado = guardar_pdf_en_pinecone(archivo_path, archivo.filename)
+            return jsonify({"message": resultado})
+
+        return jsonify({"error": "Formato no válido. Solo se permiten archivos PDF."}), 400
+
+    return render_template("subir_pdf.html")
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True)
