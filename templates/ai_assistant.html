@@ -2,21 +2,31 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistente de IA</title>
+    <!-- Asegúrate de enlazar tu archivo de estilos -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
 
-    <h1>🤖 Asistente de IA</h1>
+    <!-- Contenedor principal que abarca toda la pantalla -->
+    <div class="assistant-background">
+        <!-- Contenedor centrado con fondo semitransparente -->
+        <div class="assistant-container">
+            <h1>Asistente de IA</h1>
 
-    <div>
-        <textarea id="user-input" placeholder="Escribe tu pregunta..." rows="3"></textarea>
-        <button onclick="sendMessage()">Enviar</button>
-        <button onclick="window.location.href='/dashboard'">🔙 Atrás</button>
+            <!-- Contenedor para el input y el botón de envío -->
+            <div class="input-container">
+                <textarea id="user-input" placeholder="Escribe tu pregunta..." rows="3"></textarea>
+                <button onclick="sendMessage()">Enviar</button>
+            </div>
+
+            <!-- Contenedor para mostrar la respuesta del LLM -->
+            <div id="response-container"></div>
+
+            <!-- Botón para volver atrás -->
+            <button onclick="window.location.href='/dashboard'" class="back-button">🔙 Atrás</button>
+        </div>
     </div>
-
-    <div id="response-container"></div>
 
     <script>
         function sendMessage() {
@@ -29,7 +39,15 @@
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById("response-container").innerHTML = `<p>${data.response}</p>`;
+                // Crear un nuevo div con la clase llm-response-card
+                const responseDiv = document.createElement('div');
+                responseDiv.classList.add('llm-response-card', 'visible');
+                responseDiv.innerHTML = `<p>${data.response}</p>`;
+
+                // Limpiar el contenedor y agregar el nuevo div
+                const container = document.getElementById("response-container");
+                container.innerHTML = "";
+                container.appendChild(responseDiv);
             })
             .catch(error => console.error("Error:", error));
         }

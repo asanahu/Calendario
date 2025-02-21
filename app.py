@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import datetime
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from functools import wraps
 from pymongo import MongoClient
@@ -443,7 +443,7 @@ def guardar_historial(usuario, mensaje, respuesta):
         "usuario": usuario,
         "mensaje": mensaje,
         "respuesta": respuesta,
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.now(timezone.utc)
     })
 
 @app.route("/upload", methods=["GET", "POST"])
@@ -498,12 +498,18 @@ def subir_pdf():
 
             # Guardar el PDF en Pinecone
             resultado = guardar_pdf_en_pinecone(archivo_path, archivo.filename)
-            return jsonify({"message": resultado})
+            
+            # Opcional: puedes almacenar un mensaje de éxito en flash para mostrarlo en el dashboard
+            from flask import flash
+            flash(resultado)
+            
+            return redirect(url_for('dashboard'))
 
         return jsonify({"error": "Formato no válido. Solo se permiten archivos PDF."}), 400
 
     return render_template("subir_pdf.html")
 
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False, use_debugger=False)

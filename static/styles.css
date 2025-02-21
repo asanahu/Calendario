@@ -288,3 +288,101 @@ button:hover {
     text-align: center;
     margin-top: 2px;
 }
+
+/* Contenedor que envuelve todo, para la imagen de fondo */
+.assistant-background {
+    background: url('/static/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    width: 100vw;
+    height: 100vh;
+    display: flex; /* Para centrar el contenido */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Contenedor principal del asistente */
+.assistant-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    max-width: 600px; /* Ancho máximo para que no se extienda demasiado */
+    width: 90%;       /* Se adapta en pantallas pequeñas */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+/* Título del asistente */
+.assistant-container h1 {
+    margin-top: 0;
+    font-size: 2em;
+    color: #333;
+}
+
+/* Contenedor del textarea y el botón de envío */
+.input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Estilo del textarea */
+#user-input {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 1em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    resize: none; /* Para que no se pueda redimensionar */
+}
+
+/* Botón de enviar */
+.input-container button {
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    font-size: 1em;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.input-container button:hover {
+    background-color: #0056b3;
+}
+
+/* Botón de atrás */
+.back-button {
+    background-color: #28a745;
+    margin-top: 10px;
+}
+.back-button:hover {
+    background-color: #218838;
+}
+
+/* Contenedor de la respuesta del LLM */
+#response-container {
+    margin-top: 20px;
+}
+
+/* Tarjeta donde se muestra la respuesta del LLM */
+.llm-response-card {
+    background-color: #f0f8ff;
+    border: 1px solid #007BFF;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 0 auto;
+    max-width: 500px; /* Limita el ancho de la respuesta */
+    text-align: left; /* Ajusta la alineación del texto */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+
+    /* Efecto de fade-in */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* Al tener la clase visible, se activa el fade-in */
+.llm-response-card.visible {
+    opacity: 1;
+}
