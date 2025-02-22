@@ -17,7 +17,7 @@
             <!-- Contenedor para el input y el botón de envío -->
             <div class="input-container">
                 <textarea id="user-input" placeholder="Escribe tu pregunta..." rows="3"></textarea>
-                <button onclick="sendMessage()">Enviar</button>
+                <button id="send-button" onclick="sendMessage()">Enviar</button>
             </div>
 
             <!-- Contenedor para mostrar la respuesta del LLM -->
@@ -30,8 +30,13 @@
 
     <script>
         function sendMessage() {
+            const sendButton = document.getElementById("send-button");
             const userInput = document.getElementById("user-input").value;
-
+    
+            // Deshabilitar el botón y cambiar el texto para indicar que se ha enviado la consulta
+            sendButton.disabled = true;
+            sendButton.textContent = "Enviando consulta...";
+    
             fetch('/ai-response', {
                 method: 'POST',
                 headers: { "Content-Type": "application/json" },
@@ -39,17 +44,33 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Crear un nuevo div con la clase llm-response-card
                 const responseDiv = document.createElement('div');
                 responseDiv.classList.add('llm-response-card', 'visible');
-                responseDiv.innerHTML = `<p>${data.response}</p>`;
-
-                // Limpiar el contenedor y agregar el nuevo div
+                const formattedResponse = data.response.replace(/\n/g, '<br>');
+                responseDiv.innerHTML = `<p>${formattedResponse}</p>`;
+    
+                // Mostrar las fuentes
+                const sourcesDiv = document.createElement('div');
+                sourcesDiv.classList.add('llm-sources');
+                if (data.sources && data.sources.trim() !== "" && data.sources !== "No se encontraron documentos relevantes.") {
+                    sourcesDiv.innerHTML = `<strong>Fuentes:</strong> ${data.sources}`;
+                } else {
+                    sourcesDiv.innerHTML = `<strong>Fuentes:</strong> La respuesta no provino de documentos de Pinecone.`;
+                }
+                responseDiv.appendChild(sourcesDiv);
+    
                 const container = document.getElementById("response-container");
                 container.innerHTML = "";
                 container.appendChild(responseDiv);
             })
-            .catch(error => console.error("Error:", error));
+            .catch(error => {
+                console.error("Error:", error);
+            })
+            .finally(() => {
+                // Rehabilitar el botón y restaurar el texto original
+                sendButton.disabled = false;
+                sendButton.textContent = "Enviar";
+            });
         }
     </script>
 

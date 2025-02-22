@@ -376,8 +376,6 @@ button:hover {
     max-width: 500px; /* Limita el ancho de la respuesta */
     text-align: left; /* Ajusta la alineación del texto */
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-
-    /* Efecto de fade-in */
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
 }
@@ -385,4 +383,14 @@ button:hover {
 /* Al tener la clase visible, se activa el fade-in */
 .llm-response-card.visible {
     opacity: 1;
+}
+
+.llm-response-card p {
+    margin: 0;
+}
+
+.llm-sources {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #333;
 }

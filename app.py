@@ -371,10 +371,18 @@ def ai_response():
     if not user_message:
         return jsonify({"error": "Mensaje vacío"}), 400
 
-    contexto = buscar_en_pinecone(user_message)
-    contexto_str = "\n".join(contexto) if contexto else "No se encontró información relevante."
+    # 🔹 Obtener los resultados de Pinecone (lista de tuplas)
+    resultados = buscar_en_pinecone(user_message)
 
-    # 🔹 Recuperar el historial de conversación (últimos 5 mensajes)
+    # Separar texto y nombres de documentos
+    context_texts = [r[0] for r in resultados]
+    doc_names = {r[1] for r in resultados if r[1] != "Desconocido"}
+
+    # Crear un string con los textos relevantes y con los nombres de documentos
+    contexto_str = "\n".join(context_texts) if context_texts else "No se encontró información relevante."
+    doc_str = ", ".join(doc_names) if doc_names else "No se encontraron documentos relevantes."
+
+    # 🔹 Recuperar el historial de conversación (últimos N mensajes) si lo usas
     historial = list(historial_collection.find({"usuario": current_user.usuario}).sort("timestamp", -1).limit(5))
     historial_str = "\n".join([f"Usuario: {h['mensaje']}\nAsistente: {h['respuesta']}" for h in historial])
 
@@ -389,11 +397,14 @@ def ai_response():
     Usuario: {user_message}
     Asistente:
     """
-    
+
     response = client.chat.completions.create(
-        model="chatgpt-4o-latest",
-        messages=[{"role": "system", "content": "Eres un asistente útil que ayuda con información de la empresa."},
-                  {"role": "user", "content": prompt}]
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Actúa como un asistente virtual experto en la gestión de expedientes de dependencia para los trabajadores de la sección PIAS del Instituto Aragonés de Servicios Sociales (IASS).  Tu ámbito de conocimiento se centra exclusivamente en los procesos y la herramienta informática utilizada en esta sección.  Cuando un trabajador te consulte, responde de forma concisa y directa a su pregunta, proporcionando la información o la guía necesaria para resolver su duda o avanzar en el proceso.  Prioriza la claridad y la utilidad práctica en tus respuestas. Evita dar información que no esté directamente relacionada con la gestión de expedientes de dependencia en la herramienta informática del IASS.  Recuerda que tu objetivo principal es ser una herramienta de apoyo eficaz y eficiente para los empleados."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.5
     )
 
     respuesta_final = response.choices[0].message.content
@@ -401,7 +412,11 @@ def ai_response():
     # 🔹 Guardar en MongoDB
     guardar_historial(current_user.usuario, user_message, respuesta_final)
 
-    return jsonify({"response": respuesta_final})
+    # Enviar también las fuentes (doc_str) en la respuesta
+    return jsonify({
+        "response": respuesta_final,
+        "sources": doc_str
+    })
 
 
 def guardar_texto_en_pinecone(texto, metadata={}):
@@ -422,7 +437,6 @@ def guardar_texto_en_pinecone(texto, metadata={}):
     return id_vector
 
 def buscar_en_pinecone(texto, documento=None):
-    """Convierte un texto en embedding y busca en Pinecone con filtro opcional."""
     response = openai.embeddings.create(
         model="text-embedding-ada-002",
         input=texto
@@ -432,10 +446,22 @@ def buscar_en_pinecone(texto, documento=None):
     # 🔹 Aplicar filtro si el usuario quiere buscar en un documento específico
     filtro = {"documento": {"$eq": documento}} if documento else {}
 
-    resultados = index.query(vector=embedding, top_k=5, include_metadata=True, filter=filtro)
+    resultados = index.query(
+        vector=embedding,
+        top_k=5,
+        include_metadata=True,
+        filter=filtro
+    )
 
-    return [res["metadata"]["texto"] for res in resultados["matches"]]
-
+    # Devolver una lista de tuplas (texto_del_fragmento, nombre_del_documento)
+    # Si algún metadato no existe, usar un valor por defecto.
+    return [
+        (
+            res["metadata"].get("texto", ""), 
+            res["metadata"].get("documento", "Desconocido")
+        )
+        for res in resultados["matches"]
+    ]
 
 def guardar_historial(usuario, mensaje, respuesta):
     """Guarda una conversación en MongoDB."""
