@@ -7,12 +7,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Bienvenido, {{ current_user.nombre }}</h1>
+    <h1>Bienvenido/a, {{ current_user.nombre }}</h1>
     
     <div class="menu-container">
         <button onclick="window.location.href='/calendar'">📅 Ir al Calendario</button>
         <button onclick="window.location.href='/ai-assistant'">🤖 Ir al Asistente de IA</button>
-        <button onclick="window.location.href='/subir-pdf'">📂 Subir Documentos</button>
+        {% if current_user.is_authenticated and current_user.puesto == "Administrador/a" %}
+            <button onclick="window.location.href='/subir-pdf'">📂 Subir Documentos</button>
+        {% endif %}
         <button onclick="window.location.href='/logout'">🔒 Cerrar Sesión</button>
     </div>
 

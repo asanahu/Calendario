@@ -472,7 +472,9 @@ def guardar_historial(usuario, mensaje, respuesta):
         "timestamp": datetime.now(timezone.utc)
     })
 
-@app.route("/upload", methods=["GET", "POST"])
+"""@app.route("/upload", methods=["GET", "POST"])
+@login_required
+@admin_required
 def upload_pdf():
     if request.method == "POST":
         if "file" not in request.files:
@@ -492,8 +494,9 @@ def upload_pdf():
         return jsonify({"message": resultado})
 
     return render_template("upload.html")  # Página para subir archivos
+    """
 
-@app.route("/search", methods=["GET", "POST"])
+"""@app.route("/search", methods=["GET", "POST"])
 def search():
     documentos = index.describe_index_stats()["namespaces"].keys()  # 🔹 Obtener documentos en Pinecone
     resultados = []
@@ -506,8 +509,12 @@ def search():
 
     return render_template("search.html", documentos=documentos, resultados=resultados)
 
+"""
+
 # 🔹 Ruta para subir archivos desde la web
 @app.route("/subir-pdf", methods=["GET", "POST"])
+@login_required
+@admin_required
 def subir_pdf():
     if request.method == "POST":
         if "archivo" not in request.files:
