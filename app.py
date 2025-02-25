@@ -1,16 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import datetime
+import boto3
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from functools import wraps
 from pymongo import MongoClient
 from bson import ObjectId
 import os
+from werkzeug.utils import secure_filename
 
 # Cargar variables de entorno
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
+AWS_S3_BUCKET = os.getenv("AWS_S3_BUCKET")
+AWS_S3_REGION = os.getenv("AWS_S3_REGION")
 
 # Conectar a MongoDB
 client = MongoClient(MONGO_URI)
@@ -18,6 +22,15 @@ db = client["calendario"]
 users_collection = db["usuarios"]
 events_collection = db["eventos"]
 historial_collection = db["historial_conversaciones"]
+
+
+# Inicializar el cliente de boto3
+s3_client = boto3.client(
+    's3',
+    region_name=AWS_S3_REGION,
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
@@ -371,16 +384,17 @@ def ai_response():
     if not user_message:
         return jsonify({"error": "Mensaje vacío"}), 400
 
-    # 🔹 Obtener los resultados de Pinecone (lista de tuplas)
+    # 🔹 Obtener los resultados de Pinecone (lista de tuplas: (texto, documento, página))
     resultados = buscar_en_pinecone(user_message)
 
-    # Separar texto y nombres de documentos
+    # Separar el texto relevante de cada fragmento
     context_texts = [r[0] for r in resultados]
-    doc_names = {r[1] for r in resultados if r[1] != "Desconocido"}
-
-    # Crear un string con los textos relevantes y con los nombres de documentos
     contexto_str = "\n".join(context_texts) if context_texts else "No se encontró información relevante."
-    doc_str = ", ".join(doc_names) if doc_names else "No se encontraron documentos relevantes."
+
+    # Construir la lista de fuentes, incluyendo el documento y la página
+    # Se crea un set para evitar duplicados
+    fuentes_set = {(r[1], r[2]) for r in resultados if r[1] != "Desconocido"}
+    doc_str = ", ".join([f"{name} (página {page})" for name, page in fuentes_set]) if fuentes_set else "No se encontraron documentos relevantes."
 
     # 🔹 Recuperar el historial de conversación (últimos N mensajes) si lo usas
     historial = list(historial_collection.find({"usuario": current_user.usuario}).sort("timestamp", -1).limit(5))
@@ -401,7 +415,7 @@ def ai_response():
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "Actúa como un asistente virtual experto en la gestión de expedientes de dependencia para los trabajadores de la sección PIAS del Instituto Aragonés de Servicios Sociales (IASS).  Tu ámbito de conocimiento se centra exclusivamente en los procesos y la herramienta informática utilizada en esta sección.  Cuando un trabajador te consulte, responde de forma concisa y directa a su pregunta, proporcionando la información o la guía necesaria para resolver su duda o avanzar en el proceso.  Prioriza la claridad y la utilidad práctica en tus respuestas. Evita dar información que no esté directamente relacionada con la gestión de expedientes de dependencia en la herramienta informática del IASS.  Recuerda que tu objetivo principal es ser una herramienta de apoyo eficaz y eficiente para los empleados."},
+            {"role": "system", "content": "Actúa como un asistente virtual experto en la gestión de expedientes de dependencia para los trabajadores de la sección PIAS del Instituto Aragonés de Servicios Sociales (IASS). Tu ámbito de conocimiento se centra exclusivamente en los procesos y la herramienta informática utilizada en esta sección. Cuando un trabajador te consulte, responde de forma concisa y directa a su pregunta, proporcionando la información o la guía necesaria para resolver su duda o avanzar en el proceso. Prioriza la claridad y la utilidad práctica en tus respuestas. Evita dar información que no esté directamente relacionada con la gestión de expedientes de dependencia en la herramienta informática del IASS. Recuerda que tu objetivo principal es ser una herramienta de apoyo eficaz y eficiente para los empleados."},
             {"role": "user", "content": prompt}
         ],
         temperature=0.5
@@ -409,7 +423,7 @@ def ai_response():
 
     respuesta_final = response.choices[0].message.content
 
-    # 🔹 Guardar en MongoDB
+    # 🔹 Guardar en MongoDB el historial de conversación
     guardar_historial(current_user.usuario, user_message, respuesta_final)
 
     # Enviar también las fuentes (doc_str) en la respuesta
@@ -417,6 +431,7 @@ def ai_response():
         "response": respuesta_final,
         "sources": doc_str
     })
+
 
 
 def guardar_texto_en_pinecone(texto, metadata={}):
@@ -443,24 +458,18 @@ def buscar_en_pinecone(texto, documento=None):
     )
     embedding = response.data[0].embedding
 
-    # 🔹 Aplicar filtro si el usuario quiere buscar en un documento específico
     filtro = {"documento": {"$eq": documento}} if documento else {}
 
-    resultados = index.query(
-        vector=embedding,
-        top_k=5,
-        include_metadata=True,
-        filter=filtro
-    )
+    resultados = index.query(vector=embedding, top_k=5, include_metadata=True, filter=filtro)
 
-    # Devolver una lista de tuplas (texto_del_fragmento, nombre_del_documento)
-    # Si algún metadato no existe, usar un valor por defecto.
+    # Devolver una lista de tuplas (texto_del_fragmento, nombre_del_documento, pagina)
     return [
         (
-            res["metadata"].get("texto", ""), 
-            res["metadata"].get("documento", "Desconocido")
+            res["metadata"].get("texto", ""),
+            res["metadata"].get("documento", "Desconocido"),
+            res["metadata"].get("pagina", "N/D")
         )
-        for res in resultados["matches"]
+        for res in resultados.get("matches", [])
     ]
 
 def guardar_historial(usuario, mensaje, respuesta):
@@ -512,7 +521,7 @@ def search():
 """
 
 # 🔹 Ruta para subir archivos desde la web
-@app.route("/subir-pdf", methods=["GET", "POST"])
+"""@app.route("/subir-pdf", methods=["GET", "POST"])
 @login_required
 @admin_required
 def subir_pdf():
@@ -541,6 +550,79 @@ def subir_pdf():
         return jsonify({"error": "Formato no válido. Solo se permiten archivos PDF."}), 400
 
     return render_template("subir_pdf.html")
+"""
+
+@app.route("/subir-pdf", methods=["GET", "POST"])
+@login_required
+@admin_required
+def subir_pdf():
+    if request.method == "POST":
+        if "archivo" not in request.files:
+            return jsonify({"error": "No se ha seleccionado ningún archivo."}), 400
+
+        archivo = request.files["archivo"]
+
+        if archivo.filename == "":
+            return jsonify({"error": "El archivo no tiene nombre válido."}), 400
+
+        if archivo and archivo.filename.lower().endswith(".pdf"):
+            filename = secure_filename(archivo.filename)
+            # Guardar temporalmente el archivo en el servidor
+            temp_path = os.path.join("uploads", filename)
+            os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+            archivo.save(temp_path)
+            
+            try:
+                # Subir el archivo a S3
+                s3_client.upload_file(
+                    temp_path,
+                    AWS_S3_BUCKET,
+                    f"uploads/{filename}",
+                    ExtraArgs={
+                        "ContentType": archivo.content_type,
+                    }
+                )
+                file_url = f"https://{AWS_S3_BUCKET}.s3.{AWS_S3_REGION}.amazonaws.com/uploads/{filename}"
+                
+                # Procesar el PDF y guardar en Pinecone (esto incluirá la metadata, como la página)
+                resultado = guardar_pdf_en_pinecone(temp_path, filename)
+                
+                # (Opcional) Eliminar el archivo temporal si ya no se necesita
+                os.remove(temp_path)
+                
+                # Redirigir al dashboard (puedes usar flash para mostrar el resultado)
+                return redirect(url_for('dashboard'))
+            except Exception as e:
+                print("Error al subir a S3 o procesar en Pinecone:", e)
+                return jsonify({"error": "Error al subir el archivo."}), 500
+
+        return jsonify({"error": "Formato no válido. Solo se permiten archivos PDF."}), 400
+
+    return render_template("subir_pdf.html")
+
+
+@app.route("/documentos_subidos_s3", methods=["GET"])
+@login_required
+@admin_required  # O el nivel de restricción que prefieras
+def documentos_subidos_s3():
+    try:
+        response = s3_client.list_objects_v2(
+            Bucket=AWS_S3_BUCKET,
+            Prefix="uploads/"
+        )
+        # response.get("Contents") es una lista de objetos
+        files = []
+        for obj in response.get("Contents", []):
+            # Extraemos el nombre del archivo
+            key = obj["Key"]
+            # Construimos la URL del archivo
+            file_url = f"https://{AWS_S3_BUCKET}.s3.{AWS_S3_REGION}.amazonaws.com/{key}"
+            files.append({"name": key.split("/")[-1], "url": file_url})
+    except Exception as e:
+        print("Error al listar archivos en S3:", e)
+        files = []
+    
+    return render_template("documentos_subidos.html", files=files)
 
 
 if __name__ == "__main__":

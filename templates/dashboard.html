@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Opciones</title>
+    <title>Portal PIAS</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
@@ -15,6 +15,7 @@
         {% if current_user.is_authenticated and current_user.puesto == "Administrador/a" %}
             <button onclick="window.location.href='/subir-pdf'">📂 Subir Documentos</button>
         {% endif %}
+        <button onclick="window.location.href='/documentos_subidos_s3'">📂 Repositorio Documental</button>
         <button onclick="window.location.href='/logout'">🔒 Cerrar Sesión</button>
     </div>
 
