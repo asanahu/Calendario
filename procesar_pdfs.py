@@ -5,7 +5,8 @@ import openai
 import os
 import uuid
 from dotenv import load_dotenv
-
+import time
+import uuid
 # 🔹 Cargar variables de entorno
 load_dotenv()
 
@@ -63,15 +64,16 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     return fragmentos_con_paginas"""
 
 def extraer_texto_pdf(pdf_path):
+    import fitz  # pymupdf
     doc = fitz.open(pdf_path)
     fragmentos_con_paginas = []
     for num_pagina, pagina in enumerate(doc, start=1):
         texto_pagina = pagina.get_text("text")
         palabras = texto_pagina.split()
         fragmentos = [" ".join(palabras[i:i+500]) for i in range(0, len(palabras), 500)]
-        for fragmento in fragmentos:
-            if fragmento.strip():
-                fragmentos_con_paginas.append((fragmento, num_pagina))
+        for frag in fragmentos:
+            if frag.strip():
+                fragmentos_con_paginas.append((frag, num_pagina))
     return fragmentos_con_paginas
 
 """
@@ -122,37 +124,62 @@ def guardar_pdf_en_pinecone(pdf_path, doc_name):
 
 """
 
-def guardar_pdf_en_pinecone(pdf_path, doc_name):
+def guardar_pdf_en_pinecone(pdf_path, doc_name, index):
     try:
-        index.delete(filter={"documento": {"$eq": doc_name}})
+        # First, get all vectors with matching document name
+        fetch_response = index.query(
+            vector=[0] * 1536,  # Use a zero vector of correct dimension
+            filter={"documento": {"$eq": doc_name}},
+            top_k=10000,  # Increase to handle more vectors
+            include_metadata=True,
+            namespace=""
+        )
+        
+        matches = fetch_response.matches
+        if matches:
+            ids_to_delete = [match.id for match in matches]
+            # Delete in batches of 1000 to avoid potential limits
+            for i in range(0, len(ids_to_delete), 1000):
+                batch = ids_to_delete[i:i + 1000]
+                index.delete(ids=batch, namespace="")
+        else:
+            print(f"No se encontraron vectores existentes para '{doc_name}'", flush=True)
+
     except Exception as e:
-        print("Error al eliminar vectores previos:", e, flush=True)
-    
+        print(f"Error al eliminar vectores previos: {str(e)}", flush=True)
+        
+    # Continue with the rest of your existing code...
     fragmentos_con_paginas = extraer_texto_pdf(pdf_path)
-    
     if not fragmentos_con_paginas:
-        print(f"⚠️ No se encontró texto en el archivo '{doc_name}'.", flush=True)
         return f"❌ No se pudo procesar '{doc_name}'"
-    
-    for fragmento, num_pagina in fragmentos_con_paginas:
+
+    vectors_to_upsert = []
+    for frag, num_pagina in fragmentos_con_paginas:
         try:
             embedding_response = openai.embeddings.create(
                 model="text-embedding-ada-002",
-                input=fragmento
+                input=frag
             )
             embedding = embedding_response.data[0].embedding
-            id_vector = str(uuid.uuid4())
-            metadata = {"texto": fragmento, "documento": doc_name, "pagina": num_pagina}
-            index.upsert([(
-                id_vector,
-                embedding,
-                metadata
-            )])
+            vector_id = str(uuid.uuid4())
+            metadata = {"texto": frag, "documento": doc_name, "pagina": num_pagina}
+            vectors_to_upsert.append((vector_id, embedding, metadata))
+            
+            # Upsert in batches of 100
+            if len(vectors_to_upsert) >= 100:
+                index.upsert(vectors=vectors_to_upsert, namespace="")
+                vectors_to_upsert = []
+                
         except Exception as e:
-            print(f"❌ Error al procesar '{doc_name}':", e, flush=True)
+            print(f"❌ Error al procesar fragmento: {str(e)}", flush=True)
             return f"❌ No se pudo procesar '{doc_name}'"
-    
-    return f"✅ PDF '{doc_name}' procesado y almacenado en Pinecone."
+
+    # Upsert any remaining vectors
+    if vectors_to_upsert:
+        index.upsert(vectors=vectors_to_upsert, namespace="")
+
+    return f"✅ PDF '{doc_name}' procesado y almacenado en Pinecone"
+
 
 if __name__ == "__main__":
     app.run(debug=True)

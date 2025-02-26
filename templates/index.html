@@ -41,6 +41,20 @@
                 locale: 'es',
                 selectable: true,
                 eventOrder: "title",  // 🔹 Mantener el orden enviado por el backend
+                /* Agrega la barra superior (headerToolbar) */
+                headerToolbar: {
+                  left: 'prev,today,next',
+                  center: 'title',
+                  right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+
+                /* Agrega la barra inferior (footerToolbar) */
+                footerToolbar: {
+                  left: 'prev,today,next',
+                  center: '',
+                  right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                
                 events: function(fetchInfo, successCallback, failureCallback) {
                     fetch('/api/events')
                         .then(response => response.json())

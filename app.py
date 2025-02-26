@@ -9,6 +9,8 @@ from pymongo import MongoClient
 from bson import ObjectId
 import os
 from werkzeug.utils import secure_filename
+import time
+import uuid
 
 # Cargar variables de entorno
 load_dotenv()
@@ -47,6 +49,7 @@ class User(UserMixin):
         self.apellidos = user_data['apellidos']
         self.usuario = user_data['usuario']
         self.puesto = user_data['puesto']
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -265,6 +268,17 @@ def events():
     # 🔹 Obtener todas las vacaciones registradas
     eventos = list(events_collection.find())
 
+    # Agrupar los eventos por trabajador y por tipo
+    eventos_por_trabajador = {}
+    for evento in eventos:
+        nombre = evento["trabajador"]  # Supongo que se guarda el nombre completo
+        tipo = evento.get("tipo", "Vacaciones")
+        if nombre not in eventos_por_trabajador:
+            eventos_por_trabajador[nombre] = {}
+        if tipo not in eventos_por_trabajador[nombre]:
+            eventos_por_trabajador[nombre][tipo] = []
+        eventos_por_trabajador[nombre][tipo].append((evento["fecha_inicio"], evento["fecha_fin"]))
+
     # 🔹 Estructura para agrupar vacaciones por trabajador
     dias_no_disponibles = {}
     for evento in eventos:
@@ -279,7 +293,7 @@ def events():
     # 🔹 Generar eventos desde el 1 de enero hasta el 31 de diciembre de 2025
     fecha_actual = datetime(2025, 1, 1)
     fecha_fin = datetime(2025, 12, 31)
-
+    """
     while fecha_actual <= fecha_fin:
         fecha_str = fecha_actual.strftime("%Y-%m-%d")
         dia_semana = fecha_actual.weekday()
@@ -326,6 +340,74 @@ def events():
             contador_disponibles[fecha_str] = disponibles_en_dia  
 
         fecha_actual += timedelta(days=1)
+        """
+    
+    while fecha_actual <= fecha_fin:
+        fecha_str = fecha_actual.strftime("%Y-%m-%d")
+        dia_semana = fecha_actual.weekday()
+
+        if fecha_str in festivos:
+            eventos_json.append({
+                "id": f"Festivo-{fecha_str}",
+                "title": "Festivo",
+                "start": fecha_str,
+                "color": "#FFD700",
+                "classNames": ["festivo-event"]
+            })
+            contador_disponibles[fecha_str] = 0
+
+        elif dia_semana < 5:  # Sólo de lunes a viernes
+            disponibles_en_dia = 0
+            eventos_dia = []
+
+            for usuario in usuarios_ordenados:
+                nombre_completo = f"{usuario['nombre']} {usuario['apellidos']}"
+                color = colores_puestos.get(usuario["puesto"], "#D3D3D3")
+                event_label = f"{usuario['puesto']} - {nombre_completo}"
+
+                # Verifica si hay eventos asignados para este usuario en la fecha
+                user_events = eventos_por_trabajador.get(nombre_completo, {})
+                evento_asignado = None
+                # Verifica en orden de prioridad: Vacaciones, CADE 30, CADE 50, Mail.
+                for tipo in ["Vacaciones", "CADE 30", "CADE 50", "Mail"]:
+                    if tipo in user_events:
+                        for inicio, fin in user_events[tipo]:
+                            # Suponiendo que inicio y fin son strings "YYYY-MM-DD"
+                            if fecha_str >= inicio and fecha_str <= fin:
+                                evento_asignado = tipo
+                                break
+                    if evento_asignado:
+                        break
+
+                if evento_asignado:
+                    # Asigna título y color en función del estado asignado
+                    if evento_asignado == "Vacaciones":
+                        event_label += " (Ausente)"
+                        color = "#FF0000"
+                    elif evento_asignado == "CADE 30":
+                        event_label += " (CADE 30)"
+                        color = "#FFA500"
+                    elif evento_asignado == "CADE 50":
+                        event_label += " (CADE 50)"
+                        color = "#800080"
+                    elif evento_asignado == "Mail":
+                        event_label += " (Mail)"
+                        color = "#808080"
+                else:
+                    disponibles_en_dia += 1
+
+                eventos_dia.append({
+                    "id": f"{nombre_completo}-{fecha_str}",
+                    "title": event_label,
+                    "start": fecha_str,
+                    "color": color
+                })
+
+            eventos_dia.sort(key=lambda e: orden_puestos.get(e["title"].split(" - ")[0], 4))
+            eventos_json.extend(eventos_dia)
+            contador_disponibles[fecha_str] = disponibles_en_dia
+
+        fecha_actual += timedelta(days=1)
 
     return jsonify({"eventos": eventos_json, "contador": contador_disponibles})
 
@@ -341,6 +423,33 @@ def delete_event(event_id):
 
     events_collection.delete_one({"_id": ObjectId(event_id)})
     return jsonify({"message": "Evento eliminado, el usuario vuelve a estar disponible"}), 200
+
+@app.route('/admin/asignar-estados', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def asignar_estados():
+    if request.method == 'POST':
+        fecha_inicio = request.form.get('fecha_inicio')
+        fecha_fin = request.form.get('fecha_fin')
+        trabajadores = list(users_collection.find())  # O filtra según necesites
+        for trabajador in trabajadores:
+            estado = request.form.get(f"tipo_{trabajador['_id']}")
+            # Solo guardamos si el estado no es "normal"
+            if estado != "normal":
+                # Creamos o actualizamos un evento para este trabajador
+                evento = {
+                    "trabajador": f"{trabajador['nombre']} {trabajador['apellidos']}",
+                    "fecha_inicio": fecha_inicio,
+                    "fecha_fin": fecha_fin,
+                    "tipo": estado
+                }
+                # Inserta el evento. Podrías también actualizar si existe un evento para esa fecha y trabajador.
+                events_collection.insert_one(evento)
+        return redirect(url_for('dashboard'))
+    else:
+        # Pasar la lista de trabajadores al template
+        trabajadores = list(users_collection.find())
+        return render_template("asignar_estados.html", trabajadores=trabajadores)
 
 
 # Configuramos asistente de IA
@@ -551,6 +660,20 @@ def subir_pdf():
 
     return render_template("subir_pdf.html")
 """
+import os
+import re
+
+def custom_filename(filename):
+    """
+    Limpia el nombre del archivo permitiendo espacios, puntos y guiones.
+    Elimina caracteres no deseados, pero conserva los espacios.
+    """
+    filename = os.path.basename(filename)
+    # Permite letras, dígitos, espacios, guiones y puntos.
+    filename = re.sub(r'[^\w\s\.-]', '', filename)
+    # Reemplaza múltiples espacios por uno solo y quita espacios al inicio/final.
+    filename = re.sub(r'\s+', ' ', filename).strip()
+    return filename
 
 @app.route("/subir-pdf", methods=["GET", "POST"])
 @login_required
@@ -561,39 +684,35 @@ def subir_pdf():
             return jsonify({"error": "No se ha seleccionado ningún archivo."}), 400
 
         archivo = request.files["archivo"]
-
         if archivo.filename == "":
             return jsonify({"error": "El archivo no tiene nombre válido."}), 400
 
         if archivo and archivo.filename.lower().endswith(".pdf"):
-            filename = secure_filename(archivo.filename)
-            # Guardar temporalmente el archivo en el servidor
+            # Usa la función personalizada para normalizar el nombre y conservar espacios.
+            filename = custom_filename(archivo.filename)
             temp_path = os.path.join("uploads", filename)
             os.makedirs(os.path.dirname(temp_path), exist_ok=True)
-            archivo.save(temp_path)
+            # Guarda el archivo temporalmente usando un bloque with para asegurarte de cerrarlo.
+            with open(temp_path, 'wb') as f:
+                f.write(archivo.read())
             
             try:
-                # Subir el archivo a S3
+                # Sube el archivo a S3.
                 s3_client.upload_file(
                     temp_path,
-                    AWS_S3_BUCKET,
+                    os.environ.get("AWS_S3_BUCKET"),
                     f"uploads/{filename}",
-                    ExtraArgs={
-                        "ContentType": archivo.content_type,
-                    }
+                    ExtraArgs={"ContentType": archivo.content_type}
                 )
-                file_url = f"https://{AWS_S3_BUCKET}.s3.{AWS_S3_REGION}.amazonaws.com/uploads/{filename}"
+                file_url = f"https://{os.environ.get('AWS_S3_BUCKET')}.s3.{os.environ.get('AWS_S3_REGION')}.amazonaws.com/uploads/{filename}"
                 
-                # Procesar el PDF y guardar en Pinecone (esto incluirá la metadata, como la página)
-                resultado = guardar_pdf_en_pinecone(temp_path, filename)
+                # Procesa el PDF y almacena en Pinecone.
+                resultado = guardar_pdf_en_pinecone(temp_path, filename, index)
+        
                 
-                # (Opcional) Eliminar el archivo temporal si ya no se necesita
-                os.remove(temp_path)
-                
-                # Redirigir al dashboard (puedes usar flash para mostrar el resultado)
                 return redirect(url_for('dashboard'))
             except Exception as e:
-                print("Error al subir a S3 o procesar en Pinecone:", e)
+                print("Error al subir a S3 o procesar en Pinecone:", e, flush=True)
                 return jsonify({"error": "Error al subir el archivo."}), 500
 
         return jsonify({"error": "Formato no válido. Solo se permiten archivos PDF."}), 400
@@ -602,8 +721,7 @@ def subir_pdf():
 
 
 @app.route("/documentos_subidos_s3", methods=["GET"])
-@login_required
-@admin_required  # O el nivel de restricción que prefieras
+@login_required  # O el nivel de restricción que prefieras
 def documentos_subidos_s3():
     try:
         response = s3_client.list_objects_v2(

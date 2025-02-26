@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Asignar Estados Semanales</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    /* Contenedor principal del formulario */
+    .form-container {
+      max-width: 1200px; /* Ajusta el ancho máximo para quepan más columnas */
+      margin: 30px auto;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    select, input[type="date"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    /* Contenedor que agrupa a todos los trabajadores */
+    .worker-list {
+      margin-top: 20px;
+      display: grid;
+      /* 3 columnas fijas; puedes ajustar a 4 si prefieres */
+      grid-template-columns: repeat(5, 1fr);
+      gap: 20px; /* Espacio entre columnas */
+    }
+
+    .worker-item {
+      padding: 10px;
+      border: 1px solid #eee;
+      background: #fff;
+      border-radius: 4px;
+    }
+
+    .worker-name {
+      font-size: 1.5em; 
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .btn {
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1>Asignar Estados Semanales</h1>
+    <form action="/admin/asignar-estados" method="POST">
+      <div class="form-group">
+        <label for="fecha_inicio">Fecha de inicio:</label>
+        <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+      </div>
+      <div class="form-group">
+        <label for="fecha_fin">Fecha de fin:</label>
+        <input type="date" id="fecha_fin" name="fecha_fin" required>
+      </div>
+
+      <div class="worker-list">
+        {% for trabajador in trabajadores %}
+          <div class="worker-item">
+            <p class="worker-name">{{ trabajador.nombre }} {{ trabajador.apellidos }}</p>
+            <label for="tipo_{{ trabajador._id }}">Estado:</label>
+            <select name="tipo_{{ trabajador._id }}" id="tipo_{{ trabajador._id }}">
+              <option value="normal">PIAS</option>
+              <option value="CADE 30">CADE 30</option>
+              <option value="CADE 50">CADE 50</option>
+              <option value="Mail">Mail</option>
+            </select>
+          </div>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="btn">Asignar Estados</button>
+      <button type="button" class="btn" onclick="window.location.href='/dashboard'">🔙 Atrás</button>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 /* 🔹 Estilo general */
 body {
     font-family: Arial, sans-serif;
-    background: url('/static/background2.jpg') no-repeat center center fixed;
+    background: url('/static/background.jpg') no-repeat center center fixed;
     background-size: cover;
     color: #333;
     text-align: center;
@@ -117,7 +117,7 @@ h2 {
 }
 
 /* 🔹 Ajustar tamaño del texto normal */
-body, p, label {
+body, p {
     font-size: 0.8em;  /* ✅ Texto más grande en general */
 }
 /* 🔹 Aumentar tamaño de los labels (textos junto a los inputs) */
@@ -291,7 +291,7 @@ button:hover {
 
 /* Contenedor que envuelve todo, para la imagen de fondo */
 .assistant-background {
-    background: url('/static/background.jpg') no-repeat center center fixed;
+    background: url('/static/background4.jpg') no-repeat center center fixed;
     background-size: cover;
     width: 100vw;
     height: 100vh;
@@ -418,4 +418,20 @@ a.doc-link {
 /* Efecto hover para el botón */
 a.doc-link:hover {
     background-color: #0056b3;
+}
+
+/* Contenedor que envuelve todo, para la imagen de fondo */
+.vacation-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: url('/static/background2.jpg') no-repeat center center fixed;
+    background-size: cover;
+    z-index: -1; /* Esto hace que quede detrás del contenido */
+}
+
+body.vacation-page {
+    background: none;
 }

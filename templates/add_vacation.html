@@ -5,48 +5,50 @@
     <title>Añadir Vacaciones</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body>
-    <h1>Añadir Vacaciones</h1>
-    
-    <form method="POST">
-        <label>Fecha de inicio:</label>
-        <input type="date" name="fecha_inicio" required><br>
+<body class="vacation-page">
+    <div class="vacation-background"></div>
+        <h1>Añadir Vacaciones</h1>
+        
+        <form method="POST">
+            <label>Fecha de inicio:</label>
+            <input type="date" name="fecha_inicio" required><br>
 
-        <label>Fecha de fin:</label>
-        <input type="date" name="fecha_fin" required><br>
+            <label>Fecha de fin:</label>
+            <input type="date" name="fecha_fin" required><br>
 
-        <button type="submit">✅ Registrar Vacaciones</button>
-    </form>
+            <button type="submit">✅ Registrar Vacaciones</button>
+        </form>
 
-    <hr>
+        <hr>
 
-    <h2>📅 Tus Vacaciones Registradas</h2>
+        <h2>📅 Tus Vacaciones Registradas</h2>
 
-    {% if vacaciones %}
-        <table border="1">
-            <tr>
-                <th>Fecha de inicio</th>
-                <th>Fecha de fin</th>
-                <th>Acciones</th>
-            </tr>
-            {% for vacacion in vacaciones %}
-            <tr>
-                <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
-                <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
+        {% if vacaciones %}
+            <table border="1">
+                <tr>
+                    <th>Fecha de inicio</th>
+                    <th>Fecha de fin</th>
+                    <th>Acciones</th>
+                </tr>
+                {% for vacacion in vacaciones %}
+                <tr>
+                    <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
 
-                <td>
-                    <form method="POST" action="/delete-vacation/{{ vacacion._id|string }}">
-                        <button type="submit">❌ Eliminar</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>❌ No tienes vacaciones registradas.</p>
-    {% endif %}
+                    <td>
+                        <form method="POST" action="/delete-vacation/{{ vacacion._id|string }}">
+                            <button type="submit">❌ Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>❌ No tienes vacaciones registradas.</p>
+        {% endif %}
 
-    <br>
-    <a href="/calendar">⬅️ Volver al Calendario</a>
+        <br>
+        <a href="/calendar">⬅️ Volver al Calendario</a>
+    </div>
 </body>
 </html>
