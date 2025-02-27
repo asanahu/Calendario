@@ -130,7 +130,8 @@ label {
 }
 
 /* 🔹 Aumentar tamaño de los inputs */
-input[type="text"], input[type="date"], select {
+input[type="text"], input[type="date"], input[type="password"], 
+select {
     font-size: 1.2em;  /* ✅ Aumenta el tamaño del texto dentro del input */
     padding: 10px;
     width: 25%;  /* ✅ Hace que los inputs sean más anchos */

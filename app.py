@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
+from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import datetime
 import boto3
@@ -9,6 +9,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 import os
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import time
 import uuid
 
@@ -87,10 +88,11 @@ def dashboard():
 def login():
     if request.method == 'POST':
         usuario_input = request.form['usuario']
+        password_input = request.form['password']
         user_data = users_collection.find_one({"usuario": usuario_input})
 
-        if not user_data:
-            return "Usuario no autorizado", 401
+        if not check_password_hash(user_data.get("password", ""), password_input):
+            return "Contraseña incorrecta", 401
         
         user = User(user_data)
         user.id = str(user_data["_id"])  # Asegurar que el ID sea string
@@ -140,7 +142,8 @@ def add_user():
             "nombre": request.form.get('nombre'),
             "apellidos": request.form.get('apellidos'),
             "usuario": request.form.get('usuario'),
-            "puesto": request.form.get('puesto')
+            "puesto": request.form.get('puesto'),
+            "password": generate_password_hash(password)
         }
         if users_collection.find_one({"usuario": user_data["usuario"]}):
             return "El usuario ya existe", 400
@@ -163,6 +166,38 @@ def delete_user(user_id):
 
     users_collection.delete_one({"_id": ObjectId(user_id)})
     return redirect('/admin/users')
+
+@app.route('/cambiar-password', methods=['GET', 'POST'])
+@login_required
+def cambiar_password():
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Obtener el usuario actual desde la BD
+        user_data = users_collection.find_one({"_id": ObjectId(current_user.id)})
+        
+        # Verificar que la contraseña actual sea correcta
+        if not check_password_hash(user_data.get("password", ""), current_password):
+            flash("La contraseña actual es incorrecta", "error")
+            return redirect(url_for('cambiar_password'))
+        
+        # Verificar que la nueva contraseña y su confirmación coincidan
+        if new_password != confirm_password:
+            flash("La nueva contraseña y la confirmación no coinciden", "error")
+            return redirect(url_for('cambiar_password'))
+        
+        # Generar el hash de la nueva contraseña y actualizar la BD
+        new_hashed_password = generate_password_hash(new_password)
+        users_collection.update_one(
+            {"_id": ObjectId(current_user.id)},
+            {"$set": {"password": new_hashed_password}}
+        )
+        flash("Contraseña actualizada exitosamente", "success")
+        return redirect(url_for('dashboard'))
+    
+    return render_template("cambiar_password.html")
 
 @app.route('/admin/user_vacations/<user_id>')
 @login_required
