@@ -18,12 +18,13 @@
 
     <!-- 🔹 Contenedor de botones centrado -->
     <div class="button-container">
-        <button onclick="window.location.href='/add-vacation'">Gestión de Vacaciones</button>
-        <button onclick="window.location.href='/calendar'">Ver Calendario</button>
-        <button onclick="window.location.href='/logout'">Cerrar Sesión</button>
-        <button onclick="window.location.href='/dashboard'">🔙 Atrás</button>
+        <button onclick="window.location.href='/add-vacation'">✈️ Gestión de Vacaciones</button>
+        <button onclick="window.location.href='/calendar'">📅 Ver Calendario</button>
+        <button onclick="window.location.href='/logout'">❌ Cerrar Sesión</button>
+        <button onclick="window.location.href='/dashboard'" class="back-button">🔙 Volver al Menú Principal</button>
         {% if current_user.is_authenticated and current_user.puesto == "Administrador/a" %}
-        <button onclick="window.location.href='/admin/users'">Administrar Usuarios</button>
+        <button onclick="window.location.href='/admin/users'">👩‍🔧 Administrar Usuarios</button>
+        <button onclick="window.location.href='/admin/asignar-estados'">⚙️ Administrar Estados</button>
         {% endif %}
     </div>
 

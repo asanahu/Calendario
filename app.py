@@ -285,13 +285,13 @@ def events():
     festivos = {
         "2025-01-01", "2025-01-06", "2025-01-29", "2025-03-05", "2025-03-28", "2025-03-29",
         "2025-04-23", "2025-05-01", "2025-08-15", "2025-10-12", "2025-11-01", "2025-12-06",
-        "2025-12-09", "2025-12-25", "2026-01-01"
+        "2025-12-09", "2025-12-25", "2026-01-01", "2025-04-17", "2025-04-18"
     }
 
     # 🔹 Definir el orden de los puestos
     orden_puestos = {"Administrador/a": 1, "ADM": 2, "TS": 3}
     colores_puestos = {
-        "Administrador/a": "#FFD700",
+        "Administrador/a": "#8A2BE2",
         "ADM": "#B0FFB0",
         "TS": "#A3C4FF"
     }
@@ -386,7 +386,7 @@ def events():
                 "id": f"Festivo-{fecha_str}",
                 "title": "Festivo",
                 "start": fecha_str,
-                "color": "#FFD700",
+                "color": "#A9A9A9",
                 "classNames": ["festivo-event"]
             })
             contador_disponibles[fecha_str] = 0
@@ -424,10 +424,10 @@ def events():
                         color = "#FFA500"
                     elif evento_asignado == "CADE 50":
                         event_label += " (CADE 50)"
-                        color = "#800080"
+                        color = "#FFD700"
                     elif evento_asignado == "Mail":
                         event_label += " (Mail)"
-                        color = "#808080"
+                        color = "#B8860B"
                 else:
                     disponibles_en_dia += 1
 
@@ -466,23 +466,42 @@ def asignar_estados():
     if request.method == 'POST':
         fecha_inicio = request.form.get('fecha_inicio')
         fecha_fin = request.form.get('fecha_fin')
-        trabajadores = list(users_collection.find())  # O filtra según necesites
+        trabajadores = list(users_collection.find())
+        
         for trabajador in trabajadores:
             estado = request.form.get(f"tipo_{trabajador['_id']}")
-            # Solo guardamos si el estado no es "normal"
-            if estado != "normal":
-                # Creamos o actualizamos un evento para este trabajador
-                evento = {
-                    "trabajador": f"{trabajador['nombre']} {trabajador['apellidos']}",
+            if not estado:
+                continue
+
+            nombre_completo = f"{trabajador['nombre']} {trabajador['apellidos']}"
+            
+            if estado == "normal":
+                # Intentamos eliminar los eventos especiales para este trabajador y este rango
+                resultado = events_collection.delete_many({
+                    "trabajador": nombre_completo,
+                    "fecha_inicio": fecha_inicio,
+                    "fecha_fin": fecha_fin,
+                    "tipo": {"$in": ["CADE 30", "CADE 50", "Mail"]}
+                })
+            else:
+                # Primero eliminamos cualquier evento previo especial en ese rango (para evitar duplicados)
+                events_collection.delete_many({
+                    "trabajador": nombre_completo,
+                    "fecha_inicio": fecha_inicio,
+                    "fecha_fin": fecha_fin,
+                    "tipo": {"$in": ["CADE 30", "CADE 50", "Mail"]}
+                })
+                # Luego insertamos el nuevo evento
+                nuevo_evento = {
+                    "trabajador": nombre_completo,
                     "fecha_inicio": fecha_inicio,
                     "fecha_fin": fecha_fin,
                     "tipo": estado
                 }
-                # Inserta el evento. Podrías también actualizar si existe un evento para esa fecha y trabajador.
-                events_collection.insert_one(evento)
+                events_collection.insert_one(nuevo_evento)
+                
         return redirect(url_for('dashboard'))
     else:
-        # Pasar la lista de trabajadores al template
         trabajadores = list(users_collection.find())
         return render_template("asignar_estados.html", trabajadores=trabajadores)
 
