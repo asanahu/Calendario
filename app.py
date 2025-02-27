@@ -291,7 +291,7 @@ def events():
     # 🔹 Definir el orden de los puestos
     orden_puestos = {"Administrador/a": 1, "ADM": 2, "TS": 3}
     colores_puestos = {
-        "Administrador/a": "#8A2BE2",
+        "Administrador/a": "#9932CC",
         "ADM": "#B0FFB0",
         "TS": "#A3C4FF"
     }
@@ -500,7 +500,7 @@ def asignar_estados():
                 }
                 events_collection.insert_one(nuevo_evento)
                 
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('asignar_estados'))
     else:
         trabajadores = list(users_collection.find())
         return render_template("asignar_estados.html", trabajadores=trabajadores)
