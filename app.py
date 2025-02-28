@@ -328,55 +328,7 @@ def events():
     # 🔹 Generar eventos desde el 1 de enero hasta el 31 de diciembre de 2025
     fecha_actual = datetime(2025, 1, 1)
     fecha_fin = datetime(2025, 12, 31)
-    """
-    while fecha_actual <= fecha_fin:
-        fecha_str = fecha_actual.strftime("%Y-%m-%d")
-        dia_semana = fecha_actual.weekday()
-
-        # ✅ Agregar los festivos como eventos especiales
-        if fecha_str in festivos:
-            eventos_json.append({
-                "id": f"Festivo-{fecha_str}",
-                "title": "Festivo",
-                "start": fecha_str,
-                "color": "#FFD700",
-                "classNames": ["festivo-event"]
-            })
-            contador_disponibles[fecha_str] = 0
-
-        # ✅ Solo mostrar eventos de lunes a viernes
-        elif dia_semana < 5:
-            disponibles_en_dia = 0
-            eventos_dia = []
-
-            for usuario in usuarios_ordenados:
-                nombre_completo = f"{usuario['nombre']} {usuario['apellidos']}"
-                color = colores_puestos.get(usuario["puesto"], "#D3D3D3")
-
-                # ¿Está el trabajador de vacaciones ese día?
-                tiene_vacaciones = any(
-                    fecha_str >= inicio and fecha_str <= fin
-                    for inicio, fin in dias_no_disponibles.get(nombre_completo, [])
-                )
-
-                eventos_dia.append({
-                    "id": f"{nombre_completo}-{fecha_str}",
-                    "title": f"{usuario['puesto']} - {nombre_completo} (Ausente)" if tiene_vacaciones else f"{usuario['puesto']} - {nombre_completo}",
-                    "start": fecha_str,
-                    "color": "#FF0000" if tiene_vacaciones else color
-                })
-
-                if not tiene_vacaciones:
-                    disponibles_en_dia += 1
-
-            # 🔹 Asegurar que el orden se respete dentro de cada día
-            eventos_dia.sort(key=lambda e: orden_puestos.get(e["title"].split(" - ")[0], 4))
-            eventos_json.extend(eventos_dia)
-            contador_disponibles[fecha_str] = disponibles_en_dia  
-
-        fecha_actual += timedelta(days=1)
-        """
-    
+  
     while fecha_actual <= fecha_fin:
         fecha_str = fecha_actual.strftime("%Y-%m-%d")
         dia_semana = fecha_actual.weekday()
@@ -404,7 +356,7 @@ def events():
                 user_events = eventos_por_trabajador.get(nombre_completo, {})
                 evento_asignado = None
                 # Verifica en orden de prioridad: Vacaciones, CADE 30, CADE 50, Mail.
-                for tipo in ["Vacaciones", "CADE 30", "CADE 50", "Mail"]:
+                for tipo in ["Baja", "Vacaciones", "CADE 30", "CADE 50", "Mail"]:
                     if tipo in user_events:
                         for inicio, fin in user_events[tipo]:
                             # Suponiendo que inicio y fin son strings "YYYY-MM-DD"
@@ -419,6 +371,9 @@ def events():
                     if evento_asignado == "Vacaciones":
                         event_label += " (Ausente)"
                         color = "#FF0000"
+                    elif evento_asignado == "Baja":
+                        event_label += " (Baja)"
+                        color = "#A9A9A9"
                     elif evento_asignado == "CADE 30":
                         event_label += " (CADE 30)"
                         color = "#FFA500"
@@ -466,6 +421,10 @@ def asignar_estados():
     if request.method == 'POST':
         fecha_inicio = request.form.get('fecha_inicio')
         fecha_fin = request.form.get('fecha_fin')
+
+        fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+        fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
+
         trabajadores = list(users_collection.find())
         
         for trabajador in trabajadores:
@@ -474,32 +433,40 @@ def asignar_estados():
                 continue
 
             nombre_completo = f"{trabajador['nombre']} {trabajador['apellidos']}"
-            
-            if estado == "normal":
-                # Intentamos eliminar los eventos especiales para este trabajador y este rango
-                resultado = events_collection.delete_many({
+            print(f"Procesando {nombre_completo}: estado seleccionado = {estado}, rango: {fecha_inicio} a {fecha_fin}", flush=True)
+
+            # Iterar por cada día del rango
+            current_day = fecha_inicio_dt
+            while current_day <= fecha_fin_dt:
+                day_str = current_day.strftime("%Y-%m-%d")
+
+                query_filter = {
                     "trabajador": nombre_completo,
-                    "fecha_inicio": fecha_inicio,
-                    "fecha_fin": fecha_fin,
-                    "tipo": {"$in": ["CADE 30", "CADE 50", "Mail"]}
-                })
-            else:
-                # Primero eliminamos cualquier evento previo especial en ese rango (para evitar duplicados)
-                events_collection.delete_many({
-                    "trabajador": nombre_completo,
-                    "fecha_inicio": fecha_inicio,
-                    "fecha_fin": fecha_fin,
-                    "tipo": {"$in": ["CADE 30", "CADE 50", "Mail"]}
-                })
-                # Luego insertamos el nuevo evento
-                nuevo_evento = {
-                    "trabajador": nombre_completo,
-                    "fecha_inicio": fecha_inicio,
-                    "fecha_fin": fecha_fin,
-                    "tipo": estado
+                    "fecha_inicio": day_str,
+                    "fecha_fin": day_str,
+                    "tipo": {"$in": ["Baja", "CADE 30", "CADE 50", "Mail"]}
                 }
-                events_collection.insert_one(nuevo_evento)
-                
+
+                if estado == "normal":
+                    # Intentamos eliminar los eventos especiales para este trabajador y este rango
+                    resultado  = events_collection.delete_many(query_filter)
+                    print(f"[Normal] Eliminados {resultado.deleted_count} eventos especiales para {nombre_completo} en {day_str}", flush=True)
+                else:
+                    # Primero eliminamos cualquier evento previo especial en ese rango (para evitar duplicados)
+                    resultado = events_collection.delete_many(query_filter)
+                    print(f"[Asignación {estado}] Eliminados {resultado.deleted_count} eventos anteriores para {nombre_completo} en {day_str}", flush=True)
+                    # Luego insertamos el nuevo evento
+                    nuevo_evento = {
+                        "trabajador": nombre_completo,
+                        "fecha_inicio": day_str,
+                        "fecha_fin": day_str,
+                        "tipo": estado
+                    }
+                    events_collection.insert_one(nuevo_evento)
+                    print(f"Insertado nuevo evento para {nombre_completo} en {day_str}: {nuevo_evento}", flush=True)
+                    
+                current_day += timedelta(days=1)
+            
         return redirect(url_for('asignar_estados'))
     else:
         trabajadores = list(users_collection.find())
