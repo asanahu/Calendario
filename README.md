@@ -41,6 +41,7 @@ Almacenamiento de Archivos: Amazon S3
 Vector Storage & Búsqueda Semántica: Pinecone
 Asistente de IA: OpenAI (GPT-4 Mini)
 Gestión de Variables de Entorno: python-dotenv
+
 Configuración
 Para ejecutar el proyecto, asegúrate de definir las siguientes variables de entorno en un archivo .env:
 
@@ -53,26 +54,16 @@ OPENAI_API_KEY: Clave API de OpenAI.
 PINECONE_API_KEY: Clave API de Pinecone.
 PINECONE_ENVIRONMENT: Entorno de Pinecone.
 PINECONE_INDEX_NAME: Nombre del índice en Pinecone.
+
+
 Instalación y Ejecución
-Clona el repositorio:
-
-bash
-Copiar
-git clone https://github.com/tuusuario/Calendario-Asistente-IA.git
-cd Calendario-Asistente-IA
-Crea un entorno virtual e instala las dependencias:
-
-bash
-Copiar
-python -m venv venv
-source venv/bin/activate   # En Windows: venv\Scripts\activate
+- Clona el repositorio
+- Crea un entorno virtual e instala las dependencias
 pip install -r requirements.txt
 Configura las variables de entorno en un archivo .env.
 
 Ejecuta la aplicación:
 
-bash
-Copiar
 python app.py
 Uso
 Dashboard:
