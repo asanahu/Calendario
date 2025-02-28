@@ -1,4 +1,5 @@
 Calendario+ Asistente de IA
+
 Calendario+ Asistente de IA es una aplicación web desarrollada en Flask que integra múltiples funcionalidades para la gestión de empleados en entornos empresariales. El proyecto permite gestionar vacaciones, asignar estados especiales (como CADE 30, CADE 50, Mail, Baja), y ofrece un asistente virtual que utiliza modelos de lenguaje (OpenAI) para proporcionar respuestas contextualizadas basadas en información de la empresa.
 
 Funcionalidades Principales
