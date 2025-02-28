@@ -5,4 +5,5 @@ usuarios.json
 # Archivos de entorno virtual
 venv/
 env/
-
+# Carpeta uploads
+uploads/
