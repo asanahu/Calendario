@@ -433,7 +433,6 @@ def asignar_estados():
                 continue
 
             nombre_completo = f"{trabajador['nombre']} {trabajador['apellidos']}"
-            print(f"Procesando {nombre_completo}: estado seleccionado = {estado}, rango: {fecha_inicio} a {fecha_fin}", flush=True)
 
             # Iterar por cada día del rango
             current_day = fecha_inicio_dt
@@ -449,12 +448,10 @@ def asignar_estados():
 
                 if estado == "normal":
                     # Intentamos eliminar los eventos especiales para este trabajador y este rango
-                    resultado  = events_collection.delete_many(query_filter)
-                    print(f"[Normal] Eliminados {resultado.deleted_count} eventos especiales para {nombre_completo} en {day_str}", flush=True)
+                    events_collection.delete_many(query_filter)
                 else:
                     # Primero eliminamos cualquier evento previo especial en ese rango (para evitar duplicados)
-                    resultado = events_collection.delete_many(query_filter)
-                    print(f"[Asignación {estado}] Eliminados {resultado.deleted_count} eventos anteriores para {nombre_completo} en {day_str}", flush=True)
+                    events_collection.delete_many(query_filter)
                     # Luego insertamos el nuevo evento
                     nuevo_evento = {
                         "trabajador": nombre_completo,
@@ -463,7 +460,6 @@ def asignar_estados():
                         "tipo": estado
                     }
                     events_collection.insert_one(nuevo_evento)
-                    print(f"Insertado nuevo evento para {nombre_completo} en {day_str}: {nuevo_evento}", flush=True)
                     
                 current_day += timedelta(days=1)
             
