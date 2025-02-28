@@ -436,3 +436,24 @@ a.doc-link:hover {
 body.vacation-page {
     background: none;
 }
+.worker-item.admin {
+    background-color: #8546c8; /* Color para TS */
+  }
+.worker-item.ts {
+    background-color: #A3C4FF; /* Color para TS */
+  }
+  
+  .worker-item.adm {
+    background-color: #B0FFB0; /* Color para ADM/Administrador/a */
+  }
+  
+  .worker-item.default {
+    background-color: #fff; /* O algún color por defecto */
+  }
+  
+  /* Ajusta el estilo de .worker-name si deseas que se vea destacado */
+  .worker-name {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }

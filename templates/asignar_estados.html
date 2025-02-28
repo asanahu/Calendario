@@ -84,7 +84,7 @@
 
       <div class="worker-list">
         {% for trabajador in trabajadores %}
-          <div class="worker-item">
+          <div class="worker-item {% if trabajador.puesto == 'TS' %}ts{% elif trabajador.puesto == 'ADM' %}adm{% elif trabajador.puesto == 'Administrador/a' %}admin{% else %}default{% endif %}">
             <p class="worker-name">{{ trabajador.nombre }} {{ trabajador.apellidos }}</p>
             <label for="tipo_{{ trabajador._id }}">Estado:</label>
             <select name="tipo_{{ trabajador._id }}" id="tipo_{{ trabajador._id }}">
