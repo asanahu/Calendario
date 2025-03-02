@@ -7,3 +7,4 @@ pymongo
 dnspython
 boto3
 openai
+pinecone
