@@ -8,3 +8,4 @@ dnspython
 boto3
 openai
 pinecone
+fitz
