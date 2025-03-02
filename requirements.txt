@@ -8,5 +8,6 @@ dnspython
 boto3
 openai
 pinecone
-fitz
 PyMuPDF
+frontend
+Flask-Admin
