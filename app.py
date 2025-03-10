@@ -539,12 +539,11 @@ def ai_response():
     """
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="o3-mini",
         messages=[
-            {"role": "system", "content": "Actúa como un asistente virtual experto en la gestión de expedientes de dependencia para los trabajadores de la sección PIAS del Instituto Aragonés de Servicios Sociales (IASS). Tu ámbito de conocimiento se centra exclusivamente en los procesos y la herramienta informática utilizada en esta sección. Cuando un trabajador te consulte, responde de forma concisa y directa a su pregunta, proporcionando la información o la guía necesaria para resolver su duda o avanzar en el proceso. Prioriza la claridad y la utilidad práctica en tus respuestas. Evita dar información que no esté directamente relacionada con la gestión de expedientes de dependencia en la herramienta informática del IASS. Recuerda que tu objetivo principal es ser una herramienta de apoyo eficaz y eficiente para los empleados."},
+            {"role": "system", "content": "Actúa como un asistente experto en la gestión de expedientes de dependencia que ayuda a los trabajadores de la sección PIAS del Instituto Aragonés de Servicios Sociales (IASS) a buscar información. Tu ámbito de conocimiento se centra exclusivamente en los procesos y la herramienta informática utilizada en esta sección. Cuando un trabajador te consulte, responde de forma concisa y directa a su pregunta, proporcionando la información o la guía necesaria para resolver su duda o avanzar en el proceso. Prioriza la claridad y la utilidad práctica en tus respuestas. Evita dar información que no esté directamente relacionada con la gestión de expedientes de dependencia en la herramienta informática del IASS. Recuerda que tu objetivo principal es ser una herramienta de apoyo eficaz y eficiente para los empleados."},
             {"role": "user", "content": prompt}
-        ],
-        temperature=0.5
+        ]
     )
 
     respuesta_final = response.choices[0].message.content
