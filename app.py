@@ -143,7 +143,8 @@ def add_user():
             "apellidos": request.form.get('apellidos'),
             "usuario": request.form.get('usuario'),
             "puesto": request.form.get('puesto'),
-            "password": generate_password_hash(password)
+            "password": generate_password_hash(password),
+            "visible_calendario": visible
         }
         if users_collection.find_one({"usuario": user_data["usuario"]}):
             return "El usuario ya existe", 400
@@ -297,7 +298,7 @@ def events():
     }
 
     # 🔹 Obtener todos los usuarios y aplicar orden por puesto
-    usuarios = list(users_collection.find())
+    usuarios = list(users_collection.find({"visible_calendario": {"$ne": False}}))
     usuarios_ordenados = sorted(usuarios, key=lambda u: orden_puestos.get(u.get("puesto", ""), 4))
 
     # 🔹 Obtener todas las vacaciones registradas
