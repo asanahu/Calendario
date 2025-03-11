@@ -457,3 +457,20 @@ body.vacation-page {
     font-weight: bold;
     margin-bottom: 5px;
   }
+
+.doc-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.delete-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.delete-btn:hover {
+    background-color: #c0392b;
+}

@@ -758,6 +758,57 @@ def documentos_subidos_s3():
     
     return render_template("documentos_subidos.html", files=files)
 
+@app.route("/eliminar_documento", methods=["POST"])
+@login_required
+@admin_required
+def eliminar_documento():
+    filename = request.form.get("filename")
+    
+    if not filename:
+        flash("No se especificó ningún archivo para eliminar", "error")
+        return redirect(url_for("documentos_subidos_s3"))
+    
+    try:
+        # 1. Eliminar el archivo de S3
+        s3_object_key = f"uploads/{filename}"
+        s3_client.delete_object(
+            Bucket=AWS_S3_BUCKET,
+            Key=s3_object_key
+        )
+        
+        # 2. Eliminar los vectores asociados de Pinecone
+        try:
+            # Obtener todos los vectores con el mismo nombre de documento
+            fetch_response = index.query(
+                vector=[0] * 1536,  # Vector de ceros de la dimensión correcta
+                filter={"documento": {"$eq": filename}},
+                top_k=10000,  # Aumentar para manejar más vectores
+                include_metadata=True
+            )
+            
+            matches = fetch_response.matches
+            if matches:
+                ids_to_delete = [match.id for match in matches]
+                # Eliminar en lotes de 1000 para evitar límites potenciales
+                for i in range(0, len(ids_to_delete), 1000):
+                    batch = ids_to_delete[i:i + 1000]
+                    index.delete(ids=batch)
+                print(f"Se eliminaron {len(ids_to_delete)} vectores de Pinecone para '{filename}'")
+            else:
+                print(f"No se encontraron vectores en Pinecone para '{filename}'")
+                
+        except Exception as e:
+            print(f"Error al eliminar vectores de Pinecone: {str(e)}")
+            flash(f"Archivo eliminado de S3, pero hubo un error al eliminar de Pinecone: {str(e)}", "warning")
+            return redirect(url_for("documentos_subidos_s3"))
+        
+        flash(f"El documento '{filename}' ha sido eliminado correctamente de S3 y Pinecone", "success")
+        return redirect(url_for("documentos_subidos_s3"))
+        
+    except Exception as e:
+        flash(f"Error al eliminar el documento: {str(e)}", "error")
+        return redirect(url_for("documentos_subidos_s3"))
+    
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))

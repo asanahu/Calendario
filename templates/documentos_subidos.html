@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <!-- Contenedor que agrupa todo para centrarlo y darle estilo -->
     <div class="container">
         <h1>Manuales y Guías</h1>
         
@@ -14,8 +13,13 @@
             <ul class="docs-list">
                 {% for file in files %}
                 <li>
-                    <!-- Cada archivo es un botón azul con un poco de espacio entre sí -->
-                    <a class="doc-link" href="{{ file.url }}" target="_blank">{{ file.name }}</a>
+                    <div class="doc-actions">
+                        <a class="doc-link" href="{{ file.url }}" target="_blank">{{ file.name }}</a>
+                        <form action="{{ url_for('eliminar_documento') }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este documento?');">
+                            <input type="hidden" name="filename" value="{{ file.name }}">
+                            <button type="submit" class="delete-btn">Eliminar</button>
+                        </form>
+                    </div>
                 </li>
                 {% endfor %}
             </ul>
@@ -23,7 +27,6 @@
             <p>No hay documentos subidos.</p>
         {% endif %}
         
-        <!-- Botón para volver al dashboard -->
         <a class="back-button" href="/dashboard">⬅️ Volver al Menú Principal</a>
     </div>
 </body>
