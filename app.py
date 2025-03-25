@@ -363,7 +363,7 @@ def events():
                 user_events = eventos_por_trabajador.get(nombre_completo, {})
                 evento_asignado = None
                 # Verifica en orden de prioridad: Vacaciones, CADE 30, CADE 50, Mail.
-                for tipo in ["Baja", "Vacaciones", "CADE 30", "CADE 50", "Mail"]:
+                for tipo in ["Baja", "CADE 30", "CADE 50", "Mail", "Vacaciones"]:
                     if tipo in user_events:
                         for inicio, fin in user_events[tipo]:
                             # Suponiendo que inicio y fin son strings "YYYY-MM-DD"
