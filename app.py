@@ -473,6 +473,7 @@ def asignar_estados():
         return redirect(url_for('asignar_estados'))
     else:
         trabajadores = list(users_collection.find())
+        trabajadores = sorted(trabajadores, key=lambda x: (x['nombre'].lower(), x['apellidos'].lower()))
         return render_template("asignar_estados.html", trabajadores=trabajadores)
 
 
