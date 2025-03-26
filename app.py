@@ -91,8 +91,9 @@ def login():
         password_input = request.form['password']
         user_data = users_collection.find_one({"usuario": usuario_input})
 
-        if not check_password_hash(user_data.get("password", ""), password_input):
-            return "Contraseña incorrecta", 401
+        if user_data is None or not check_password_hash(user_data.get("password", ""), password_input):
+            flash("Usuario o contraseña incorrectos", "error")
+            return redirect(url_for('login'))
         
         user = User(user_data)
         user.id = str(user_data["_id"])  # Asegurar que el ID sea string
