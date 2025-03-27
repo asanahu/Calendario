@@ -207,26 +207,28 @@ def cambiar_password():
     
     return render_template("cambiar_password.html")
 
-@app.route('/admin/user_vacations/<user_id>')
-@login_required
-@admin_required
-def user_vacations(user_id):
-    usuario = users_collection.find_one({"_id": ObjectId(user_id)})
-    if not usuario:
-        abort(404)
-
-    # 🔹 Obtener las vacaciones, ordenarlas por fecha de inicio (ascendente)
-    vacaciones = list(events_collection.find(
-        {"trabajador": f"{usuario['nombre']} {usuario['apellidos']}", "tipo": "Vacaciones"}
-    ).sort("fecha_inicio", 1))  # 1 = Orden ascendente
-
-    # 🔹 Convertir fechas al formato DD/MM/YYYY
+def agrupar_vacaciones(vacaciones):
+    """
+    Agrupa las vacaciones consecutivas. Se asume que la lista 'vacaciones' está ordenada por 'fecha_inicio'.
+    Cada grupo es una lista de vacaciones consecutivas, donde la fecha de inicio de una vacación
+    es exactamente un día después de la fecha de fin de la vacación anterior.
+    """
+    grupos = []
+    grupo_actual = []
     for vacacion in vacaciones:
-        vacacion["fecha_inicio"] = datetime.strptime(vacacion["fecha_inicio"], "%Y-%m-%d").strftime("%d/%m/%Y")
-        vacacion["fecha_fin"] = datetime.strptime(vacacion["fecha_fin"], "%Y-%m-%d").strftime("%d/%m/%Y")
-
-    return render_template('user_vacations.html', usuario=usuario, vacaciones=vacaciones)
-
+        if not grupo_actual:
+            grupo_actual.append(vacacion)
+        else:
+            ultimo = grupo_actual[-1]
+            # Comprobamos si la vacación actual es consecutiva con respecto al grupo actual.
+            if vacacion["fecha_inicio"] == ultimo["fecha_fin"] + timedelta(days=1):
+                grupo_actual.append(vacacion)
+            else:
+                grupos.append(grupo_actual)
+                grupo_actual = [vacacion]
+    if grupo_actual:
+        grupos.append(grupo_actual)
+    return grupos
 
 @app.route('/add-vacation', methods=['GET', 'POST'])
 @login_required
@@ -238,7 +240,7 @@ def add_vacation():
             "fecha_fin": request.form.get('fecha_fin'),
             "tipo": "Vacaciones"
         }
-        # Convertir las fechas a datetime para iterar día a día
+        # Convertir las fechas a objetos datetime para iterar día a día
         fecha_inicio_dt = datetime.strptime(vacation_data["fecha_inicio"], "%Y-%m-%d")
         fecha_fin_dt = datetime.strptime(vacation_data["fecha_fin"], "%Y-%m-%d")
         
@@ -255,17 +257,45 @@ def add_vacation():
             events_collection.insert_one(event)
             current_day += timedelta(days=1)
         return redirect('/add-vacation')
-    # Obtener vacaciones existentes (puedes mantener la lógica de visualización)
+    
+    # Obtener las vacaciones existentes para el usuario, ordenadas por fecha de inicio
     vacaciones = list(events_collection.find({
         "trabajador": f"{current_user.nombre} {current_user.apellidos}",
         "tipo": "Vacaciones"
     }).sort("fecha_inicio", 1))
+    
+    # Convertir los strings de fechas a objetos datetime
     for vacacion in vacaciones:
         vacacion["fecha_inicio"] = datetime.strptime(vacacion["fecha_inicio"], "%Y-%m-%d")
         vacacion["fecha_fin"] = datetime.strptime(vacacion["fecha_fin"], "%Y-%m-%d")
-    return render_template('add_vacation.html', vacaciones=vacaciones)
+    
+    # Agrupar las vacaciones consecutivas
+    grupos_vacaciones = agrupar_vacaciones(vacaciones)
+    
+    return render_template('add_vacation.html', grupos_vacaciones=grupos_vacaciones)
 
+@app.route('/admin/user_vacations/<user_id>')
+@login_required
+@admin_required
+def user_vacations(user_id):
+    usuario = users_collection.find_one({"_id": ObjectId(user_id)})
+    if not usuario:
+        abort(404)
 
+    # Obtener las vacaciones, ordenadas por fecha de inicio (ascendente)
+    vacaciones = list(events_collection.find(
+        {"trabajador": f"{usuario['nombre']} {usuario['apellidos']}", "tipo": "Vacaciones"}
+    ).sort("fecha_inicio", 1))
+
+    # Convertir las fechas de string a objetos datetime
+    for vacacion in vacaciones:
+        vacacion["fecha_inicio"] = datetime.strptime(vacacion["fecha_inicio"], "%Y-%m-%d")
+        vacacion["fecha_fin"] = datetime.strptime(vacacion["fecha_fin"], "%Y-%m-%d")
+
+    # Agrupar las vacaciones consecutivas
+    grupos_vacaciones = agrupar_vacaciones(vacaciones)
+
+    return render_template('user_vacations.html', usuario=usuario, grupos_vacaciones=grupos_vacaciones)
 
 @app.route('/delete-vacation/<vacation_id>', methods=['POST'])
 @login_required

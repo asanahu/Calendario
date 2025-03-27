@@ -8,17 +8,24 @@
 <body>
     <h1>Vacaciones de {{ usuario.nombre }} {{ usuario.apellidos }}</h1>
     
-    {% if vacaciones %}
+    {% if grupos_vacaciones and grupos_vacaciones|length > 0 %}
         <table border="1">
-            <tr>
-                <th>Fecha de inicio</th>
-                <th>Fecha de fin</th>
-            </tr>
-            {% for vacacion in vacaciones %}
-            <tr>
-                <td>{{ vacacion.fecha_inicio }}</td>
-                <td>{{ vacacion.fecha_fin }}</td>
-            </tr>
+            {% for grupo in grupos_vacaciones %}
+                <!-- Encabezado del grupo: muestra el rango de días consecutivos -->
+                <tr style="background-color: #f0f0f0;">
+                    <td colspan="2">
+                        <strong>
+                            Vacaciones del {{ grupo[0].fecha_inicio.strftime('%d/%m/%Y') }} al {{ grupo[-1].fecha_fin.strftime('%d/%m/%Y') }}
+                        </strong>
+                    </td>
+                </tr>
+                <!-- Listado de días dentro del grupo (opcional) -->
+                {% for vacacion in grupo %}
+                <tr>
+                    <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                </tr>
+                {% endfor %}
             {% endfor %}
         </table>
     {% else %}

@@ -1,54 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Añadir Vacaciones</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <meta charset="UTF-8">
+  <title>Añadir Vacaciones</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body class="vacation-page">
-    <div class="vacation-background"></div>
-        <h1>Añadir Vacaciones</h1>
-        
-        <form method="POST">
-            <label>Fecha de inicio:</label>
-            <input type="date" name="fecha_inicio" required><br>
+  <div class="vacation-background"></div>
+  <h1>Añadir Vacaciones</h1>
+  <form method="POST">
+    <label>Fecha de inicio:</label>
+    <input type="date" name="fecha_inicio" required><br>
+    <label>Fecha de fin:</label>
+    <input type="date" name="fecha_fin" required><br>
+    <button type="submit">✅ Registrar Vacaciones</button>
+  </form>
+  <hr>
+  <h2>Tus Vacaciones Registradas</h2>
 
-            <label>Fecha de fin:</label>
-            <input type="date" name="fecha_fin" required><br>
+  {% if grupos_vacaciones %}
+    <table border="1">
+      {% for grupo in grupos_vacaciones %}
+        <!-- Encabezado para el grupo de días consecutivos -->
+        <tr style="background-color: #f0f0f0;">
+          <td colspan="3">
+            <strong>
+              Vacaciones del {{ grupo[0].fecha_inicio.strftime('%d/%m/%Y') }} al {{ grupo[-1].fecha_fin.strftime('%d/%m/%Y') }}
+            </strong>
+          </td>
+        </tr>
+        {% for vacacion in grupo %}
+          <tr>
+            <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+            <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
+            <td>
+              <form method="POST" action="/delete-vacation/{{ vacacion._id|string }}">
+                <button type="submit">❌ Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>❌ No tienes vacaciones registradas.</p>
+  {% endif %}
 
-            <button type="submit">✅ Registrar Vacaciones</button>
-        </form>
-
-        <hr>
-
-        <h2>📅 Tus Vacaciones Registradas</h2>
-
-        {% if vacaciones %}
-            <table border="1">
-                <tr>
-                    <th>Fecha de inicio</th>
-                    <th>Fecha de fin</th>
-                    <th>Acciones</th>
-                </tr>
-                {% for vacacion in vacaciones %}
-                <tr>
-                    <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
-
-                    <td>
-                        <form method="POST" action="/delete-vacation/{{ vacacion._id|string }}">
-                            <button type="submit">❌ Eliminar</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-        {% else %}
-            <p>❌ No tienes vacaciones registradas.</p>
-        {% endif %}
-
-        <br>
-        <a href="/calendar">⬅️ Volver al Calendario</a>
-    </div>
+  <br>
+  <a href="/calendar">⬅️ Volver al Calendario</a>
 </body>
 </html>
