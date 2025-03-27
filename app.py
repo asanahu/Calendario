@@ -238,19 +238,31 @@ def add_vacation():
             "fecha_fin": request.form.get('fecha_fin'),
             "tipo": "Vacaciones"
         }
-        events_collection.insert_one(vacation_data)
+        # Convertir las fechas a datetime para iterar día a día
+        fecha_inicio_dt = datetime.strptime(vacation_data["fecha_inicio"], "%Y-%m-%d")
+        fecha_fin_dt = datetime.strptime(vacation_data["fecha_fin"], "%Y-%m-%d")
+        
+        # Insertar un evento por cada día en el rango
+        current_day = fecha_inicio_dt
+        while current_day <= fecha_fin_dt:
+            day_str = current_day.strftime("%Y-%m-%d")
+            event = {
+                "trabajador": vacation_data["trabajador"],
+                "fecha_inicio": day_str,
+                "fecha_fin": day_str,
+                "tipo": "Vacaciones"
+            }
+            events_collection.insert_one(event)
+            current_day += timedelta(days=1)
         return redirect('/add-vacation')
-
-    # 🔹 Obtener y convertir las fechas de string a datetime antes de enviarlas a la plantilla
+    # Obtener vacaciones existentes (puedes mantener la lógica de visualización)
     vacaciones = list(events_collection.find({
         "trabajador": f"{current_user.nombre} {current_user.apellidos}",
         "tipo": "Vacaciones"
-    }).sort("fecha_inicio", 1))  # ✅ Ordenar por fecha de inicio
-
+    }).sort("fecha_inicio", 1))
     for vacacion in vacaciones:
         vacacion["fecha_inicio"] = datetime.strptime(vacacion["fecha_inicio"], "%Y-%m-%d")
         vacacion["fecha_fin"] = datetime.strptime(vacacion["fecha_fin"], "%Y-%m-%d")
-
     return render_template('add_vacation.html', vacaciones=vacaciones)
 
 
@@ -477,6 +489,34 @@ def asignar_estados():
         trabajadores = sorted(trabajadores, key=lambda x: (x['nombre'].lower(), x['apellidos'].lower()))
         return render_template("asignar_estados.html", trabajadores=trabajadores)
 
+@app.route('/admin/duplicados', methods=['GET'])
+@login_required
+@admin_required
+def duplicados():
+    pipeline = [
+        {
+            "$group": {
+                "_id": {
+                    "trabajador": "$trabajador",
+                    "fecha_inicio": "$fecha_inicio",
+                    "fecha_fin": "$fecha_fin"
+                },
+                "tipos": {"$addToSet": "$tipo"},
+                "count": {"$sum": 1},
+                "ids": {"$push": "$_id"}
+            }
+        },
+        {
+            "$match": {
+                "$expr": {"$gt": [{"$size": "$tipos"}, 1]}
+            }
+        },
+        {
+            "$sort": {"_id.fecha_inicio": 1}
+        }
+    ]
+    duplicados = list(events_collection.aggregate(pipeline))
+    return render_template("duplicados.html", duplicados=duplicados)
 
 # Configuramos asistente de IA
 

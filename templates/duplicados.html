@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Eventos Duplicados con Diferentes Tipos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    .duplicado-group {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      background-color: #f0f0f0;
+    }
+    .duplicado-group h3 {
+      margin: 0 0 10px 0;
+    }
+    .info {
+      font-size: 0.9em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Eventos Duplicados con Diferentes Tipos</h1>
+  {% if duplicados %}
+    {% for grupo in duplicados %}
+      <div class="duplicado-group">
+        <h3>
+          Trabajador: {{ grupo._id.trabajador }} | 
+          Fecha: {{ grupo._id.fecha_inicio }} - {{ grupo._id.fecha_fin }}
+        </h3>
+        <p class="info">Tipos de estados: {{ grupo.tipos | join(', ') }}</p>
+        <p class="info">Cantidad de estados duplicados: {{ grupo.count }}</p>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No se encontraron duplicados.</p>
+  {% endif %}
+  <button onclick="window.location.href='/admin/asignar-estados'">⚙️ Volver a Administrar Estados</button>
+  <button type="button" class="btn" onclick="window.location.href='/calendar'">🔙 Volver a Calendario</button>
+</body>
+</html>
