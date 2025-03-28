@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <title>Vacaciones de {{ usuario.nombre }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+      .group-header {
+        background-color: #f0f0f0;
+        cursor: pointer;
+      }
+      .toggle-icon {
+        float: right;
+        font-size: 18px;
+      }
+    </style>
 </head>
 <body>
     <h1>Vacaciones de {{ usuario.nombre }} {{ usuario.apellidos }}</h1>
@@ -11,21 +21,24 @@
     {% if grupos_vacaciones and grupos_vacaciones|length > 0 %}
         <table border="1">
             {% for grupo in grupos_vacaciones %}
-                <!-- Encabezado del grupo: muestra el rango de días consecutivos -->
-                <tr style="background-color: #f0f0f0;">
+                <!-- Encabezado del grupo: muestra el rango de días consecutivos con un ícono de toggle -->
+                <tr class="group-header" onclick="toggleGroup('{{ loop.index0 }}')">
                     <td colspan="2">
                         <strong>
                             Vacaciones del {{ grupo[0].fecha_inicio.strftime('%d/%m/%Y') }} al {{ grupo[-1].fecha_fin.strftime('%d/%m/%Y') }}
                         </strong>
+                        <span id="icon-{{ loop.index0 }}" class="toggle-icon">&#9660;</span>
                     </td>
                 </tr>
-                <!-- Listado de días dentro del grupo (opcional) -->
-                {% for vacacion in grupo %}
-                <tr>
-                    <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
-                </tr>
-                {% endfor %}
+                <!-- Cuerpo del grupo, inicialmente oculto -->
+                <tbody id="group-{{ loop.index0 }}" style="display: none;">
+                    {% for vacacion in grupo %}
+                    <tr>
+                        <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
             {% endfor %}
         </table>
     {% else %}
@@ -34,5 +47,19 @@
 
     <br>
     <a href="/admin/users">⬅️ Volver a la gestión de usuarios</a>
+
+    <script>
+      function toggleGroup(groupId) {
+          var groupElem = document.getElementById('group-' + groupId);
+          var icon = document.getElementById('icon-' + groupId);
+          if (groupElem.style.display === 'none') {
+              groupElem.style.display = 'table-row-group';
+              icon.innerHTML = "&#9650;";  // Flecha hacia arriba
+          } else {
+              groupElem.style.display = 'none';
+              icon.innerHTML = "&#9660;";  // Flecha hacia abajo
+          }
+      }
+    </script>
 </body>
 </html>

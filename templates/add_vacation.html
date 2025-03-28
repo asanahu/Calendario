@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <title>Añadir Vacaciones</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    .group-header {
+      background-color: #f0f0f0;
+      cursor: pointer;
+    }
+    .toggle-icon {
+      float: right;
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body class="vacation-page">
   <div class="vacation-background"></div>
@@ -22,24 +32,28 @@
     <table border="1">
       {% for grupo in grupos_vacaciones %}
         <!-- Encabezado para el grupo de días consecutivos -->
-        <tr style="background-color: #f0f0f0;">
+        <tr class="group-header" onclick="toggleGroup('{{ loop.index0 }}')">
           <td colspan="3">
             <strong>
               Vacaciones del {{ grupo[0].fecha_inicio.strftime('%d/%m/%Y') }} al {{ grupo[-1].fecha_fin.strftime('%d/%m/%Y') }}
             </strong>
+            <span id="icon-{{ loop.index0 }}" class="toggle-icon">&#9660;</span>
           </td>
         </tr>
-        {% for vacacion in grupo %}
-          <tr>
-            <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
-            <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
-            <td>
-              <form method="POST" action="/delete-vacation/{{ vacacion._id|string }}">
-                <button type="submit">❌ Eliminar</button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
+        <!-- Cuerpo oculto para los días individuales -->
+        <tbody id="group-{{ loop.index0 }}" style="display: none;">
+          {% for vacacion in grupo %}
+            <tr>
+              <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+              <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
+              <td>
+                <form method="POST" action="/delete-vacation/{{ vacacion._id|string }}">
+                  <button type="submit">❌ Eliminar</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
       {% endfor %}
     </table>
   {% else %}
@@ -48,5 +62,19 @@
 
   <br>
   <a href="/calendar">⬅️ Volver al Calendario</a>
+
+  <script>
+    function toggleGroup(groupId) {
+      var elem = document.getElementById('group-' + groupId);
+      var icon = document.getElementById('icon-' + groupId);
+      if (elem.style.display === 'none') {
+        elem.style.display = 'table-row-group';
+        icon.innerHTML = "&#9650;";  // Flecha arriba
+      } else {
+        elem.style.display = 'none';
+        icon.innerHTML = "&#9660;";  // Flecha abajo
+      }
+    }
+  </script>
 </body>
 </html>

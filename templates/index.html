@@ -36,6 +36,7 @@
             <option value="Ausente">Vacaciones</option>
             <option value="CADE 30">CADE 30</option>
             <option value="CADE 50">CADE 50</option>
+            <option value="Mail">Mail</option>
             <option value="Baja">Baja</option>
             <!-- Agrega más opciones según tus estados -->
         </select>
@@ -91,43 +92,58 @@
     
             calendar.render();
     
-            function actualizarContadorEnCalendario() {
-                setTimeout(() => {
-                    document.querySelectorAll('.fc-daygrid-day').forEach(dayCell => {
-                        let fecha = dayCell.getAttribute('data-date');
-                        let contadorDiv = dayCell.querySelector('.contador-calendario');
-                        if (!contadorDiv) {
-                            contadorDiv = document.createElement('div');
-                            contadorDiv.classList.add('contador-calendario');
-                            dayCell.appendChild(contadorDiv);
-                        }
-                        let contador = contadorDisponibles[fecha] || 0;
-                        contadorDiv.innerHTML = `<span style="font-size: 12px; color: black;">${contador} disponibles</span>`;
-                    });
-                }, 500);
-            }
-    
-            // Función para filtrar eventos según el estado seleccionado
+
             function filterCalendarEvents(filterValue) {
-                let filteredEvents;
-                if(filterValue === "todos") {
-                    filteredEvents = allEvents;
-                } else {
-                    // Filtrado case-insensitive
-                    filteredEvents = allEvents.filter(event => 
-                        event.title.toLowerCase().includes(filterValue.toLowerCase())
-                    );
+                try {
+                    let filteredEvents;
+                    if (filterValue === "todos") {
+                        // Recargar todos los eventos originales
+                        fetch('/api/events')
+                            .then(response => response.json())
+                            .then(data => {
+                                calendar.removeAllEvents();
+                                calendar.addEventSource(data.eventos);
+                                contadorDisponibles = data.contador;
+                                actualizarContadorEnCalendario();
+                            })
+                            .catch(error => {
+                                console.error("Error al recargar eventos:", error);
+                            });
+                    } else {
+                        filteredEvents = allEvents.filter(event => {
+                            switch(filterValue) {
+                                case "Ausente":
+                                    return event.title.includes("(Ausente)");
+                                case "CADE 30":
+                                    return event.title.includes("(CADE 30)");
+                                case "CADE 50":
+                                    return event.title.includes("(CADE 50)");
+                                case "Mail":
+                                    return event.title.includes("(Mail)");
+                                case "Baja":
+                                    return event.title.includes("(Baja)");
+                                default:
+                                    return true;
+                            }
+                        });
+                        
+                        calendar.removeAllEvents();
+                        calendar.addEventSource(filteredEvents);
+                    }
+                } catch (error) {
+                    console.error("Error en filtrado:", error);
                 }
-                calendar.removeAllEvents();
-                filteredEvents.forEach(event => {
-                    calendar.addEvent(event);
-                });
             }
-    
-            // Escuchar cambios en el filtro
+
+            // Optimizar el listener del filtro
+            let filterTimeout;
             document.getElementById('stateFilter').addEventListener('change', function() {
-                let filterValue = this.value;
-                filterCalendarEvents(filterValue);
+                clearTimeout(filterTimeout);
+                const filterValue = this.value;
+                
+                filterTimeout = setTimeout(() => {
+                    filterCalendarEvents(filterValue);
+                }, 100);
             });
         });
     </script>
