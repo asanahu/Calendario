@@ -28,41 +28,54 @@
         {% endif %}
     </div>
 
+    <!-- 🔹 Filtro por Estado -->
+    <div class="filter-container" style="text-align: center; margin: 20px 0;">
+        <label for="stateFilter">Filtrar por estado:</label>
+        <select id="stateFilter">
+            <option value="todos">Todos</option>
+            <option value="Ausente">Vacaciones</option>
+            <option value="CADE 30">CADE 30</option>
+            <option value="CADE 50">CADE 50</option>
+            <option value="Baja">Baja</option>
+            <!-- Agrega más opciones según tus estados -->
+        </select>
+    </div>
+
     <!-- 🔹 Calendario -->
     <div id="calendar"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
-            var contadorDisponibles = {};  
-    
+            var contadorDisponibles = {};
+            // Almacenamos una copia "plana" de los eventos para filtrar sin afectar el original.
+            var allEvents = [];
+
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 firstDay: 1, 
                 locale: 'es',
                 selectable: true,
-                eventOrder: "title",  // 🔹 Mantener el orden enviado por el backend
-                /* Agrega la barra superior (headerToolbar) */
+                eventOrder: "title",  // Mantener el orden enviado por el backend
                 headerToolbar: {
                   left: 'prev,today,next',
                   center: 'title',
                   right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-
-                /* Agrega la barra inferior (footerToolbar) */
                 footerToolbar: {
                   left: 'prev,today,next',
                   center: '',
                   right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                
                 events: function(fetchInfo, successCallback, failureCallback) {
                     fetch('/api/events')
                         .then(response => response.json())
                         .then(data => {
                             console.log("Eventos cargados:", data.eventos);
                             contadorDisponibles = data.contador;
-                            successCallback(data.eventos);
+                            // Guardamos una copia plana de los eventos para el filtrado.
+                            allEvents = JSON.parse(JSON.stringify(data.eventos));
+                            successCallback(allEvents);
                             actualizarContadorEnCalendario();
                         })
                         .catch(error => {
@@ -82,7 +95,6 @@
                 setTimeout(() => {
                     document.querySelectorAll('.fc-daygrid-day').forEach(dayCell => {
                         let fecha = dayCell.getAttribute('data-date');
-    
                         let contadorDiv = dayCell.querySelector('.contador-calendario');
                         if (!contadorDiv) {
                             contadorDiv = document.createElement('div');
@@ -94,8 +106,31 @@
                     });
                 }, 500);
             }
+    
+            // Función para filtrar eventos según el estado seleccionado
+            function filterCalendarEvents(filterValue) {
+                let filteredEvents;
+                if(filterValue === "todos") {
+                    filteredEvents = allEvents;
+                } else {
+                    // Filtrado case-insensitive
+                    filteredEvents = allEvents.filter(event => 
+                        event.title.toLowerCase().includes(filterValue.toLowerCase())
+                    );
+                }
+                calendar.removeAllEvents();
+                filteredEvents.forEach(event => {
+                    calendar.addEvent(event);
+                });
+            }
+    
+            // Escuchar cambios en el filtro
+            document.getElementById('stateFilter').addEventListener('change', function() {
+                let filterValue = this.value;
+                filterCalendarEvents(filterValue);
+            });
         });
     </script>
- 
+
 </body>
 </html>
