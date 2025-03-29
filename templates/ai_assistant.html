@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Asistente de IA</title>
-    <!-- Asegúrate de enlazar tu archivo de estilos -->
+    <!-- Vincular el archivo de estilos -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Vincular Font Awesome para los íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-
-    <!-- Contenedor principal que abarca toda la pantalla -->
     <div class="assistant-background">
-        <!-- Contenedor centrado con fondo semitransparente -->
+        <!-- Contenedor principal del asistente -->
         <div class="assistant-container">
-            <h1>Asistente de IA</h1>
+            <h2>Asistente de IA</h2>
 
             <!-- Contenedor para el input y el botón de envío -->
             <div class="input-container">
@@ -23,8 +23,24 @@
             <!-- Contenedor para mostrar la respuesta del LLM -->
             <div id="response-container"></div>
 
-            <!-- Botón para volver atrás -->
+        </div>
+
+        <!-- Nuevo cuadro para los enlaces adicionales -->
+        <div class="extra-box">
+            <h2>Otras herramientas de consulta</h2>
+            <div class="extra-links">
+                <a href="https://chatpdf.com/" target="_blank" class="link-button">
+                    <i class="fas fa-file-pdf"></i> ChatPDF
+                </a>
+                <a href="https://notebooklm.google/" target="_blank" class="link-button">
+                    <i class="fas fa-book"></i> NotebookLM
+                </a>
+            </div>
+            
+        </div>
+        <div class="extra-box">
             <button onclick="window.location.href='/dashboard'" class="back-button">🔙 Volver al Menú Principal</button>
+            <button onclick="window.location.href='/documentos_subidos_s3'">🗄️ Repositorio Documental</button>
         </div>
     </div>
 
@@ -73,6 +89,5 @@
             });
         }
     </script>
-
 </body>
 </html>
