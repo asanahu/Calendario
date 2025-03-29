@@ -121,6 +121,8 @@
       ];
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
+        firstDay: 1, // 1 = Lunes (0 sería Domingo)
+        locale: 'es', // Usar configuración española
         events: events,
       });
       calendar.render();
