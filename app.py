@@ -83,6 +83,25 @@ def home():
 def dashboard():
     return render_template('dashboard.html')
 
+@app.route('/calendar')
+@login_required
+def calendar_page():
+    # Obtener todos los usuarios visibles
+    usuarios = list(users_collection.find(
+        {"visible_calendario": {"$ne": False}},
+        {"nombre": 1, "apellidos": 1}
+    ))
+    
+    # Convertir ObjectId a string para serialización JSON
+    for usuario in usuarios:
+        usuario['_id'] = str(usuario['_id'])
+    
+    # Ordenar usuarios por nombre
+    usuarios_ordenados = sorted(
+        usuarios, 
+        key=lambda x: f"{x['nombre']} {x['apellidos']}".lower()
+    )
+    return render_template('index.html', usuarios=usuarios_ordenados)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -107,11 +126,12 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+"""
 @app.route('/calendar')
 @login_required
 def calendar_page():
     return render_template('index.html')
-
+"""
 @app.route('/ai-assistant')
 @login_required
 def ai_assistant():

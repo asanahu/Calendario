@@ -28,7 +28,7 @@
         {% endif %}
     </div>
 
-    <!-- 🔹 Filtro por Estado -->
+    <!-- 🔹 Filtros -->
     <div class="filter-container" style="text-align: center; margin: 20px 0;">
         <label for="stateFilter">Filtrar por estado:</label>
         <select id="stateFilter">
@@ -38,7 +38,20 @@
             <option value="CADE 50">CADE 50</option>
             <option value="Mail">Mail</option>
             <option value="Baja">Baja</option>
-            <!-- Agrega más opciones según tus estados -->
+        </select>
+
+        <label for="personFilter" style="margin-left: 20px;">Filtrar por persona:</label>
+        <select id="personFilter">
+            <option value="todos">Todos</option>
+            {% if usuarios %}
+                {% for usuario in usuarios %}
+                    <option value="{{ usuario.nombre }} {{ usuario.apellidos }}">
+                        {{ usuario.nombre }} {{ usuario.apellidos }}
+                    </option>
+                {% endfor %}
+            {% else %}
+                <option value="" disabled>No hay usuarios disponibles</option>
+            {% endif %}
         </select>
     </div>
 
@@ -47,104 +60,108 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            var contadorDisponibles = {};
-            // Almacenamos una copia "plana" de los eventos para filtrar sin afectar el original.
-            var allEvents = [];
+            try {
+                // Parse usuarios safely
+                const usuarios = JSON.parse('{{ usuarios|tojson|safe }}');
+                console.log("Usuarios disponibles:", usuarios);
+                
+                var calendarEl = document.getElementById('calendar');
+                var contadorDisponibles = {};
+                var allEvents = [];
+                let currentStateFilter = 'todos';
+                let currentPersonFilter = 'todos';
 
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                firstDay: 1, 
-                locale: 'es',
-                selectable: true,
-                eventOrder: "title",  // Mantener el orden enviado por el backend
-                headerToolbar: {
-                  left: 'prev,today,next',
-                  center: 'title',
-                  right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                footerToolbar: {
-                  left: 'prev,today,next',
-                  center: '',
-                  right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                events: function(fetchInfo, successCallback, failureCallback) {
-                    fetch('/api/events')
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log("Eventos cargados:", data.eventos);
-                            contadorDisponibles = data.contador;
-                            // Guardamos una copia plana de los eventos para el filtrado.
-                            allEvents = JSON.parse(JSON.stringify(data.eventos));
-                            successCallback(allEvents);
-                            actualizarContadorEnCalendario();
-                        })
-                        .catch(error => {
-                            console.error("Error al cargar eventos:", error);
-                        });
-                },
-                eventDidMount: function(info) {
-                    if (info.event.title.includes("(Ausente)")) {
-                        info.el.classList.add('vacaciones-event');  
-                    }
+                function cleanTitle(title) {
+                    // Remove extra spaces and normalize text
+                    return title.replace(/\s+/g, ' ').trim();
                 }
-            });
-    
-            calendar.render();
-    
 
-            function filterCalendarEvents(filterValue) {
-                try {
-                    let filteredEvents;
-                    if (filterValue === "todos") {
-                        // Recargar todos los eventos originales
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    firstDay: 1, 
+                    locale: 'es',
+                    selectable: true,
+                    eventOrder: "title",  // Mantener el orden enviado por el backend
+                    headerToolbar: {
+                      left: 'prev,today,next',
+                      center: 'title',
+                      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    footerToolbar: {
+                      left: 'prev,today,next',
+                      center: '',
+                      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    events: function(fetchInfo, successCallback, failureCallback) {
                         fetch('/api/events')
                             .then(response => response.json())
                             .then(data => {
-                                calendar.removeAllEvents();
-                                calendar.addEventSource(data.eventos);
-                                contadorDisponibles = data.contador;
-                                actualizarContadorEnCalendario();
+                                allEvents = data.eventos;
+                                console.log("Filtros actuales:", {
+                                    estado: currentStateFilter,
+                                    persona: currentPersonFilter
+                                });
+
+                                const filtered = allEvents.filter(event => {
+                                    const eventTitle = cleanTitle(event.title || '');
+                                    
+                                    // Filtro por estado
+                                    const passesStateFilter = currentStateFilter === 'todos' || 
+                                        eventTitle.includes(`(${currentStateFilter})`);
+                                    
+                                    // Filtro por persona
+                                    let passesPersonFilter = true;
+                                    if (currentPersonFilter !== 'todos') {
+                                        // Extraer el nombre sin el rol (TS -, ADM -, etc.)
+                                        const fullName = eventTitle.split('(')[0]  // Tomar parte antes del primer paréntesis
+                                                       .replace(/^(TS|ADM|Administrador\/a)\s*-\s*/, '') // Eliminar prefijo de rol
+                                                       .trim();
+                                        
+                                        passesPersonFilter = fullName === currentPersonFilter;
+                                        
+                                        if (passesPersonFilter) {
+                                            console.log(`Evento coincidente: "${eventTitle}" -> "${fullName}"`);
+                                        }
+                                    }
+
+                                    return passesStateFilter && passesPersonFilter;
+                                });
+
+                                console.log(`Eventos filtrados: ${filtered.length} de ${allEvents.length}`);
+                                successCallback(filtered);
                             })
                             .catch(error => {
-                                console.error("Error al recargar eventos:", error);
+                                console.error("Error al cargar eventos:", error);
+                                failureCallback(error);
                             });
-                    } else {
-                        filteredEvents = allEvents.filter(event => {
-                            switch(filterValue) {
-                                case "Ausente":
-                                    return event.title.includes("(Ausente)");
-                                case "CADE 30":
-                                    return event.title.includes("(CADE 30)");
-                                case "CADE 50":
-                                    return event.title.includes("(CADE 50)");
-                                case "Mail":
-                                    return event.title.includes("(Mail)");
-                                case "Baja":
-                                    return event.title.includes("(Baja)");
-                                default:
-                                    return true;
-                            }
-                        });
-                        
-                        calendar.removeAllEvents();
-                        calendar.addEventSource(filteredEvents);
+                    },
+                    eventDidMount: function(info) {
+                        if (info.event.title.includes("(Ausente)")) {
+                            info.el.classList.add('vacaciones-event');  
+                        }
                     }
-                } catch (error) {
-                    console.error("Error en filtrado:", error);
-                }
-            }
+                });
+        
+                calendar.render();
 
-            // Optimizar el listener del filtro
-            let filterTimeout;
-            document.getElementById('stateFilter').addEventListener('change', function() {
-                clearTimeout(filterTimeout);
-                const filterValue = this.value;
-                
-                filterTimeout = setTimeout(() => {
-                    filterCalendarEvents(filterValue);
-                }, 100);
-            });
+                // Event listeners
+                const personFilter = document.getElementById('personFilter');
+                const stateFilter = document.getElementById('stateFilter');
+
+                personFilter.addEventListener('change', function() {
+                    currentPersonFilter = this.value;
+                    console.log(`Aplicando filtro de persona: "${currentPersonFilter}"`);
+                    calendar.refetchEvents();
+                });
+
+                stateFilter.addEventListener('change', function() {
+                    currentStateFilter = this.value;
+                    console.log(`Aplicando filtro de estado: "${currentStateFilter}"`);
+                    calendar.refetchEvents();
+                });
+            } catch (error) {
+                console.error("Error al inicializar el calendario:", error);
+            }
         });
     </script>
 
