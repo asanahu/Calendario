@@ -33,6 +33,7 @@
         <label for="stateFilter">Filtrar por estado:</label>
         <select id="stateFilter">
             <option value="todos">Todos</option>
+            <option value="PIAS">PIAS</option>
             <option value="Ausente">Vacaciones</option>
             <option value="CADE 30">CADE 30</option>
             <option value="CADE 50">CADE 50</option>
@@ -106,8 +107,17 @@
                                     const eventTitle = cleanTitle(event.title || '');
                                     
                                     // Filtro por estado
-                                    const passesStateFilter = currentStateFilter === 'todos' || 
-                                        eventTitle.includes(`(${currentStateFilter})`);
+                                    let passesStateFilter = true;
+                                    if (currentStateFilter !== 'todos') {
+                                        if (currentStateFilter === 'PIAS') {
+                                            // Definir los estados que no se consideran PIAS
+                                            const nonPIASStates = ["Ausente", "CADE 30", "CADE 50", "Mail", "Baja"];
+                                            // Si contiene alguno de esos estados, entonces NO pasa el filtro PIAS
+                                            passesStateFilter = !nonPIASStates.some(state => eventTitle.includes(`(${state})`));
+                                        } else {
+                                            passesStateFilter = eventTitle.includes(`(${currentStateFilter})`);
+                                        }
+                                    }
                                     
                                     // Filtro por persona
                                     let passesPersonFilter = true;
