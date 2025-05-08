@@ -426,7 +426,7 @@ def events():
                 user_events = eventos_por_trabajador.get(nombre_completo, {})
                 evento_asignado = None
                 # Verifica en orden de prioridad: Vacaciones, CADE 30, CADE 50, Mail.
-                for tipo in ["Baja", "CADE 30", "CADE 50", "Mail", "Vacaciones"]:
+                for tipo in ["Baja", "CADE 30", "CADE 50", "CADE Tardes", "Mail", "Vacaciones"]:
                     if tipo in user_events:
                         for inicio, fin in user_events[tipo]:
                             # Suponiendo que inicio y fin son strings "YYYY-MM-DD"
@@ -453,6 +453,9 @@ def events():
                     elif evento_asignado == "Mail":
                         event_label += " (Mail)"
                         color = "#B8860B"
+                    elif evento_asignado == "CADE Tardes":
+                        event_label += " (CADE Tardes)"
+                        color = "#FFB347"  # Amarillo-naranja
                 else:
                     disponibles_en_dia += 1
 
@@ -513,7 +516,7 @@ def asignar_estados():
                     "trabajador": nombre_completo,
                     "fecha_inicio": day_str,
                     "fecha_fin": day_str,
-                    "tipo": {"$in": ["Baja", "CADE 30", "CADE 50", "Mail"]}
+                    "tipo": {"$in": ["Baja", "CADE 30", "CADE 50", "CADE Tardes", "Mail"]}
                 }
 
                 if estado == "normal":
