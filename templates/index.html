@@ -112,7 +112,7 @@
                                     if (currentStateFilter !== 'todos') {
                                         if (currentStateFilter === 'PIAS') {
                                             // Definir los estados que no se consideran PIAS
-                                            const nonPIASStates = ["Ausente", "CADE 30", "CADE 50", "Mail", "Baja"];
+                                            const nonPIASStates = ["Ausente", "CADE 30", "CADE 50","CADE Tardes", "Mail", "Baja"];
                                             // Si contiene alguno de esos estados, entonces NO pasa el filtro PIAS
                                             passesStateFilter = !nonPIASStates.some(state => eventTitle.includes(`(${state})`));
                                         } else {
