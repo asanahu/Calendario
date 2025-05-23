@@ -455,7 +455,7 @@ def events():
                         color = "#B8860B"
                     elif evento_asignado == "CADE Tardes":
                         event_label += " (CADE Tardes)"
-                        color = "#FFB347"  # Amarillo-naranja
+                        color = "#EBDE99"  # Amarillo-naranja
                 else:
                     disponibles_en_dia += 1
 
