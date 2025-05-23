@@ -357,7 +357,7 @@ button:hover {
     width: 100%;
     min-height: 120px;  /* Más alto que antes */
     padding: 10px;
-    font-size: 1rem;
+    font-size: 1.6rem;
     border-radius: 5px;
     border: 1px solid #ccc;
     resize: vertical;
@@ -390,6 +390,8 @@ button:hover {
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
+    font-size: 1.6rem; /* Antes no tenía esta línea */
+    line-height: 1.6;  /* Mejora la legibilidad */
 }
 
 /* Al tener la clase visible, se activa el fade-in */
