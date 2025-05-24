@@ -435,27 +435,25 @@ def events():
                                 break
                     if evento_asignado:
                         break
-
                 if evento_asignado:
-                    # Asigna título y color en función del estado asignado
                     if evento_asignado == "Vacaciones":
                         event_label += " (Ausente)"
-                        color = "#FF0000"
+                        color = "#E53935"  # Rojo brillante
                     elif evento_asignado == "Baja":
                         event_label += " (Baja)"
-                        color = "#A9A9A9"
+                        color = "#757575"  # Gris medio
                     elif evento_asignado == "CADE 30":
                         event_label += " (CADE 30)"
-                        color = "#FFA500"
+                        color = "#FB8C00"  # Naranja fuerte
                     elif evento_asignado == "CADE 50":
                         event_label += " (CADE 50)"
-                        color = "#FFD700"
-                    elif evento_asignado == "Mail":
-                        event_label += " (Mail)"
-                        color = "#B8860B"
+                        color = "#FDD835"  # Amarillo brillante
                     elif evento_asignado == "CADE Tardes":
                         event_label += " (CADE Tardes)"
-                        color = "#EBDE99"  # Amarillo-naranja
+                        color = "#F6AE2D"  # Dorado/miel vibrante
+                    elif evento_asignado == "Mail":
+                        event_label += " (Mail)"
+                        color = "#8D6E63"  # Marrón rosado apagado
                 else:
                     disponibles_en_dia += 1
 
