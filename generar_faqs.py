@@ -18,6 +18,10 @@ COLLECTION_NAME = "historial_conversaciones"
 N_FAQS_MIN_PREGUNTAS = 3
 FECHA_MINIMA = datetime(2025, 5, 1)
 
+# Añadir fecha de origen en formato español
+# fecha_origen_es = FECHA_MINIMA.strftime("%-d de %B de %Y")  # Linux/macOS
+fecha_origen_es = FECHA_MINIMA.strftime("%#d de %B de %Y")  # Windows
+
 # === CONECTAR A MONGO ===
 client = MongoClient(MONGO_URI)
 collection = client[DB_NAME][COLLECTION_NAME]
@@ -83,8 +87,13 @@ for grupo in faq_dict.values():
 
 # === GUARDAR RESULTADO ===
 print(f"💾 Guardando {len(faqs)} FAQs generadas en faqs_generadas.json...")
-with open("faqs_generadas.json", "w", encoding="utf-8") as f:
-    json.dump(faqs, f, indent=2, ensure_ascii=False)
+resultado = {
+    "fecha_generacion": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "fecha_origen": fecha_origen_es,
+    "faqs": faqs
+}
 
+with open("faqs_generadas.json", "w", encoding="utf-8") as f:
+    json.dump(resultado, f, indent=2, ensure_ascii=False)
 
 print("✅ Proceso completado.")

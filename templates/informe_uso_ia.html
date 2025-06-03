@@ -16,12 +16,23 @@
         </form>
 
         {% if faqs %}
-        <h2 style="margin-top: 40px;">FAQs (desde el 01/05/2025)</h2>
+        <h2 style="margin-top: 40px;">
+            FAQs 
+            {% if fecha_faqs or fecha_origen %}
+                <span style="font-size: 0.6em; font-weight: normal;">
+                (
+                    {% if fecha_faqs %}actualizado el {{ fecha_faqs }}{% endif %}
+                    {% if fecha_origen %} con fecha desde {{ fecha_origen }}{% endif %}
+                )
+                </span>
+            {% endif %}
+        </h2>
         <div style="text-align: left;">
             {% for faq in faqs %}
             <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0px 2px 6px rgba(0,0,0,0.15); font-size: 1.3em; line-height: 1.6;">
                 <p><strong>Pregunta:</strong> {{ faq.pregunta }}</p>
                 <p><strong>Respuesta:</strong> {{ faq.respuesta }}</p>
+                <p><em>Frecuencia:</em> {{ faq.frecuencia }}</p>
             </div>
             {% endfor %}
         </div>

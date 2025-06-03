@@ -929,10 +929,15 @@ def informe_uso_ia():
             fecha_dt = None
 
     # Cargar FAQs generadas desde JSON
+    fecha_faqs = None
+    fecha_origen = None
     faqs = []
     if os.path.exists(ruta_faqs):
         with open(ruta_faqs, "r", encoding="utf-8") as f:
-            faqs = json.load(f)
+            datos_faq = json.load(f)
+            faqs = datos_faq.get("faqs", [])
+            fecha_faqs = datos_faq.get("fecha_generacion")
+            fecha_origen = datos_faq.get("fecha_origen")
 
     # Calcular consultas por usuario a partir de MongoDB
     filtro = {}
@@ -949,7 +954,9 @@ def informe_uso_ia():
     return render_template(
         "informe_uso_ia.html",
         faqs=faqs,
-        consultas_por_usuario=consultas_por_usuario
+        consultas_por_usuario=consultas_por_usuario,
+        fecha_faqs=fecha_faqs,
+        fecha_origen=fecha_origen
     )
 
 if __name__ == "__main__":
