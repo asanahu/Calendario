@@ -16,7 +16,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 DB_NAME = os.getenv("MONGO_DB")
 COLLECTION_NAME = "historial_conversaciones"
 N_FAQS_MIN_PREGUNTAS = 3
-FECHA_MINIMA = datetime(2025, 5, 29)
+FECHA_MINIMA = datetime(2025, 5, 1)
 
 # === CONECTAR A MONGO ===
 client = MongoClient(MONGO_URI)
@@ -85,5 +85,6 @@ for grupo in faq_dict.values():
 print(f"💾 Guardando {len(faqs)} FAQs generadas en faqs_generadas.json...")
 with open("faqs_generadas.json", "w", encoding="utf-8") as f:
     json.dump(faqs, f, indent=2, ensure_ascii=False)
+
 
 print("✅ Proceso completado.")

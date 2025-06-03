@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, flash, make_response
+from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import datetime
 import boto3
@@ -6,12 +6,14 @@ from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from functools import wraps
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from bson import ObjectId
 import os
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import time
 import uuid
+import json
 
 # Cargar variables de entorno
 load_dotenv()
@@ -26,7 +28,7 @@ users_collection = db["usuarios"]
 events_collection = db["eventos"]
 historial_collection = db["historial_conversaciones"]
 
-
+ruta_faqs = "faqs_generadas.json"
 # Inicializar el cliente de boto3
 s3_client = boto3.client(
     's3',
@@ -913,73 +915,42 @@ def eliminar_documento():
         return redirect(url_for("documentos_subidos_s3"))
     
 
-@app.route("/informe_uso_ia")
+@app.route('/informe_uso_ia', methods=['GET'])
 @login_required
 @admin_required
 def informe_uso_ia():
+    # Obtener fecha de la URL
     fecha_str = request.args.get("fecha")
-    # Solo generar informe si se envió fecha
-    if not fecha_str:
-        return render_template("informe_uso_ia.html", faqs=[], resumen_usuarios=[], fecha="")
+    fecha_dt = None
+    if fecha_str:
+        try:
+            fecha_dt = datetime.strptime(fecha_str, "%Y-%m-%d")
+        except ValueError:
+            fecha_dt = None
 
-    try:
-        fecha_minima = datetime.strptime(fecha_str, "%Y-%m-%d")
-    except ValueError:
-        return jsonify({"error": "Fecha no válida"}), 400
+    # Cargar FAQs generadas desde JSON
+    faqs = []
+    if os.path.exists(ruta_faqs):
+        with open(ruta_faqs, "r", encoding="utf-8") as f:
+            faqs = json.load(f)
 
-    # === FAQs: agrupar preguntas similares ===
-    faqs = list(historial_collection.find({
-        "timestamp": {"$gte": fecha_minima}
-    }, {"mensaje": 1, "respuesta": 1, "_id": 0}))
+    # Calcular consultas por usuario a partir de MongoDB
+    filtro = {}
+    if fecha_dt:
+        filtro["timestamp"] = {"$gte": fecha_dt}
 
-    preguntas = [doc["mensaje"] for doc in faqs]
-    respuestas = [doc["respuesta"] for doc in faqs]
+    mensajes = list(historial_collection.find(filtro))
 
-    if preguntas:
-        from sentence_transformers import SentenceTransformer
-        import hdbscan
-        from sklearn.metrics.pairwise import cosine_similarity
-        import numpy as np
-        from collections import defaultdict
+    consultas_por_usuario = {}
+    for m in mensajes:
+        usuario = m.get("usuario", "Desconocido")
+        consultas_por_usuario[usuario] = consultas_por_usuario.get(usuario, 0) + 1
 
-        modelo = SentenceTransformer("all-MiniLM-L6-v2")
-        embeddings = modelo.encode(preguntas)
-
-        clusterer = hdbscan.HDBSCAN(min_cluster_size=3, metric='euclidean')
-        labels = clusterer.fit_predict(embeddings)
-
-        faq_dict = defaultdict(list)
-        for idx, label in enumerate(labels):
-            if label != -1:
-                faq_dict[label].append({
-                    "pregunta": preguntas[idx],
-                    "respuesta": respuestas[idx],
-                    "embedding": embeddings[idx]
-                })
-
-        resumen_faqs = []
-        for grupo in faq_dict.values():
-            centroide = np.mean([g["embedding"] for g in grupo], axis=0)
-            similitudes = [cosine_similarity([g["embedding"]], [centroide])[0][0] for g in grupo]
-            idx_max = np.argmax(similitudes)
-            representativa = grupo[idx_max]
-            resumen_faqs.append({
-                "pregunta": representativa["pregunta"],
-                "respuesta": representativa["respuesta"],
-                "frecuencia": len(grupo)
-            })
-    else:
-        resumen_faqs = []
-
-    # === Consultas por usuario ===
-    pipeline = [
-        {"$match": {"timestamp": {"$gte": fecha_minima}}},
-        {"$group": {"_id": "$usuario", "total": {"$sum": 1}}},
-        {"$sort": {"total": -1}}
-    ]
-    resumen_usuarios = list(historial_collection.aggregate(pipeline))
-
-    return render_template("informe_uso_ia.html", faqs=resumen_faqs, resumen_usuarios=resumen_usuarios, fecha=fecha_str or "")
+    return render_template(
+        "informe_uso_ia.html",
+        faqs=faqs,
+        consultas_por_usuario=consultas_por_usuario
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))

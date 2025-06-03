@@ -11,6 +11,3 @@ pinecone
 PyMuPDF
 frontend
 Flask-Admin
-sentence-transformers
-scikit-learn
-hdbscan

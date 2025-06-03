@@ -1,0 +1,12 @@
+[
+  {
+    "pregunta": "si estoy tramitando una revisión de PIA para añadir la PECEF, viniendo de SAD con baja en fecha 15/02/2025, qué fecha de efectos me daría?\n",
+    "respuesta": "En este caso, al tratarse de una revisión de PIA para incorporar PECEF procedente de SAD con baja el 15/02/2025, se aplica la regla para casos en los que hay baja en Centro de Día o en Ayuda a Domicilio. Por ello, la fecha de inicio en los cuidados (o de efectos) será el primer día del mes siguiente a la baja.\n\nCon la baja el 15/02/2025, la fecha de efectos será el 01/03/2025.",
+    "frecuencia": 21
+  },
+  {
+    "pregunta": "que casillas de la renta tenemos que computar",
+    "respuesta": "Se deben computar las siguientes casillas:\n\n• Casilla 435: Se computa únicamente si el valor supera la pensión (se resta la pensión anual y la diferencia se registra como base imponible general). En el caso de declaraciones conjuntas, antes de computar la diferencia se debe revisar también la pensión del cónyuge y, si procede, dividir el importe al 50%.\n\n• Casilla 460: Se computa siempre como rendimientos de capital inmobiliario. Si la declaración es conjunta, se divide al 50%.\n\nLas demás casillas no se computan para estos efectos.",
+    "frecuencia": 5
+  }
+]
