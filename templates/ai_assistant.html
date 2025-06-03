@@ -41,6 +41,9 @@
         <div class="extra-box">
             <button onclick="window.location.href='/dashboard'" class="back-button">🔙 Volver al Menú Principal</button>
             <button onclick="window.location.href='/documentos_subidos_s3'">🗄️ Repositorio Documental</button>
+            {% if current_user.is_authenticated and current_user.puesto == "Administrador/a" %}
+                <button onclick="window.location.href='/informe_uso_ia'">📊 Informe de Uso de IA</button>
+            {% endif %}
         </div>
     </div>
 

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Uso de IA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>📊 Informe de Uso de IA</h1>
+
+    <div class="menu-container">
+        <button onclick="window.location.href='/dashboard'">🏠 Volver al inicio</button>
+        <button onclick="window.location.href='/ai-assistant'">🤖 Ir al Asistente de IA</button>
+    </div>
+
+    <br><br> <!-- Espacio vertical -->
+    
+    <form method="get" action="/informe_uso_ia">
+        <label for="fecha">Mostrar resultados desde:</label>
+        <input type="date" id="fecha" name="fecha" value="{{ fecha }}">
+        <button type="submit">Generar informe</button>
+    </form>
+
+    {% if faqs or resumen_usuarios %}
+        <h2>📋 Preguntas Frecuentes (FAQs)</h2>
+        {% if faqs %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Pregunta Representativa</th>
+                    <th>Respuesta</th>
+                    <th>Frecuencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for faq in faqs %}
+                <tr>
+                    <td>{{ faq.pregunta }}</td>
+                    <td>{{ faq.respuesta }}</td>
+                    <td style="text-align:center;">{{ faq.frecuencia }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No hay FAQs generadas para el período seleccionado.</p>
+        {% endif %}
+
+        <h2>👤 Número de consultas por usuario</h2>
+        {% if resumen_usuarios %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nº Consultas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in resumen_usuarios %}
+                <tr>
+                    <td>{{ usuario._id }}</td>
+                    <td style="text-align:center;">{{ usuario.total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No se encontraron consultas registradas en ese período.</p>
+        {% endif %}
+    {% endif %}
+</body>
+</html>
