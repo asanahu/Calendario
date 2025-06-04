@@ -162,10 +162,10 @@ def admin_users():
 def add_user():
     if request.method == 'POST':
         password = request.form.get('password')
-        visible = request.form.get('visible_calendario')
+        visible_str = request.form.get('visible_calendario', 'false')
 
-        # Si necesitas convertir visible a booleano:
-        visible = True if visible.lower() == "true" else False
+        # Convertir la cadena recibida en un booleano de forma segura
+        visible = visible_str.lower() == "true"
         
         user_data = {
             "nombre": request.form.get('nombre'),
