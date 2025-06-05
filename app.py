@@ -293,8 +293,65 @@ def add_vacation():
     
     # Agrupar las vacaciones consecutivas
     grupos_vacaciones = agrupar_vacaciones(vacaciones)
-    
+
     return render_template('add_vacation.html', grupos_vacaciones=grupos_vacaciones)
+
+@app.route('/add-recurring', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_recurring():
+    """Asignar estados de forma recurrente a los trabajadores."""
+    if request.method == 'POST':
+        fecha_inicio = request.form.get('fecha_inicio')
+        fecha_fin = request.form.get('fecha_fin')
+        dias_semana = request.form.getlist('dias_semana')
+        n_semanas = int(request.form.get('n_semanas', 1))
+
+        fi_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+        ff_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
+
+        dias_int = [int(d) for d in dias_semana]
+        dias_generados = []
+        current = fi_dt
+        while current <= ff_dt:
+            weeks_diff = (current - fi_dt).days // 7
+            if weeks_diff % n_semanas == 0 and current.weekday() in dias_int:
+                dias_generados.append(current)
+            current += timedelta(days=1)
+
+        trabajadores = list(users_collection.find())
+        for trabajador in trabajadores:
+            estado = request.form.get(f"tipo_{trabajador['_id']}")
+            if not estado:
+                continue
+
+            nombre_completo = f"{trabajador['nombre']} {trabajador['apellidos']}"
+            for dia in dias_generados:
+                day_str = dia.strftime("%Y-%m-%d")
+                query_filter = {
+                    "trabajador": nombre_completo,
+                    "fecha_inicio": day_str,
+                    "fecha_fin": day_str,
+                    "tipo": {"$in": ["Baja", "CADE 30", "CADE 50", "CADE Tardes", "Guardia CADE", "Mail"]}
+                }
+
+                if estado == "normal":
+                    events_collection.delete_many(query_filter)
+                else:
+                    events_collection.delete_many(query_filter)
+                    nuevo_evento = {
+                        "trabajador": nombre_completo,
+                        "fecha_inicio": day_str,
+                        "fecha_fin": day_str,
+                        "tipo": estado
+                    }
+                    events_collection.insert_one(nuevo_evento)
+
+        return redirect('/add-recurring')
+
+    trabajadores = list(users_collection.find())
+    trabajadores = sorted(trabajadores, key=lambda x: (x['nombre'].lower(), x['apellidos'].lower()))
+    return render_template('add_recurring.html', trabajadores=trabajadores)
 
 @app.route('/admin/user_vacations/<user_id>')
 @login_required

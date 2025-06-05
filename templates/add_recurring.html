@@ -2,77 +2,32 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Asignar Estados Semanales</title>
+  <title>Asignar Estados Recurrentes</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <style>
-    /* Contenedor principal del formulario */
+    .hidden { display: none; }
     .form-container {
-      max-width: 1200px; /* Ajusta el ancho máximo para quepan más columnas */
+      max-width: 1200px;
       margin: 30px auto;
       padding: 20px;
       background: #f9f9f9;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-
-    select, input[type="date"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-
-    /* Contenedor que agrupa a todos los trabajadores */
-    .worker-list {
-      margin-top: 20px;
-      display: grid;
-      /* 3 columnas fijas; puedes ajustar a 4 si prefieres */
-      grid-template-columns: repeat(5, 1fr);
-      gap: 20px; /* Espacio entre columnas */
-    }
-
-    .worker-item {
-      padding: 10px;
-      border: 1px solid #eee;
-      background: #fff;
-      border-radius: 4px;
-    }
-
-    .worker-name {
-      font-size: 1.5em; 
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .btn {
-      background-color: #007BFF;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-
-    .btn:hover {
-      background-color: #0056b3;
-    }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    select, input[type="date"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    .worker-list { margin-top: 20px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+    .worker-item { padding: 10px; border: 1px solid #eee; background: #fff; border-radius: 4px; }
+    .worker-name { font-size: 1.5em; font-weight: bold; margin-bottom: 5px; }
+    .btn { background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px; }
+    .btn:hover { background-color: #0056b3; }
   </style>
 </head>
 <body>
   <div class="form-container">
-    <h1>Asignar Estados Semanales</h1>
-    <form action="/admin/asignar-estados" method="POST">
+    <h1>Asignar Estados Recurrentes</h1>
+    <form method="POST">
       <div class="form-group">
         <label for="fecha_inicio">Fecha de inicio:</label>
         <input type="date" id="fecha_inicio" name="fecha_inicio" required>
@@ -81,7 +36,20 @@
         <label for="fecha_fin">Fecha de fin:</label>
         <input type="date" id="fecha_fin" name="fecha_fin" required>
       </div>
-
+      <div class="form-group">
+        <label for="n_semanas">Cada</label>
+        <input type="number" id="n_semanas" name="n_semanas" min="1" value="1"> semanas
+      </div>
+      <div class="form-group">
+        <p>Días de la semana:</p>
+        <label><input type="checkbox" name="dias_semana" value="0">Lunes</label>
+        <label><input type="checkbox" name="dias_semana" value="1">Martes</label>
+        <label><input type="checkbox" name="dias_semana" value="2">Miércoles</label>
+        <label><input type="checkbox" name="dias_semana" value="3">Jueves</label>
+        <label><input type="checkbox" name="dias_semana" value="4">Viernes</label>
+        <label><input type="checkbox" name="dias_semana" value="5">Sábado</label>
+        <label><input type="checkbox" name="dias_semana" value="6">Domingo</label>
+      </div>
       <div class="worker-list">
         {% for trabajador in trabajadores %}
           <div class="worker-item {% if trabajador.puesto == 'TS' %}ts{% elif trabajador.puesto == 'ADM' %}adm{% elif trabajador.puesto == 'Administrador/a' %}admin{% else %}default{% endif %}">
@@ -103,10 +71,9 @@
 
       <button type="submit" class="btn">✅ Asignar Estados</button>
       <button type="button" class="btn" onclick="window.location.href='/admin/duplicados'">🗂️ Ver Estados Duplicados</button>
-      <button type="button" class="btn" onclick="window.location.href='/add-recurring'">🔁 Estados Recurrentes</button>
-      <button type="button" class="btn" onclick="window.location.href='/calendar'">🔙 Atrás</button>
-      
+      <button type="button" class="btn" onclick="window.location.href='/calendar'">🔙 Atrás</button>  
     </form>
   </div>
+
 </body>
 </html>

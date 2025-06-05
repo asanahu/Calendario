@@ -86,5 +86,8 @@ Consultar y gestionar usuarios y eventos.
 Calendario y Asistente de IA:
 Los empleados pueden consultar su calendario y usar el asistente de IA para resolver dudas sobre procesos y la herramienta interna.
 
+Registro de turnos recurrentes:
+Es posible registrar eventos periódicos visitando la ruta `/add-recurring`. Solo hay que indicar la fecha de inicio, la fecha de fin y la frecuencia (semanal o cada cierto número de días) junto con los días de la semana deseados. La aplicación generará automáticamente un evento por cada día resultante.
+
 Contribuciones
 ¡Las contribuciones son bienvenidas! Si deseas colaborar o mejorar el proyecto, por favor crea un fork y envía un pull request.
