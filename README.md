@@ -90,7 +90,7 @@ Registro de turnos recurrentes:
 Es posible registrar eventos periódicos visitando la ruta `/add-recurring`. Solo hay que indicar la fecha de inicio, la fecha de fin y la frecuencia (semanal o cada cierto número de días) junto con los días de la semana deseados. La aplicación generará automáticamente un evento por cada día resultante.
 
 Métricas de disponibilidad:
-En la ruta `/dashboard-metrics` se muestran tablas y gráficos con el conteo de eventos por trabajador. Esta vista permite filtrar los datos seleccionando una fecha de inicio y una fecha de fin.
+En la ruta `/dashboard-metrics` se muestran tablas y gráficos con el conteo de eventos por trabajador. Esta vista permite filtrar los datos seleccionando una fecha de inicio y una fecha de fin. Los estados registrados en sábados, domingos y días festivos no se contabilizan en las métricas.
 
 Contribuciones
 ¡Las contribuciones son bienvenidas! Si deseas colaborar o mejorar el proyecto, por favor crea un fork y envía un pull request.

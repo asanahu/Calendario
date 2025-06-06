@@ -29,6 +29,16 @@ events_collection = db["eventos"]
 historial_collection = db["historial_conversaciones"]
 
 ruta_faqs = "faqs_generadas.json"
+
+# Lista de festivos utilizados en la aplicación
+FESTIVOS = {
+    "2025-01-01", "2025-01-06", "2025-01-29", "2025-03-05",
+    "2025-03-28", "2025-03-29", "2025-04-23", "2025-05-01",
+    "2025-08-15", "2025-10-12", "2025-11-01", "2025-12-06",
+    "2025-12-09", "2025-12-25", "2026-01-01", "2025-04-17",
+    "2025-04-18"
+}
+
 # Inicializar el cliente de boto3
 s3_client = boto3.client(
     's3',
@@ -411,11 +421,7 @@ def events():
         return jsonify({"message": "Evento agregado correctamente"}), 201
 
     # 🔹 Lista de festivos
-    festivos = {
-        "2025-01-01", "2025-01-06", "2025-01-29", "2025-03-05", "2025-03-28", "2025-03-29",
-        "2025-04-23", "2025-05-01", "2025-08-15", "2025-10-12", "2025-11-01", "2025-12-06",
-        "2025-12-09", "2025-12-25", "2026-01-01", "2025-04-17", "2025-04-18"
-    }
+    festivos = FESTIVOS
 
     # 🔹 Definir el orden de los puestos
     orden_puestos = {"Administrador/a": 1, "ADM": 2, "TS": 3}
@@ -649,7 +655,31 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None):
     pipeline = []
     if match_stage:
         pipeline.append({"$match": match_stage})
-    pipeline.append({"$group": {"_id": {"trabajador": "$trabajador", "tipo": "$tipo"}, "count": {"$sum": 1}}})
+        
+    # Excluir festivos y fines de semana
+    pipeline.append({"$match": {"fecha_inicio": {"$nin": list(FESTIVOS)}}})
+    pipeline.append({
+        "$addFields": {
+            "fecha_date": {"$dateFromString": {"dateString": "$fecha_inicio"}}
+        }
+    })
+    pipeline.append({
+        "$match": {
+            "$expr": {
+                "$and": [
+                    {"$ne": [{"$dayOfWeek": "$fecha_date"}, 1]},
+                    {"$ne": [{"$dayOfWeek": "$fecha_date"}, 7]}
+                ]
+            }
+        }
+    })
+
+    pipeline.append({
+        "$group": {
+            "_id": {"trabajador": "$trabajador", "tipo": "$tipo"},
+            "count": {"$sum": 1}
+        }
+    })
     resultado = list(events_collection.aggregate(pipeline))
 
     metricas = {}
