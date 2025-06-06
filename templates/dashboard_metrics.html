@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Métricas de Disponibilidad</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Métricas de Disponibilidad</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Trabajador</th>
+                {% for estado in estados %}
+                <th>{{ estado }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for trabajador, datos in metricas.items() %}
+            <tr>
+                <td>{{ trabajador }}</td>
+                {% for estado in estados %}
+                <td>{{ datos.get(estado, 0) }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Top 5 por Tipo</h2>
+    <div class="chart-grid">
+    {% for tipo, top5 in top5_por_tipo.items() %}
+        <div class="chart-container">
+            <h3>{{ tipo }}</h3>
+            <canvas id="chart-{{ loop.index }}"></canvas>
+        </div>
+        <script>
+            const ctx{{ loop.index }} = document.getElementById('chart-{{ loop.index }}').getContext('2d');
+            new Chart(ctx{{ loop.index }}, {
+                type: 'bar',
+                data: {
+                    labels: {{ top5 | map(attribute=0) | list | tojson }},
+                    datasets: [{
+                        label: '{{ tipo }}',
+                        data: {{ top5 | map(attribute=1) | list | tojson }},
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        </script>
+    {% endfor %}
+    </div>
+    <button onclick="window.location.href='/dashboard'">⬅️ Volver al Menú Principal</button>
+
+    <script>
+        document.querySelectorAll('table th').forEach((header) => {
+            header.addEventListener('click', () => {
+                const table = header.closest('table');
+                const index = Array.from(header.parentElement.children).indexOf(header);
+                const rows = Array.from(table.querySelectorAll('tbody tr'));
+                const ascending = !header.classList.contains('asc');
+                rows.sort((a, b) => {
+                    const cellA = a.children[index].innerText.trim();
+                    const cellB = b.children[index].innerText.trim();
+                    const numA = parseFloat(cellA.replace(',', '.'));
+                    const numB = parseFloat(cellB.replace(',', '.'));
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        return ascending ? numA - numB : numB - numA;
+                    }
+                    return ascending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+                });
+                header.classList.toggle('asc', ascending);
+                header.classList.toggle('desc', !ascending);
+                rows.forEach(row => table.querySelector('tbody').appendChild(row));
+            });
+        });
+    </script>
+</body>
+</html>

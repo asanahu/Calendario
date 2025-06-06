@@ -64,6 +64,7 @@ th {
     background: #004aad;  /* ✅ Azul más oscuro para mejor contraste */
     color: white;
     font-weight: bold;
+    cursor: pointer; /* Allow sorting on click */
 }
 
 /* 🔹 Ajustar los botones de eliminar */
@@ -546,3 +547,16 @@ body.vacation-page {
   .link-button i {
     margin-right: 8px;
   }
+
+/* Grid layout for dashboard charts */
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    justify-items: center;
+}
+
+.chart-grid canvas {
+    width: 250px !important;
+    height: 160px !important;
+}

@@ -25,6 +25,7 @@
         {% if current_user.is_authenticated and current_user.puesto == "Administrador/a" %}
         <button onclick="window.location.href='/admin/users'">👩‍🔧 Administrar Usuarios</button>
         <button onclick="window.location.href='/admin/asignar-estados'">⚙️ Administrar Estados</button>
+        <button onclick="window.location.href='/dashboard-metrics'">📈 Ver Métricas</button>
         {% endif %}
     </div>
 

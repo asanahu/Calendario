@@ -632,6 +632,56 @@ def duplicados():
     duplicados = list(events_collection.aggregate(pipeline))
     return render_template("duplicados.html", duplicados=duplicados)
 
+def calcular_metricas_por_usuario():
+    """Devuelve un diccionario con el conteo de eventos por tipo para cada trabajador
+    y el ranking de los 5 con más registros por tipo."""
+
+    pipeline = [
+        {"$group": {"_id": {"trabajador": "$trabajador", "tipo": "$tipo"}, "count": {"$sum": 1}}}
+    ]
+    resultado = list(events_collection.aggregate(pipeline))
+
+    metricas = {}
+    estados = set()
+    top5_por_tipo = {}
+
+    for item in resultado:
+        trabajador = item["_id"]["trabajador"]
+        tipo = item["_id"].get("tipo", "Desconocido")
+        estados.add(tipo)
+
+        if trabajador not in metricas:
+            metricas[trabajador] = {}
+        metricas[trabajador][tipo] = item["count"]
+
+        if tipo not in top5_por_tipo:
+            top5_por_tipo[tipo] = []
+        top5_por_tipo[tipo].append((trabajador, item["count"]))
+
+    # Ordenar alfabéticamente los trabajadores
+    metricas = dict(sorted(metricas.items(), key=lambda x: x[0]))
+
+    # Seleccionar top 5 por tipo
+    for tipo, lista in top5_por_tipo.items():
+        lista.sort(key=lambda x: x[1], reverse=True)
+        top5_por_tipo[tipo] = lista[:5]
+
+    return metricas, sorted(estados), top5_por_tipo
+
+
+@app.route('/dashboard-metrics')
+@login_required
+@admin_required
+def dashboard_metrics():
+    metricas, estados, top5_por_tipo = calcular_metricas_por_usuario()
+    return render_template(
+        'dashboard_metrics.html',
+        metricas=metricas,
+        estados=estados,
+        top5_por_tipo=top5_por_tipo
+    )
+
+
 # Configuramos asistente de IA
 
 import openai
