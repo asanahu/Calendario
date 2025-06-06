@@ -349,7 +349,7 @@ def add_recurring():
 
         return redirect('/add-recurring')
 
-    trabajadores = list(users_collection.find())
+    trabajadores = list(users_collection.find({"visible_calendario": True}))
     trabajadores = sorted(trabajadores, key=lambda x: (x['nombre'].lower(), x['apellidos'].lower()))
     return render_template('add_recurring.html', trabajadores=trabajadores)
 
@@ -598,9 +598,10 @@ def asignar_estados():
             
         return redirect(url_for('asignar_estados'))
     else:
-        trabajadores = list(users_collection.find())
+        trabajadores = list(users_collection.find({"visible_calendario": True}))
         trabajadores = sorted(trabajadores, key=lambda x: (x['nombre'].lower(), x['apellidos'].lower()))
         return render_template("asignar_estados.html", trabajadores=trabajadores)
+    
 
 @app.route('/admin/duplicados', methods=['GET'])
 @login_required
