@@ -560,3 +560,23 @@ body.vacation-page {
     width: 250px !important;
     height: 160px !important;
 }
+
+/* Contenedor y fondo de gráficas */
+.chart-container {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container canvas {
+    background-color: #fff;
+}
+
+/* Formulario de filtro en dashboard metrics */
+.filter-form {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}

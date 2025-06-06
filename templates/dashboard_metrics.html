@@ -8,6 +8,13 @@
 </head>
 <body>
     <h1>Métricas de Disponibilidad</h1>
+    <form method="get" class="filter-form">
+        <label for="fecha_inicio">Desde:</label>
+        <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
+        <label for="fecha_fin">Hasta:</label>
+        <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}">
+        <button type="submit">Filtrar</button>
+    </form>
     <table>
         <thead>
             <tr>
@@ -45,14 +52,29 @@
                     datasets: [{
                         label: '{{ tipo }}',
                         data: {{ top5 | map(attribute=1) | list | tojson }},
-                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                        backgroundColor: '#36A2EB',
+                        borderColor: '#1E88E5',
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#333'
+                            }
+                        }
+                    },
                     scales: {
+                        x: {
+                            ticks: { color: '#333' },
+                            grid: { color: 'rgba(0,0,0,0.1)' }
+                        },
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: { color: '#333' },
+                            grid: { color: 'rgba(0,0,0,0.1)' }
                         }
                     }
                 }

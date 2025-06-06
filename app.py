@@ -632,13 +632,24 @@ def duplicados():
     duplicados = list(events_collection.aggregate(pipeline))
     return render_template("duplicados.html", duplicados=duplicados)
 
-def calcular_metricas_por_usuario():
-    """Devuelve un diccionario con el conteo de eventos por tipo para cada trabajador
-    y el ranking de los 5 con más registros por tipo."""
 
-    pipeline = [
-        {"$group": {"_id": {"trabajador": "$trabajador", "tipo": "$tipo"}, "count": {"$sum": 1}}}
-    ]
+def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None):
+    """Devuelve un diccionario con el conteo de eventos por tipo para cada trabajador
+    y el ranking de los 5 con más registros por tipo. Se pueden filtrar los
+    eventos por rango de fechas."""
+
+    match_stage = {}
+    if fecha_inicio and fecha_fin:
+        match_stage = {"fecha_inicio": {"$gte": fecha_inicio, "$lte": fecha_fin}}
+    elif fecha_inicio:
+        match_stage = {"fecha_inicio": {"$gte": fecha_inicio}}
+    elif fecha_fin:
+        match_stage = {"fecha_inicio": {"$lte": fecha_fin}}
+
+    pipeline = []
+    if match_stage:
+        pipeline.append({"$match": match_stage})
+    pipeline.append({"$group": {"_id": {"trabajador": "$trabajador", "tipo": "$tipo"}, "count": {"$sum": 1}}})
     resultado = list(events_collection.aggregate(pipeline))
 
     metricas = {}
@@ -673,12 +684,16 @@ def calcular_metricas_por_usuario():
 @login_required
 @admin_required
 def dashboard_metrics():
-    metricas, estados, top5_por_tipo = calcular_metricas_por_usuario()
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_fin = request.args.get('fecha_fin')
+    metricas, estados, top5_por_tipo = calcular_metricas_por_usuario(fecha_inicio, fecha_fin)
     return render_template(
         'dashboard_metrics.html',
         metricas=metricas,
         estados=estados,
-        top5_por_tipo=top5_por_tipo
+        top5_por_tipo=top5_por_tipo,
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin
     )
 
 
