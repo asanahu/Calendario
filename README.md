@@ -93,4 +93,4 @@ Métricas de disponibilidad:
 En la ruta `/dashboard-metrics` se muestran tablas y gráficos con el conteo de eventos por trabajador. Esta vista permite filtrar los datos seleccionando una fecha de inicio y una fecha de fin. Los estados registrados en sábados, domingos y días festivos no se contabilizan en las métricas.
 
 Contribuciones
-¡Las contribuciones son bienvenidas! Si deseas colaborar o mejorar el proyecto, por favor crea un fork y envía un pull request.
+¡Las contribuciones son bienvenidas!
