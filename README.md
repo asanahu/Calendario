@@ -1,96 +1,109 @@
-Calendario+ Asistente de IA
+📅 Calendario+ Asistente de IA
+Calendario+ es una aplicación web desarrollada en Flask para gestionar eventos y asistencia de empleados en entornos empresariales. Integra funciones avanzadas como un calendario interactivo, panel de administración, métricas de disponibilidad y un asistente virtual basado en IA que ofrece respuestas personalizadas a partir de datos de la organización.
 
-Calendario+ Asistente de IA es una aplicación web desarrollada en Flask que integra múltiples funcionalidades para la gestión de empleados en entornos empresariales. El proyecto permite gestionar vacaciones, asignar estados especiales (como CADE 30, CADE 50, Mail, Baja), y ofrece un asistente virtual que utiliza modelos de lenguaje (OpenAI) para proporcionar respuestas contextualizadas basadas en información de la empresa.
+🚀 Funcionalidades Principales
+🗓️ Calendario Interactivo
+Visualización de eventos por empleado con FullCalendar.
 
-Funcionalidades Principales
+Navegación por día, semana o mes.
 
-Calendario Interactivo:
-Visualiza un calendario con los eventos de los empleados. Utiliza FullCalendar para mostrar los días, con botones de navegación en el header y footer para cambiar de mes, semana o día.
+Colores personalizados según el puesto del trabajador y el tipo de evento:
 
-Los empleados se muestran con colores según su puesto (por ejemplo, azul para TS y verde para Administradores).
-Los eventos especiales (Vacaciones, CADE 30, CADE 50, Mail, Baja) se distinguen con colores personalizados.
+Ej.: Azul para TS, Verde para Administradores, colores diferenciados para Vacaciones, CADE 30, CADE 50, Mail, Baja…
 
-Gestión de Eventos:
-La aplicación permite registrar eventos en la colección de MongoDB, donde se almacena el nombre del trabajador, el rango de fechas y el tipo de evento.
+✏️ Gestión de Eventos
+Creación, edición y eliminación de eventos guardados en MongoDB.
 
-Se pueden asignar estados especiales por parte de los administradores.
-Se evita la duplicidad de eventos al actualizar o eliminar eventos que se solapan.
+Prevención de duplicidades y solapamientos de fechas.
 
-Panel de Administración para Asignar Estados:
-Un formulario dedicado permite a los administradores asignar estados semanales a los empleados.
+Registro de eventos recurrentes a través de /add-recurring.
 
-Los estados disponibles incluyen: "Baja", "CADE 30", "CADE 50", "Mail" y "Normal" (para restaurar el estado estándar).
-La interfaz se organiza en múltiples columnas para una visualización ágil de los trabajadores.
+🛠️ Panel de Administración
+Interfaz de múltiples columnas para una asignación rápida de estados.
 
-Asistente Virtual (IA):
-Integra un asistente de IA que utiliza el modelo GPT-4 Mini (u otros modelos de OpenAI) para responder a preguntas de los empleados basándose en:
+Estados disponibles: Normal, Baja, CADE 30, CADE 50, Mail.
 
-El historial de conversaciones.
-Información extraída de documentos PDF procesados y almacenados en Pinecone.
+🤖 Asistente Virtual IA
+Asistente con GPT-4 (OpenAI).
 
-Gestión de Documentos:
-Permite subir documentos PDF (por ejemplo, manuales o informes) que se almacenan en Amazon S3.
+Ofrece respuestas contextualizadas a partir de:
 
-Se extrae el contenido del PDF y se guarda en Pinecone para búsquedas semánticas.
-Se proporciona una vista para que los administradores consulten el repositorio documental.
+Historial de conversaciones.
 
-Autenticación y Gestión de Usuarios:
-Los usuarios deben iniciar sesión mediante usuario y contraseña.
+Documentación cargada y procesada semánticamente con Pinecone.
 
-Las contraseñas se almacenan de forma segura utilizando hash (con Werkzeug).
-La autenticación se gestiona con Flask-Login.
+📄 Gestión Documental
+Subida de documentos PDF a Amazon S3.
 
-Tecnologías Utilizadas
-Backend: Flask, Flask-Login, PyMongo
-Frontend: HTML, CSS, JavaScript, FullCalendar
-Base de Datos: MongoDB
-Almacenamiento de Archivos: Amazon S3
-Vector Storage & Búsqueda Semántica: Pinecone
-Asistente de IA: OpenAI (GPT-4 Mini)
-Gestión de Variables de Entorno: python-dotenv
+Extracción automática de contenido para búsquedas semánticas.
 
-Configuración
-Para ejecutar el proyecto, asegúrate de definir las siguientes variables de entorno en un archivo .env:
+Interfaz de consulta documental accesible por los administradores.
 
-MONGO_URI: URI de conexión a MongoDB.
-SECRET_KEY: Clave secreta para Flask.
-AWS_ACCESS_KEY_ID y AWS_SECRET_ACCESS_KEY: Credenciales de AWS.
-AWS_S3_BUCKET: Nombre del bucket en S3.
-AWS_S3_REGION: Región de S3.
-OPENAI_API_KEY: Clave API de OpenAI.
-PINECONE_API_KEY: Clave API de Pinecone.
-PINECONE_ENVIRONMENT: Entorno de Pinecone.
-PINECONE_INDEX_NAME: Nombre del índice en Pinecone.
+🔐 Autenticación y Gestión de Usuarios
+Login protegido con Flask-Login.
 
+Contraseñas encriptadas con Werkzeug.
 
-Instalación y Ejecución
-- Clona el repositorio
-- Crea un entorno virtual e instala las dependencias
+Roles diferenciados: usuario estándar vs administrador.
+
+📊 Métricas de Disponibilidad
+Tablas y gráficos accesibles desde /dashboard-metrics.
+
+Filtrado por fechas.
+
+Exclusión automática de fines de semana y festivos en el conteo.
+
+🧰 Tecnologías Utilizadas
+Componente	Tecnología
+Backend	Flask, PyMongo, Flask-Login
+Frontend	HTML, CSS, JavaScript, FullCalendar
+Base de Datos	MongoDB
+Almacenamiento	Amazon S3
+IA & NLP	OpenAI GPT-4 Mini, Pinecone
+Entorno	python-dotenv
+
+⚙️ Configuración
+Crea un archivo .env con las siguientes variables:
+
+dotenv
+Copiar
+Editar
+MONGO_URI=<tu_uri_mongodb>
+SECRET_KEY=<tu_clave_secreta>
+AWS_ACCESS_KEY_ID=<tu_clave_aws>
+AWS_SECRET_ACCESS_KEY=<tu_secreto_aws>
+AWS_S3_BUCKET=<nombre_bucket>
+AWS_S3_REGION=<region_bucket>
+OPENAI_API_KEY=<clave_openai>
+PINECONE_API_KEY=<clave_pinecone>
+PINECONE_ENVIRONMENT=<entorno_pinecone>
+PINECONE_INDEX_NAME=<indice_pinecone>
+🧪 Instalación y Ejecución
+bash
+Copiar
+Editar
+# 1. Clonar el repositorio
+git clone https://github.com/tu_usuario/calendario-ai.git
+cd calendario-ai
+
+# 2. Crear entorno virtual e instalar dependencias
+python -m venv venv
+source venv/bin/activate  # en Windows: venv\Scripts\activate
 pip install -r requirements.txt
-- Configura las variables de entorno en un archivo .env.
 
-- Ejecuta la aplicación:
-
+# 3. Ejecutar la aplicación
 python app.py
+🧭 Navegación Principal
+/login: acceso seguro para usuarios registrados.
 
-Uso
-Dashboard:
-Después del login, los usuarios son redirigidos a un dashboard con botones para acceder al calendario, asistente de IA, panel de administración y repositorio documental.
+/dashboard: panel principal con accesos al calendario, métricas, IA y gestión.
 
-Administración:
-Los administradores pueden:
+/admin: panel exclusivo para administradores.
 
-Subir documentos.
-Asignar estados a los empleados mediante la interfaz de asignación de estados.
-Consultar y gestionar usuarios y eventos.
-Calendario y Asistente de IA:
-Los empleados pueden consultar su calendario y usar el asistente de IA para resolver dudas sobre procesos y la herramienta interna.
+/add-recurring: creación de eventos periódicos.
 
-Registro de turnos recurrentes:
-Es posible registrar eventos periódicos visitando la ruta `/add-recurring`. Solo hay que indicar la fecha de inicio, la fecha de fin y la frecuencia (semanal o cada cierto número de días) junto con los días de la semana deseados. La aplicación generará automáticamente un evento por cada día resultante.
+/dashboard-metrics: análisis visual por trabajador y período.
 
-Métricas de disponibilidad:
-En la ruta `/dashboard-metrics` se muestran tablas y gráficos con el conteo de eventos por trabajador. Esta vista permite filtrar los datos seleccionando una fecha de inicio y una fecha de fin. Los estados registrados en sábados, domingos y días festivos no se contabilizan en las métricas.
-
-Contribuciones
+🤝 Contribuciones
 ¡Las contribuciones son bienvenidas!
+Puedes abrir un Issue o enviar un Pull Request para proponer mejoras, nuevas funciones o correcciones de errores.
