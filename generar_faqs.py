@@ -16,7 +16,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 DB_NAME = os.getenv("MONGO_DB")
 COLLECTION_NAME = "historial_conversaciones"
 N_FAQS_MIN_PREGUNTAS = 3
-FECHA_MINIMA = datetime(2025, 5, 1)
+FECHA_MINIMA = datetime(2025, 5, 26)
 
 # Añadir fecha de origen en formato español
 # fecha_origen_es = FECHA_MINIMA.strftime("%-d de %B de %Y")  # Linux/macOS

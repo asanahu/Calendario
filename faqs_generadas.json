@@ -1,16 +1,21 @@
 {
-  "fecha_generacion": "2025-06-03 19:07:26",
-  "fecha_origen": "1 de May de 2025",
+  "fecha_generacion": "2025-06-24 10:15:04",
+  "fecha_origen": "26 de May de 2025",
   "faqs": [
     {
-      "pregunta": "si estoy tramitando una revisión de PIA para añadir la PECEF, viniendo de SAD con baja en fecha 15/02/2025, qué fecha de efectos me daría?\n",
-      "respuesta": "En este caso, al tratarse de una revisión de PIA para incorporar PECEF procedente de SAD con baja el 15/02/2025, se aplica la regla para casos en los que hay baja en Centro de Día o en Ayuda a Domicilio. Por ello, la fecha de inicio en los cuidados (o de efectos) será el primer día del mes siguiente a la baja.\n\nCon la baja el 15/02/2025, la fecha de efectos será el 01/03/2025.",
-      "frecuencia": 21
+      "pregunta": "DESPUES DE DAR A SOBRE EN UN PIA DE VALIDACIÓN Y SE VAIDA  EN PENDIENTE DE INFORME SOCIAL QUE PASO ES EL SIGUIENTE PARA PODER IR A PIA VALIDACIÓN",
+      "respuesta": "Una vez superado el estado de “Pendiente Informe Social”, debes solicitar la firma de la Resolución de Grado. Con la firma, el ciclo se transfiere al estado “Pendiente Validación” (o directamente a “Pendiente PIA” si se marcó en la solicitud la validación de las preferencias). Asegúrate de que la documentación esté correctamente subsanada y cumpla los requisitos para avanzar al siguiente paso.",
+      "frecuencia": 9
     },
     {
-      "pregunta": "que casillas de la renta tenemos que computar",
-      "respuesta": "Se deben computar las siguientes casillas:\n\n• Casilla 435: Se computa únicamente si el valor supera la pensión (se resta la pensión anual y la diferencia se registra como base imponible general). En el caso de declaraciones conjuntas, antes de computar la diferencia se debe revisar también la pensión del cónyuge y, si procede, dividir el importe al 50%.\n\n• Casilla 460: Se computa siempre como rendimientos de capital inmobiliario. Si la declaración es conjunta, se divide al 50%.\n\nLas demás casillas no se computan para estos efectos.",
-      "frecuencia": 5
+      "pregunta": "cómo se computa la pensión compensatoria",
+      "respuesta": "La pensión compensatoria se computa íntegramente a favor de quien la percibe y no se descuenta de la capacidad económica del causante. En el expediente se registra el importe recibido en el apartado correspondiente, sin restarlo de otros ingresos.",
+      "frecuencia": 10
+    },
+    {
+      "pregunta": "MODELO DE CENTRO DE DIA SI SE PAGA 338 EUROS AL MES Y ASISTE 12 H A LA SEMANA TENIENDO GRADO 2 DEPENDENCIA",
+      "respuesta": "Para esta configuración se aplicaría el modelo de Prestación Económica Vinculada a Centro de Día (PEV-CD), es decir, el Modelo 2. Recuerda verificar que se cumplan el resto de requisitos en la gestión del expediente.",
+      "frecuencia": 7
     }
   ]
 }

@@ -1089,6 +1089,8 @@ def informe_uso_ia():
         with open(ruta_faqs, "r", encoding="utf-8") as f:
             datos_faq = json.load(f)
             faqs = datos_faq.get("faqs", [])
+            # Ordenar FAQs por frecuencia de mayor a menor
+            faqs.sort(key=lambda x: x.get("frecuencia", 0), reverse=True)            
             fecha_faqs = datos_faq.get("fecha_generacion")
             fecha_origen = datos_faq.get("fecha_origen")
 
@@ -1103,6 +1105,9 @@ def informe_uso_ia():
     for m in mensajes:
         usuario = m.get("usuario", "Desconocido")
         consultas_por_usuario[usuario] = consultas_por_usuario.get(usuario, 0) + 1
+
+    # Ordenar las consultas por usuario de mayor a menor
+    consultas_por_usuario = sorted(consultas_por_usuario.items(), key=lambda x: x[1], reverse=True)
 
     return render_template(
         "informe_uso_ia.html",

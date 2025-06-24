@@ -80,6 +80,15 @@
                     return title.replace(/\s+/g, ' ').trim();
                 }
 
+                function normalizeString(str) {
+                    return str
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .toLowerCase()
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                }
+
                 var calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: 'dayGridMonth',
                     firstDay: 1, 
@@ -130,7 +139,9 @@
                                                        .replace(/^(TS|ADM|Administrador\/a)\s*-\s*/, '') // Eliminar prefijo de rol
                                                        .trim();
                                         
-                                        passesPersonFilter = fullName === currentPersonFilter;
+                                        const normalizedFullName = normalizeString(fullName);
+                                        const normalizedFilter = normalizeString(currentPersonFilter);
+                                        passesPersonFilter = normalizedFullName === normalizedFilter;
                                         
                                         if (passesPersonFilter) {
                                             console.log(`Evento coincidente: "${eventTitle}" -> "${fullName}"`);
