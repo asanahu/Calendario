@@ -9,6 +9,9 @@
     <h1>Usuarios Registrados</h1>
     
     <a href="/admin/add_user" class="add-user-button">➕ Añadir Usuario</a>
+    {% if current_user.usuario in ['sclavero', 'asanahuja'] %}
+    <a href="/admin/reset_passwords" class="add-user-button">🔑 Resetear Contraseñas</a>
+    {% endif %}
 
     <table border="1">
         <tr>
