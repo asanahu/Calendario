@@ -7,3 +7,4 @@ venv/
 env/
 # Carpeta uploads
 uploads/
+reset_password.py
