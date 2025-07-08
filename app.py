@@ -84,6 +84,15 @@ def admin_required(func):
         return func(*args, **kwargs)
     return wrapper
 
+# Decorador para restringir acceso solo a los super administradores
+def super_admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.usuario not in ["sclavero", "asanahuja"]:
+            abort(403)
+        return func(*args, **kwargs)
+    return wrapper
+
 @app.route('/')
 def home():
     if current_user.is_authenticated:
@@ -206,6 +215,28 @@ def delete_user(user_id):
 
     users_collection.delete_one({"_id": ObjectId(user_id)})
     return redirect('/admin/users')
+
+# Página para que los super administradores puedan resetear contraseñas
+@app.route('/admin/reset_passwords')
+@login_required
+@super_admin_required
+def reset_passwords():
+    usuarios = list(users_collection.find().sort("nombre"))
+    return render_template('reset_passwords.html', usuarios=usuarios)
+
+# Acción para actualizar la contraseña de un usuario
+@app.route('/admin/reset_password/<user_id>', methods=['POST'])
+@login_required
+@super_admin_required
+def reset_password(user_id):
+    new_password = request.form.get('new_password')
+    if not new_password:
+        flash("Debe indicar una nueva contraseña", "error")
+        return redirect(url_for('reset_passwords'))
+    hashed = generate_password_hash(new_password)
+    users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": {"password": hashed}})
+    flash("Contraseña actualizada", "success")
+    return redirect(url_for('reset_passwords'))
 
 @app.route('/cambiar-password', methods=['GET', 'POST'])
 @login_required
