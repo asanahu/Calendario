@@ -1,21 +1,51 @@
 {
-  "fecha_generacion": "2025-06-24 10:15:04",
+  "fecha_generacion": "2025-09-15 12:54:25",
   "fecha_origen": "26 de May de 2025",
   "faqs": [
     {
-      "pregunta": "DESPUES DE DAR A SOBRE EN UN PIA DE VALIDACIÓN Y SE VAIDA  EN PENDIENTE DE INFORME SOCIAL QUE PASO ES EL SIGUIENTE PARA PODER IR A PIA VALIDACIÓN",
-      "respuesta": "Una vez superado el estado de “Pendiente Informe Social”, debes solicitar la firma de la Resolución de Grado. Con la firma, el ciclo se transfiere al estado “Pendiente Validación” (o directamente a “Pendiente PIA” si se marcó en la solicitud la validación de las preferencias). Asegúrate de que la documentación esté correctamente subsanada y cumpla los requisitos para avanzar al siguiente paso.",
-      "frecuencia": 9
+      "pregunta": "cómo computo la pensión compensatoria",
+      "respuesta": "La pensión compensatoria se computa íntegramente a favor de quien la percibe, sin que se le reste al causante. Es decir, en el expediente se registra el importe recibido en el apartado correspondiente y no se descuenta de la renta o capacidad económica del otro cónyuge.",
+      "frecuencia": 7
     },
     {
-      "pregunta": "cómo se computa la pensión compensatoria",
-      "respuesta": "La pensión compensatoria se computa íntegramente a favor de quien la percibe y no se descuenta de la capacidad económica del causante. En el expediente se registra el importe recibido en el apartado correspondiente, sin restarlo de otros ingresos.",
-      "frecuencia": 10
+      "pregunta": "En un Expediente en el que la persona Dependiente es una mujer casada que no tiene pensión y la Renta es conjunta, ¿es necesario subir pantallazo de la pensión del marido?",
+      "respuesta": "En el caso de una declaración conjunta, aunque la dependiente no tenga pensión, es imprescindible comprobar la pensión del cónyuge para ver si la suma de ambas pensiones supera el importe de la casilla 435. Por ello, si al verificar se requiere tener esa información (por ejemplo, si la suma de pensiones es inferior a lo que indica la casilla 435), se deberá subir el pantallazo de la pensión del marido en la pestaña de Servicios/Prestaciones, con el nombre PENINS+DNI cónyuge.",
+      "frecuencia": 5
+    },
+    {
+      "pregunta": "DESPUES DE DAR A SOBRE EN UN PIA DE VALIDACIÓN Y SE VAIDA  EN PENDIENTE DE INFORME SOCIAL QUE PASO ES EL SIGUIENTE PARA PODER IR A PIA VALIDACIÓN",
+      "respuesta": "Una vez superado el estado de “Pendiente Informe Social”, debes solicitar la firma de la Resolución de Grado. Con la firma, el ciclo se transfiere al estado “Pendiente Validación” (o directamente a “Pendiente PIA” si se marcó en la solicitud la validación de las preferencias). Asegúrate de que la documentación esté correctamente subsanada y cumpla los requisitos para avanzar al siguiente paso.",
+      "frecuencia": 4
+    },
+    {
+      "pregunta": "¿Se puede hacer Procedimiento 3 en un fallecido que además de revisión de PIA ha solicitado revisión de Grado y todavía no ha sido valorado?",
+      "respuesta": "No. Antes de iniciar el Procedimiento 3 por fallecimiento, debe completarse (es decir, quedar resuelta y firmada) cualquier ciclo pendiente, incluida la revisión de grado. Si la revisión de grado aún no ha sido valorada, primero se debe resolver ese pendiente y sólo después continuar con el Procedimiento 3.",
+      "frecuencia": 6
     },
     {
       "pregunta": "MODELO DE CENTRO DE DIA SI SE PAGA 338 EUROS AL MES Y ASISTE 12 H A LA SEMANA TENIENDO GRADO 2 DEPENDENCIA",
       "respuesta": "Para esta configuración se aplicaría el modelo de Prestación Económica Vinculada a Centro de Día (PEV-CD), es decir, el Modelo 2. Recuerda verificar que se cumplan el resto de requisitos en la gestión del expediente.",
-      "frecuencia": 7
+      "frecuencia": 4
+    },
+    {
+      "pregunta": "COMO SE GRABA EL COMPLEMENTO DE ANALOGA NATURALEZA EN UNA PRESTACION DE HIJO A CARGO\n",
+      "respuesta": "Para grabarlo, debes calcular la diferencia entre la suma de abonos y la asignación económica base. Por ejemplo, si la prestación total es 725,60€ y la asignación base (para personas mayores de 18 años con discapacidad igual o superior al 65%) es de 483,30€, se realiza la siguiente operación:\n\n 725,60€ – 483,30€ = 242,30€\n\nLuego, el importe resultante (242,30€ en este ejemplo) se ingrasa en la pestaña de “prestaciones de análoga naturaleza”, y la parte correspondiente a la asignación base (483,30€) se graba en la pestaña de “prestaciones”.",
+      "frecuencia": 4
+    },
+    {
+      "pregunta": "estoy tramitando una prestación económica vinculada a residencia grado I, y esta casado, debo meter la capacidad económica del cónyuge?",
+      "respuesta": "Sí, en la tramitación de una Prestación Económica Vinculada a Residencia con Grado I de dependencia se debe incluir la capacidad económica del cónyuge, siempre que cumpla los requisitos establecidos. Recuerda que en el registro en PIAS deberás introducir los datos correspondientes en el apartado de Prestaciones/Servicios, y además en Personas relacionadas marcar al cónyuge como \"Conviviente con efectos económicos\".",
+      "frecuencia": 18
+    },
+    {
+      "pregunta": "puede un dependiente ingresado en crp nuestra señora del pilar solicitar plaza publica de atención residencial",
+      "respuesta": "No, no se puede tramitar la solicitud si en el expediente consta que el dependiente está ingresado en un recurso asignado por el SALUD (en este caso, CRP Nuestra Señora del Pilar). Es necesario que conste la baja o finalización de la estancia en dicho recurso para poder iniciar la tramitación de plaza pública de atención residencial desde Dependencia.",
+      "frecuencia": 8
+    },
+    {
+      "pregunta": "que puntuación tienen los diferentes grados de dependencia",
+      "respuesta": "En la herramienta no se asigna una “puntuación numérica” fija a la dependencia. Lo que se establece es la clasificación en Grado I (dependencia leve), Grado II (moderada) y Grado III (severa) tras la valoración integral (teniendo en cuenta aspectos funcionales, de autocuidado, etc.). A partir de ese grado se configuran los parámetros de servicios (por ejemplo, horas mínimas de Ayuda a Domicilio o límites en el copago) tal y como se indican en los criterios técnicos y la tabla de servicios, pero no se presenta una puntuación en forma de número o puntos.",
+      "frecuencia": 3
     }
   ]
 }
