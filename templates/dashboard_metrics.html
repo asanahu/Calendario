@@ -5,29 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Métricas de Disponibilidad</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- FullCalendar CSS for compact range selector -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.css" crossorigin="anonymous" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Calendario compacto (mismo estilo que add-recurring) */
+        .calendar-container { margin-bottom: 10px; background: #fff; padding: 12px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); max-width: 360px; }
+        .calendar-container .fc { font-size: 12px; }
+        .calendar-container .fc .fc-toolbar { margin-bottom: 6px; }
+        .calendar-container .fc .fc-toolbar-title { font-size: 1rem; }
+        .calendar-container .fc .fc-button { padding: 2px 6px; font-size: 12px; }
+        .calendar-container .fc .fc-daygrid-day-number { font-size: 0.8rem; padding: 2px; }
+        .calendar-container .fc .fc-daygrid-day-frame { padding: 2px; }
+        .calendar-container .fc .fc-daygrid-day-events, .calendar-container .fc .fc-daygrid-day-bottom { display: none; }
+        .calendar-instructions { text-align: left; color: #666; font-size: 12px; margin-bottom: 8px; font-style: italic; }
+        .date-range-info { margin-top: 8px; padding: 6px 10px; background: #e8f5e8; border-radius: 6px; font-weight: 500; color: #2e7d32; font-size: 13px; border-left: 4px solid #4caf50; }
+        .date-range-info.hidden { display: none; }
+        .filter-grid { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; }
+        .filter-controls { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+        .filter-controls .filter-item { display: flex; flex-direction: column; }
+    </style>
 </head>
 <body>
     <div class="metrics-container">
         <div class="metrics-header">
-            <h1>Métricas de Disponibilidad</h1>
+            <h1 class="page-title">Métricas de Disponibilidad</h1>
             <button class="back-button" onclick="window.location.href='/dashboard'">Volver</button>
         </div>
 
         <div class="card filter-card">
             <form method="get" class="filter-form" id="metricsFilterForm">
-                <div class="filter-item">
-                    <label for="fecha_inicio">Desde</label>
-                    <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
+                <!-- Hidden inputs for date range -->
+                <input type="hidden" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
+                <input type="hidden" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}">
+                <div class="filter-grid">
+                    <div>
+                        <div class="calendar-instructions">Selecciona un rango (opcional):</div>
+                        <div class="calendar-container">
+                            <div id="dateRangeCalendar"></div>
+                            <div id="dateRangeInfo" class="date-range-info hidden">
+                                <span id="rangeText"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-controls">
+                        <div class="filter-item">
+                            <label for="puesto">Rol/Puesto</label>
+                            <select id="puesto" name="puesto">
+                                <option value="" {{ '' == (puesto or '') and 'selected' or '' }}>Todos</option>
+                                <option value="TS" {{ (puesto or '') == 'TS' and 'selected' or '' }}>TS</option>
+                                <option value="ADM" {{ (puesto or '') == 'ADM' and 'selected' or '' }}>ADM</option>
+                                <option value="Administrador/a" {{ (puesto or '') in ['Administrador/a','Admin'] and 'selected' or '' }}>Admin</option>
+                            </select>
+                        </div>
+                        <div class="filter-actions">
+                            <button type="submit">Filtrar</button>
+                            <button type="button" id="exportExcelBtn">Exportar Excel</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="filter-item">
-                    <label for="fecha_fin">Hasta</label>
-                    <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}">
-                </div>
-                <div class="filter-actions">
-                    <button type="submit">Filtrar</button>
-                    <button type="button" id="exportExcelBtn">Exportar Excel</button>
-                </div>
+                <!-- Dummy submit for range-calendar to avoid disabling real submit -->
+                <button type="button" id="dummySubmit" style="display:none"></button>
             </form>
         </div>
 
@@ -137,9 +175,11 @@
         document.getElementById('exportExcelBtn').addEventListener('click', function() {
             const fi = document.getElementById('fecha_inicio').value;
             const ff = document.getElementById('fecha_fin').value;
+            const pu = document.getElementById('puesto').value;
             const params = new URLSearchParams();
             if (fi) params.append('fecha_inicio', fi);
             if (ff) params.append('fecha_fin', ff);
+            if (pu) params.append('puesto', pu);
             const url = '/dashboard-metrics/export' + (params.toString() ? ('?' + params.toString()) : '');
             window.location.href = url;
         });
@@ -167,6 +207,23 @@
                 header.classList.toggle('asc', ascending);
                 header.classList.toggle('desc', !ascending);
                 rows.forEach(row => table.querySelector('tbody').appendChild(row));
+            });
+        });
+    </script>
+
+    <!-- FullCalendar + range calendar initializer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/range-calendar.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize compact date-range calendar; keep submit always enabled in this page
+            initializeDateRangeCalendar({
+                calendarId: 'dateRangeCalendar',
+                startInputId: 'fecha_inicio',
+                endInputId: 'fecha_fin',
+                infoContainerId: 'dateRangeInfo',
+                infoTextId: 'rangeText',
+                submitSelector: '#dummySubmit'
             });
         });
     </script>

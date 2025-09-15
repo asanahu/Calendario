@@ -35,6 +35,9 @@
       margin: 0;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
+    /* Usa el estilo de page-title pero adaptado a fondo claro con texto blanco */
+    .vacation-header .page-title { color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    .vacation-header .page-title::after { background: rgba(255,255,255,0.85); }
 
     .vacation-header p {
       font-size: 1.2em;
@@ -239,7 +242,7 @@
 <body>
   <div class="vacation-container">
     <div class="vacation-header">
-      <h1>🏖️ Mis Vacaciones</h1>
+      <h1 class="page-title">🏖️ Mis Vacaciones</h1>
       <p>Gestiona tus períodos de descanso de forma fácil y visual</p>
     </div>
 

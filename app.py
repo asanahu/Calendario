@@ -690,7 +690,7 @@ def duplicados():
     return render_template("duplicados.html", duplicados=duplicados)
 
 
-def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None):
+def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None, puesto=None):
     """Devuelve un diccionario con el conteo de eventos por tipo para cada trabajador
     y el ranking de los 5 con más registros por tipo. Se pueden filtrar los
     eventos por rango de fechas."""
@@ -704,6 +704,14 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None):
         match_stage = {"fecha_inicio": {"$lte": fecha_fin}}
 
     pipeline = []
+    # Filtrar por puesto/rol si se solicita
+    if puesto:
+        # Normaliza "Admin" al valor almacenado en BD
+        puesto_db = "Administrador/a" if puesto.lower() in ["admin", "administrador", "administrador/a"] else puesto
+        nombres = [f"{u['nombre']} {u['apellidos']}" for u in users_collection.find(
+            {"puesto": puesto_db, "visible_calendario": {"$ne": False}}, {"nombre": 1, "apellidos": 1}
+        )]
+        pipeline.append({"$match": {"trabajador": {"$in": nombres}}})
     if match_stage:
         pipeline.append({"$match": match_stage})
         
@@ -767,14 +775,16 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None):
 def dashboard_metrics():
     fecha_inicio = request.args.get('fecha_inicio')
     fecha_fin = request.args.get('fecha_fin')
-    metricas, estados, top5_por_tipo = calcular_metricas_por_usuario(fecha_inicio, fecha_fin)
+    puesto = request.args.get('puesto')
+    metricas, estados, top5_por_tipo = calcular_metricas_por_usuario(fecha_inicio, fecha_fin, puesto)
     return render_template(
         'dashboard_metrics.html',
         metricas=metricas,
         estados=estados,
         top5_por_tipo=top5_por_tipo,
         fecha_inicio=fecha_inicio,
-        fecha_fin=fecha_fin
+        fecha_fin=fecha_fin,
+        puesto=puesto
     )
 
 
@@ -792,8 +802,9 @@ def dashboard_metrics_export():
 
     fecha_inicio = request.args.get('fecha_inicio')
     fecha_fin = request.args.get('fecha_fin')
+    puesto = request.args.get('puesto')
 
-    metricas, estados, _ = calcular_metricas_por_usuario(fecha_inicio, fecha_fin)
+    metricas, estados, _ = calcular_metricas_por_usuario(fecha_inicio, fecha_fin, puesto)
     headers = ["Trabajador"] + list(estados)
 
     filename_parts = ["metricas"]
@@ -801,6 +812,8 @@ def dashboard_metrics_export():
         filename_parts.append(fecha_inicio)
     if fecha_fin:
         filename_parts.append(fecha_fin)
+    if puesto:
+        filename_parts.append(("admin" if puesto == "Administrador/a" else puesto).lower())
 
     if use_xlsx:
         wb = Workbook()

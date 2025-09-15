@@ -14,7 +14,7 @@
 </head>
 <body>
 
-    <h1>Calendario de {{ current_user.nombre }} {{ current_user.apellidos }}</h1>
+    <h1 class="page-title">Calendario de {{ current_user.nombre }} {{ current_user.apellidos }}</h1>
 
     <!-- 🔹 Contenedor de botones centrado -->
     <div class="button-container">
@@ -46,6 +46,14 @@
                 <label class="state-chip"><input type="checkbox" value="Baja">Baja</label>
             </div>
 
+            <label for="roleFilter">Rol:</label>
+            <select id="roleFilter">
+                <option value="todos">Todos</option>
+                <option value="TS">TS</option>
+                <option value="ADM">ADM</option>
+                <option value="Administrador/a">Administrador/a</option>
+            </select>
+
             <label for="personFilter">Persona:</label>
             <select id="personFilter">
                 <option value="todos">Todos</option>
@@ -66,13 +74,17 @@
 
         <div class="legend">
             <span class="legend-title">Leyenda</span>
-            <span class="dot dot-ts"></span> TS
-            <span class="dot dot-adm"></span> ADM
-            <span class="dot dot-admin"></span> Admin
+            <span class="dot dot-ts" title="TS"></span> TS
+            <span class="dot dot-adm" title="ADM"></span> ADM
+            <span class="dot dot-admin" title="Admin"></span> Admin
             <span class="pill pill-ausente">Vacaciones</span>
             <span class="pill pill-baja">Baja</span>
             <span class="pill pill-cade30">CADE 30</span>
             <span class="pill pill-cade50">CADE 50</span>
+            <span class="pill pill-cadetardes">CADE Tardes</span>
+            <span class="pill pill-guardia">Guardia CADE</span>
+            <span class="pill pill-refuerzo">Refuerzo Cade</span>
+            <span class="pill pill-mail">Mail</span>
         </div>
     </div>
 
@@ -91,6 +103,7 @@
                 const selectedStates = new Set(); // vacío = Todos
                 let currentPersonFilter = 'todos';
                 let currentSearch = '';
+                let currentRoleFilter = 'todos';
 
                 function cleanTitle(title) {
                     // Remove extra spaces and normalize text
@@ -130,6 +143,7 @@
                                 console.log("Filtros actuales:", {
                                     estados: Array.from(selectedStates),
                                     persona: currentPersonFilter,
+                                    rol: currentRoleFilter,
                                     search: currentSearch
                                 });
 
@@ -157,13 +171,20 @@
                                         }
                                     }
 
+                                    // Filtro por rol
+                                    let passesRole = true;
+                                    if (currentRoleFilter !== 'todos') {
+                                        const puesto = (ext.puesto || '').trim();
+                                        passesRole = puesto === currentRoleFilter;
+                                    }
+
                                     // Búsqueda libre (nombre)
                                     let passesSearch = true;
                                     if (currentSearch) {
                                         passesSearch = normalizeString(nombre).includes(normalizeString(currentSearch));
                                     }
 
-                                    return passesStateFilter && passesPersonFilter && passesSearch;
+                                    return passesStateFilter && passesPersonFilter && passesRole && passesSearch;
                                 });
 
                                 console.log(`Eventos filtrados: ${filtered.length} de ${allEvents.length}`);
@@ -205,9 +226,7 @@
                         return { html: `<div class="evt"><span class="dot ${dotClass}"></span><span class="name">${nombre}</span>${pill}</div>` };
                     },
                     eventDidMount: function(info) {
-                        if (info.event.title.includes("(Ausente)")) {
-                            info.el.classList.add('vacaciones-event');  
-                        }
+                        // Sin fondos especiales: mantenemos eventos neutros
                     }
                 });
         
@@ -217,6 +236,7 @@
                 const personFilter = document.getElementById('personFilter');
                 const stateFilterGroup = document.getElementById('stateFilterGroup');
                 const searchInput = document.getElementById('searchInput');
+                const roleFilter = document.getElementById('roleFilter');
 
                 personFilter.addEventListener('change', function() {
                     currentPersonFilter = this.value;
@@ -244,6 +264,11 @@
                     if (!any) allBox.checked = true; // sin selección = todos
                     syncSelectedStates();
                 }));
+
+                roleFilter.addEventListener('change', function() {
+                    currentRoleFilter = this.value;
+                    calendar.refetchEvents();
+                });
 
                 searchInput.addEventListener('input', function() {
                     currentSearch = this.value;

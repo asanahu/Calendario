@@ -240,7 +240,7 @@ button:hover {
 
 /* 🔹 Centrar los números de los días del mes en el calendario */
 .fc-daygrid-day-top { display: flex; flex-direction: column; align-items: stretch; }
-.fc-daygrid-day-number { display: block; width: 100%; text-align: right; font-size: 12px; font-weight: 700; }
+.fc-daygrid-day-number { display: block; width: 100%; text-align: center; font-size: 12px; font-weight: 700; }
 
 /* 🔹 Ajustar el botón "Añadir Usuario" */
 .add-user-button {
@@ -661,6 +661,20 @@ body.vacation-page {
 .section-header h2 { margin: 0; font-size: 1.6em; }
 .section-subtitle { margin: 4px 0 0; color: #6b7280; font-size: 0.95em; }
 
+/* Ajustes específicos para selector de puesto en dashboard metrics */
+.metrics-container select#puesto {
+    width: auto;              /* anula el 25% global */
+    min-width: 180px;
+    padding: 8px 10px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    background: #fff;
+    color: #1f2d3d;
+    text-align: left;         /* que el valor se lea bien */
+}
+/* Alinear el texto seleccionado a la izquierda en navegadores compatibles */
+.metrics-container select#puesto { text-align-last: left; }
+
 /* ===== Calendario: controles y leyenda ===== */
 .calendar-controls { 
     display: flex; 
@@ -697,15 +711,15 @@ body.vacation-page {
 .state-chip input { margin: 0; }
 
 /* ===== Eventos: render compacto ===== */
-.evt { display: flex; align-items: center; gap: 6px; }
+.evt { display: flex; align-items: center; gap: 6px; padding: 2px 6px; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; background: rgba(0,0,0,0.035); margin: 1px 0; }
 .evt .name { font-weight: 600; color: #111; }
 .evt-festivo { font-weight: 700; text-align: center; }
 
-/* Puntos por puesto */
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.dot-ts { background-color: #6E8FFF; }
-.dot-adm { background-color: #79E079; }
-.dot-admin { background-color: #B388FF; }
+/* Puntos/formas por puesto, más sólidos */
+.dot { width: 8px; height: 8px; display: inline-block; vertical-align: middle; }
+.dot-ts { border-radius: 50%; background-color: #6E8FFF; }
+.dot-adm { border-radius: 2px; background-color: #79E079; }
+.dot-admin { transform: rotate(45deg); background-color: #B388FF; }
 
 /* Pills por estado */
 .pill { 
@@ -718,13 +732,44 @@ body.vacation-page {
 }
 .pill-ausente { background: #FFC1C1; border: 1px solid #E53935; }
 .pill-baja { background: #E0E0E0; border: 1px solid #757575; }
-.pill-cade30 { background: #FFD19A; border: 1px solid #FB8C00; }
-.pill-cade50 { background: #FFF59D; border: 1px solid #FDD835; }
-.pill-cadetardes { background: #FFE0A6; border: 1px solid #F6AE2D; }
-.pill-guardia { background: #CFEAD9; border: 1px solid #49A275; }
-.pill-refuerzo { background: #f3f8c8; border: 1px solid #f5f4aa; }
+/* CADE palette with higher contrast (lighter bg + darker border) */
+.pill-cade30 { background: #FFE6A6; border: 1px solid #CC7A00; }
+.pill-cade50 { background: #FFF2A1; border: 1px solid #9A7B00; }
+.pill-cadetardes { background: #FFCF98; border: 1px solid #C65A11; }
+.pill-guardia { background: #FFF7CC; border: 1px solid #B8860B; }
+.pill-refuerzo { background: #FFE1AD; border: 1px solid #B45F06; }
 .pill-mail { background: #D8C1B9; border: 1px solid #8D6E63; }
 .pill-other { background: #E6E6E6; border: 1px solid #999; }
 
 /* Badge de disponibilidad PIAS por día */
 /* contador PIAS eliminado */
+
+/* Quitar fondos y bordes de eventos (usaremos solo texto + pill) */
+.fc .fc-daygrid-event, .fc .fc-event, .fc .fc-event .fc-event-main {
+  background-color: transparent !important;
+  border: none !important;
+}
+.vacaciones-event { background: transparent !important; border: none !important; }
+
+/* ===== Títulos de página (estilo unificado y profesional) ===== */
+.page-title {
+  display: inline-block;
+  margin: 8px auto 14px;
+  padding: 0 8px 6px;
+  font-weight: 800;
+  color: #1f2d3d;
+  letter-spacing: 0.2px;
+  line-height: 1.15;
+  font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+  position: relative;
+}
+.page-title::after {
+  content: "";
+  display: block;
+  height: 4px;
+  width: min(220px, 70%);
+  margin: 8px auto 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0d6efd, #6c63ff 60%, #0d6efd);
+  opacity: 0.85;
+}
