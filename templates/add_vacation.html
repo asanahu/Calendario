@@ -4,66 +4,452 @@
   <meta charset="UTF-8">
   <title>Añadir Vacaciones</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <!-- FullCalendar CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.css" crossorigin="anonymous" />
   <style>
-    .group-header {
-      background-color: #f0f0f0;
-      cursor: pointer;
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-image: url("{{ url_for('static', filename='background2.jpg') }}");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      min-height: 100vh;
     }
+
+    .vacation-container {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    .vacation-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .vacation-header h1 {
+      font-size: 2.5em;
+      margin: 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .vacation-header p {
+      font-size: 1.2em;
+      margin: 10px 0;
+      opacity: 0.9;
+    }
+
+    .form-section {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .form-section h2 {
+      color: #333;
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    /* Estilos para el calendario compacto */
+    .calendar-container {
+      margin-bottom: 20px;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #dateRangeCalendar {
+      max-width: 350px;
+      margin: 0 auto;
+    }
+
+    .date-range-info {
+      margin-top: 10px;
+      padding: 10px 15px;
+      background: #e8f5e8;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+      color: #2e7d32;
+      font-size: 14px;
+      border-left: 4px solid #4caf50;
+    }
+
+    .date-range-info.hidden {
+      display: none;
+    }
+
+    .calendar-instructions {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 15px;
+      font-style: italic;
+    }
+
+    .btn {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-danger {
+      background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn-danger:hover {
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+    }
+
+    /* Estilos para la tabla de vacaciones */
+    .vacations-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .vacations-table th {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .vacations-table td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    .vacations-table tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .group-header {
+      background: linear-gradient(45deg, #4CAF50, #45a049);
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .group-header:hover {
+      background: linear-gradient(45deg, #45a049, #4CAF50);
+    }
+
     .toggle-icon {
       float: right;
       font-size: 18px;
+      transition: transform 0.3s ease;
+    }
+
+    .group-header:hover .toggle-icon {
+      transform: scale(1.1);
+    }
+
+    .no-vacations {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-size: 1.2em;
+      background: #f8f9fa;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 25px;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      text-decoration: none;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .back-link:hover {
+      background: rgba(255,255,255,1);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .vacation-summary {
+      background: linear-gradient(45deg, #4CAF50, #45a049);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 600;
     }
   </style>
 </head>
-<body class="vacation-page">
-  <div class="vacation-background"></div>
-  <h1>Añadir Vacaciones</h1>
-  <form method="POST">
-    <label>Fecha de inicio:</label>
-    <input type="date" name="fecha_inicio" required><br>
-    <label>Fecha de fin:</label>
-    <input type="date" name="fecha_fin" required><br>
-    <button type="submit">✅ Registrar Vacaciones</button>
-  </form>
-  <hr>
-  <h2>Tus Vacaciones Registradas</h2>
+<body>
+  <div class="vacation-container">
+    <div class="vacation-header">
+      <h1>🏖️ Mis Vacaciones</h1>
+      <p>Gestiona tus períodos de descanso de forma fácil y visual</p>
+    </div>
 
-  {% if grupos_vacaciones %}
-    <table border="1">
-      {% for grupo in grupos_vacaciones %}
-        <!-- Encabezado para el grupo de días consecutivos -->
-        <tr class="group-header" onclick="toggleGroup('{{ loop.index0 }}')">
-          <td colspan="3">
-            <strong>
-              Vacaciones del {{ grupo[0].fecha_inicio.strftime('%d/%m/%Y') }} al {{ grupo[-1].fecha_fin.strftime('%d/%m/%Y') }}
-            </strong>
-            <span id="icon-{{ loop.index0 }}" class="toggle-icon">&#9660;</span>
-          </td>
-        </tr>
-        <!-- Cuerpo oculto para los días individuales -->
-        <tbody id="group-{{ loop.index0 }}" style="display: none;">
-          {% for vacacion in grupo %}
-            <tr>
-              <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
-              <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
-              <td>
-                <form method="POST" action="/delete-vacation/{{ vacacion._id|string }}">
-                  <button type="submit">❌ Eliminar</button>
-                </form>
+    <!-- Sección para añadir nuevas vacaciones -->
+    <div class="form-section">
+      <h2>📅 Añadir Nuevas Vacaciones</h2>
+      <form method="POST">
+        <!-- Campos ocultos para enviar las fechas al backend -->
+        <input type="hidden" id="fecha_inicio" name="fecha_inicio" required>
+        <input type="hidden" id="fecha_fin" name="fecha_fin" required>
+        
+        <!-- Calendario compacto para selección de rango de fechas -->
+        <div class="calendar-container">
+          <h3 style="text-align: center; margin-bottom: 10px; color: #333;">📅 Seleccionar Fechas</h3>
+          <div class="calendar-instructions">
+            Haz clic en dos fechas para seleccionar el rango
+          </div>
+          <div id="dateRangeCalendar"></div>
+          <div id="dateRangeInfo" class="date-range-info hidden">
+            <span id="rangeText"></span>
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <button type="submit" class="btn">✅ Registrar Vacaciones</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Sección para mostrar vacaciones existentes -->
+    <div class="form-section">
+      <h2>📋 Mis Vacaciones Registradas</h2>
+      
+      {% if grupos_vacaciones %}
+        <!-- Resumen de vacaciones -->
+        <div class="vacation-summary">
+          📊 Tienes {{ grupos_vacaciones|length }} período{{ 's' if grupos_vacaciones|length != 1 else '' }} de vacaciones registrado{{ 's' if grupos_vacaciones|length != 1 else '' }}
+        </div>
+
+        <table class="vacations-table">
+          {% for grupo in grupos_vacaciones %}
+            <!-- Encabezado para el grupo de días consecutivos -->
+            <tr class="group-header" onclick="toggleGroup('{{ loop.index0 }}')">
+              <td colspan="3">
+                <strong>
+                  🏖️ Vacaciones del {{ grupo[0].fecha_inicio.strftime('%d/%m/%Y') }} al {{ grupo[-1].fecha_fin.strftime('%d/%m/%Y') }}
+                  ({{ grupo|length }} día{{ 's' if grupo|length != 1 else '' }})
+                </strong>
+                <span id="icon-{{ loop.index0 }}" class="toggle-icon">&#9660;</span>
               </td>
             </tr>
+            <!-- Cuerpo oculto para los días individuales -->
+            <tbody id="group-{{ loop.index0 }}" style="display: none;">
+              {% for vacacion in grupo %}
+                <tr>
+                  <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                  <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                  <td>
+                    <form method="POST" action="/delete-vacation/{{ vacacion._id|string }}" style="display: inline;">
+                      <button type="submit" class="btn btn-danger" style="padding: 8px 15px; font-size: 14px;">❌ Eliminar</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
           {% endfor %}
-        </tbody>
-      {% endfor %}
-    </table>
-  {% else %}
-    <p>❌ No tienes vacaciones registradas.</p>
-  {% endif %}
+        </table>
+      {% else %}
+        <div class="no-vacations">
+          <h3>📅 No tienes vacaciones registradas</h3>
+          <p>¡Usa el calendario de arriba para añadir tu primer período de vacaciones!</p>
+        </div>
+      {% endif %}
+    </div>
 
-  <br>
-  <a href="/calendar">⬅️ Volver al Calendario</a>
+    <div style="text-align: center;">
+      <a href="/calendar" class="back-link">⬅️ Volver al Calendario</a>
+    </div>
+  </div>
 
+  <!-- FullCalendar JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js" crossorigin="anonymous"></script>
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      let startDate = null;
+      let endDate = null;
+      let isSelectingStart = true;
+      
+      const calendarEl = document.getElementById('dateRangeCalendar');
+      const rangeInfoEl = document.getElementById('dateRangeInfo');
+      const rangeTextEl = document.getElementById('rangeText');
+      const fechaInicioInput = document.getElementById('fecha_inicio');
+      const fechaFinInput = document.getElementById('fecha_fin');
+      const submitBtn = document.querySelector('button[type="submit"]');
+      
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        firstDay: 1, // Lunes
+        locale: 'es',
+        selectable: true,
+        selectMirror: true,
+        unselectAuto: false,
+        height: 'auto',
+        aspectRatio: 1.2,
+        headerToolbar: {
+          left: 'prev,next',
+          center: 'title',
+          right: ''
+        },
+        dayMaxEvents: false,
+        moreLinkClick: 'popover',
+        select: function(info) {
+          const selectedDate = info.startStr;
+          
+          if (isSelectingStart) {
+            // Primer clic: seleccionar fecha de inicio
+            startDate = selectedDate;
+            endDate = null;
+            isSelectingStart = false;
+            
+            // Limpiar selecciones previas
+            calendar.unselect();
+            
+            // Mostrar mensaje de instrucción
+            rangeTextEl.textContent = `Inicio: ${formatDate(selectedDate)} - Selecciona fin`;
+            rangeInfoEl.classList.remove('hidden');
+            
+            // Deshabilitar botón de envío
+            submitBtn.disabled = true;
+            
+          } else {
+            // Segundo clic: seleccionar fecha de fin
+            endDate = selectedDate;
+            
+            // Asegurar que la fecha de fin sea posterior o igual a la de inicio
+            if (new Date(endDate) < new Date(startDate)) {
+              const temp = startDate;
+              startDate = endDate;
+              endDate = temp;
+            }
+            
+            // Actualizar campos ocultos
+            fechaInicioInput.value = startDate;
+            fechaFinInput.value = endDate;
+            
+            // Mostrar rango seleccionado
+            rangeTextEl.textContent = `✅ ${formatDate(startDate)} → ${formatDate(endDate)}`;
+            rangeInfoEl.classList.remove('hidden');
+            
+            // Habilitar botón de envío
+            submitBtn.disabled = false;
+            
+            // Reiniciar para nueva selección
+            setTimeout(() => {
+              startDate = null;
+              endDate = null;
+              isSelectingStart = true;
+            }, 2000);
+          }
+        },
+        dateClick: function(info) {
+          // Manejar clic en fecha específica
+          const clickedDate = info.dateStr;
+          
+          if (isSelectingStart) {
+            startDate = clickedDate;
+            endDate = null;
+            isSelectingStart = false;
+            
+            rangeTextEl.textContent = `Inicio: ${formatDate(clickedDate)} - Selecciona fin`;
+            rangeInfoEl.classList.remove('hidden');
+            submitBtn.disabled = true;
+            
+          } else {
+            endDate = clickedDate;
+            
+            if (new Date(endDate) < new Date(startDate)) {
+              const temp = startDate;
+              startDate = endDate;
+              endDate = temp;
+            }
+            
+            fechaInicioInput.value = startDate;
+            fechaFinInput.value = endDate;
+            
+            rangeTextEl.textContent = `✅ ${formatDate(startDate)} → ${formatDate(endDate)}`;
+            rangeInfoEl.classList.remove('hidden');
+            submitBtn.disabled = false;
+            
+            setTimeout(() => {
+              startDate = null;
+              endDate = null;
+              isSelectingStart = true;
+            }, 2000);
+          }
+        }
+      });
+      
+      calendar.render();
+      
+      // Función para formatear fechas
+      function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      }
+      
+      // Validación del formulario
+      document.querySelector('form').addEventListener('submit', function(e) {
+        if (!fechaInicioInput.value || !fechaFinInput.value) {
+          e.preventDefault();
+          alert('Por favor, selecciona un rango de fechas válido.');
+          return false;
+        }
+      });
+    });
+
+    // Función para toggle de grupos de vacaciones
     function toggleGroup(groupId) {
       var elem = document.getElementById('group-' + groupId);
       var icon = document.getElementById('icon-' + groupId);

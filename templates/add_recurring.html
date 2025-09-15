@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title>Asignar Estados Recurrentes</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <!-- FullCalendar CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.css" crossorigin="anonymous" />
   <style>
     .hidden { display: none; }
     .form-container {
@@ -22,19 +24,68 @@
     .worker-name { font-size: 1.5em; font-weight: bold; margin-bottom: 5px; }
     .btn { background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px; }
     .btn:hover { background-color: #0056b3; }
+    .btn:disabled { background-color: #ccc; cursor: not-allowed; }
+
+    /* Estilos para el calendario compacto */
+    .calendar-container {
+      margin-bottom: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #dateRangeCalendar {
+      max-width: 350px;
+      margin: 0 auto;
+    }
+
+    .date-range-info {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #e8f5e8;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 500;
+      color: #2e7d32;
+      font-size: 14px;
+      border-left: 4px solid #4caf50;
+    }
+
+    .date-range-info.hidden {
+      display: none;
+    }
+
+    .calendar-instructions {
+      text-align: center;
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
   <div class="form-container">
     <h1>Asignar Estados Recurrentes</h1>
     <form method="POST">
-      <div class="form-group">
-        <label for="fecha_inicio">Fecha de inicio:</label>
-        <input type="date" id="fecha_inicio" name="fecha_inicio" required>
-      </div>
-      <div class="form-group">
-        <label for="fecha_fin">Fecha de fin:</label>
-        <input type="date" id="fecha_fin" name="fecha_fin" required>
+      <!-- Campos ocultos para enviar las fechas al backend -->
+      <input type="hidden" id="fecha_inicio" name="fecha_inicio" required>
+      <input type="hidden" id="fecha_fin" name="fecha_fin" required>
+      
+      <!-- Calendario compacto para selección de rango de fechas -->
+      <div class="calendar-container">
+        <h3 style="text-align: center; margin-bottom: 10px; color: #333;">📅 Seleccionar Fechas</h3>
+        <div class="calendar-instructions">
+          Haz clic en dos fechas para seleccionar el rango
+        </div>
+        <div id="dateRangeCalendar"></div>
+        <div id="dateRangeInfo" class="date-range-info hidden">
+          <span id="rangeText"></span>
+        </div>
       </div>
       <div class="form-group">
         <label for="n_semanas">Cada</label>
@@ -76,5 +127,145 @@
     </form>
   </div>
 
+  <!-- FullCalendar JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js" crossorigin="anonymous"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      let startDate = null;
+      let endDate = null;
+      let isSelectingStart = true;
+      
+      const calendarEl = document.getElementById('dateRangeCalendar');
+      const rangeInfoEl = document.getElementById('dateRangeInfo');
+      const rangeTextEl = document.getElementById('rangeText');
+      const fechaInicioInput = document.getElementById('fecha_inicio');
+      const fechaFinInput = document.getElementById('fecha_fin');
+      const submitBtn = document.querySelector('button[type="submit"]');
+      
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        firstDay: 1, // Lunes
+        locale: 'es',
+        selectable: true,
+        selectMirror: true,
+        unselectAuto: false,
+        height: 'auto',
+        aspectRatio: 1.2,
+        headerToolbar: {
+          left: 'prev,next',
+          center: 'title',
+          right: ''
+        },
+        dayMaxEvents: false,
+        moreLinkClick: 'popover',
+        select: function(info) {
+          const selectedDate = info.startStr;
+          
+          if (isSelectingStart) {
+            // Primer clic: seleccionar fecha de inicio
+            startDate = selectedDate;
+            endDate = null;
+            isSelectingStart = false;
+            
+            // Limpiar selecciones previas
+            calendar.unselect();
+            
+            // Mostrar mensaje de instrucción
+            rangeTextEl.textContent = `Inicio: ${formatDate(selectedDate)} - Selecciona fin`;
+            rangeInfoEl.classList.remove('hidden');
+            
+            // Deshabilitar botón de envío
+            submitBtn.disabled = true;
+            
+          } else {
+            // Segundo clic: seleccionar fecha de fin
+            endDate = selectedDate;
+            
+            // Asegurar que la fecha de fin sea posterior o igual a la de inicio
+            if (new Date(endDate) < new Date(startDate)) {
+              const temp = startDate;
+              startDate = endDate;
+              endDate = temp;
+            }
+            
+            // Actualizar campos ocultos
+            fechaInicioInput.value = startDate;
+            fechaFinInput.value = endDate;
+            
+            // Mostrar rango seleccionado
+            rangeTextEl.textContent = `✅ ${formatDate(startDate)} → ${formatDate(endDate)}`;
+            rangeInfoEl.classList.remove('hidden');
+            
+            // Habilitar botón de envío
+            submitBtn.disabled = false;
+            
+            // Reiniciar para nueva selección
+            setTimeout(() => {
+              startDate = null;
+              endDate = null;
+              isSelectingStart = true;
+            }, 2000);
+          }
+        },
+        dateClick: function(info) {
+          // Manejar clic en fecha específica
+          const clickedDate = info.dateStr;
+          
+          if (isSelectingStart) {
+            startDate = clickedDate;
+            endDate = null;
+            isSelectingStart = false;
+            
+            rangeTextEl.textContent = `Inicio: ${formatDate(clickedDate)} - Selecciona fin`;
+            rangeInfoEl.classList.remove('hidden');
+            submitBtn.disabled = true;
+            
+          } else {
+            endDate = clickedDate;
+            
+            if (new Date(endDate) < new Date(startDate)) {
+              const temp = startDate;
+              startDate = endDate;
+              endDate = temp;
+            }
+            
+            fechaInicioInput.value = startDate;
+            fechaFinInput.value = endDate;
+            
+            rangeTextEl.textContent = `✅ ${formatDate(startDate)} → ${formatDate(endDate)}`;
+            rangeInfoEl.classList.remove('hidden');
+            submitBtn.disabled = false;
+            
+            setTimeout(() => {
+              startDate = null;
+              endDate = null;
+              isSelectingStart = true;
+            }, 2000);
+          }
+        }
+      });
+      
+      calendar.render();
+      
+      // Función para formatear fechas
+      function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      }
+      
+      // Validación del formulario
+      document.querySelector('form').addEventListener('submit', function(e) {
+        if (!fechaInicioInput.value || !fechaFinInput.value) {
+          e.preventDefault();
+          alert('Por favor, selecciona un rango de fechas válido.');
+          return false;
+        }
+      });
+    });
+  </script>
 </body>
 </html>
