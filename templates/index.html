@@ -29,35 +29,51 @@
         {% endif %}
     </div>
 
-    <!-- 🔹 Filtros -->
-    <div class="filter-container" style="text-align: center; margin: 20px 0;">
-        <label for="stateFilter">Filtrar por estado:</label>
-        <select id="stateFilter">
-            <option value="todos">Todos</option>
-            <option value="PIAS">PIAS</option>
-            <option value="Ausente">Vacaciones</option>
-            <option value="CADE 30">CADE 30</option>
-            <option value="CADE 50">CADE 50</option>
-            <option value="CADE Tardes">CADE Tardes</option>
-            <option value="Guardia CADE">Guardia CADE</option>
-            <option value="Refuerzo Cade">Refuerzo Cade</option>
-            <option value="Mail">Mail</option>
-            <option value="Baja">Baja</option>
-        </select>
+    <!-- 🔹 Filtros + Leyenda -->
+    <div class="calendar-controls">
+        <div class="filters">
+            <span>Estado:</span>
+            <div id="stateFilterGroup" class="state-group" role="group" aria-label="Filtrar por estados">
+                <label class="state-chip"><input type="checkbox" value="todos" checked>Todos</label>
+                <label class="state-chip"><input type="checkbox" value="PIAS">PIAS</label>
+                <label class="state-chip"><input type="checkbox" value="Ausente">Vacaciones</label>
+                <label class="state-chip"><input type="checkbox" value="CADE 30">CADE 30</label>
+                <label class="state-chip"><input type="checkbox" value="CADE 50">CADE 50</label>
+                <label class="state-chip"><input type="checkbox" value="CADE Tardes">CADE Tardes</label>
+                <label class="state-chip"><input type="checkbox" value="Guardia CADE">Guardia CADE</label>
+                <label class="state-chip"><input type="checkbox" value="Refuerzo Cade">Refuerzo Cade</label>
+                <label class="state-chip"><input type="checkbox" value="Mail">Mail</label>
+                <label class="state-chip"><input type="checkbox" value="Baja">Baja</label>
+            </div>
 
-        <label for="personFilter" style="margin-left: 20px;">Filtrar por persona:</label>
-        <select id="personFilter">
-            <option value="todos">Todos</option>
-            {% if usuarios %}
-                {% for usuario in usuarios %}
-                    <option value="{{ usuario.nombre }} {{ usuario.apellidos }}">
-                        {{ usuario.nombre }} {{ usuario.apellidos }}
-                    </option>
-                {% endfor %}
-            {% else %}
-                <option value="" disabled>No hay usuarios disponibles</option>
-            {% endif %}
-        </select>
+            <label for="personFilter">Persona:</label>
+            <select id="personFilter">
+                <option value="todos">Todos</option>
+                {% if usuarios %}
+                    {% for usuario in usuarios %}
+                        <option value="{{ usuario.nombre }} {{ usuario.apellidos }}">
+                            {{ usuario.nombre }} {{ usuario.apellidos }}
+                        </option>
+                    {% endfor %}
+                {% else %}
+                    <option value="" disabled>No hay usuarios disponibles</option>
+                {% endif %}
+            </select>
+
+            <label for="searchInput">Buscar:</label>
+            <input id="searchInput" type="search" placeholder="Nombre o apellido" />
+        </div>
+
+        <div class="legend">
+            <span class="legend-title">Leyenda</span>
+            <span class="dot dot-ts"></span> TS
+            <span class="dot dot-adm"></span> ADM
+            <span class="dot dot-admin"></span> Admin
+            <span class="pill pill-ausente">Vacaciones</span>
+            <span class="pill pill-baja">Baja</span>
+            <span class="pill pill-cade30">CADE 30</span>
+            <span class="pill pill-cade50">CADE 50</span>
+        </div>
     </div>
 
     <!-- 🔹 Calendario -->
@@ -71,10 +87,10 @@
                 console.log("Usuarios disponibles:", usuarios);
                 
                 var calendarEl = document.getElementById('calendar');
-                var contadorDisponibles = {};
                 var allEvents = [];
-                let currentStateFilter = 'todos';
+                const selectedStates = new Set(); // vacío = Todos
                 let currentPersonFilter = 'todos';
+                let currentSearch = '';
 
                 function cleanTitle(title) {
                     // Remove extra spaces and normalize text
@@ -112,44 +128,42 @@
                             .then(data => {
                                 allEvents = data.eventos;
                                 console.log("Filtros actuales:", {
-                                    estado: currentStateFilter,
-                                    persona: currentPersonFilter
+                                    estados: Array.from(selectedStates),
+                                    persona: currentPersonFilter,
+                                    search: currentSearch
                                 });
 
                                 const filtered = allEvents.filter(event => {
                                     const eventTitle = cleanTitle(event.title || '');
+                                    const ext = event.extendedProps || {};
+                                    const estado = (ext.estado || (eventTitle.match(/\(([^)]+)\)/)?.[1] || 'PIAS'));
+                                    const nombre = (ext.nombre || eventTitle.split('(')[0].replace(/^(TS|ADM|Administrador\/a)\s*-\s*/, '').trim());
                                     
-                                    // Filtro por estado
+                                    // Filtro por estados múltiples: vacío = todos
                                     let passesStateFilter = true;
-                                    if (currentStateFilter !== 'todos') {
-                                        if (currentStateFilter === 'PIAS') {
-                                            // Definir los estados que no se consideran PIAS
-                                            const nonPIASStates = ["Ausente", "CADE 30", "CADE 50","CADE Tardes", "Guardia CADE", "Refuerzo Cade", "Mail", "Baja"];
-                                            // Si contiene alguno de esos estados, entonces NO pasa el filtro PIAS
-                                            passesStateFilter = !nonPIASStates.some(state => eventTitle.includes(`(${state})`));
-                                        } else {
-                                            passesStateFilter = eventTitle.includes(`(${currentStateFilter})`);
-                                        }
+                                    if (selectedStates.size > 0) {
+                                        passesStateFilter = selectedStates.has(estado);
                                     }
                                     
                                     // Filtro por persona
                                     let passesPersonFilter = true;
                                     if (currentPersonFilter !== 'todos') {
-                                        // Extraer el nombre sin el rol (TS -, ADM -, etc.)
-                                        const fullName = eventTitle.split('(')[0]  // Tomar parte antes del primer paréntesis
-                                                       .replace(/^(TS|ADM|Administrador\/a)\s*-\s*/, '') // Eliminar prefijo de rol
-                                                       .trim();
-                                        
-                                        const normalizedFullName = normalizeString(fullName);
+                                        const normalizedFullName = normalizeString(nombre);
                                         const normalizedFilter = normalizeString(currentPersonFilter);
                                         passesPersonFilter = normalizedFullName === normalizedFilter;
                                         
                                         if (passesPersonFilter) {
-                                            console.log(`Evento coincidente: "${eventTitle}" -> "${fullName}"`);
+                                            console.log(`Evento coincidente: "${eventTitle}" -> "${nombre}"`);
                                         }
                                     }
 
-                                    return passesStateFilter && passesPersonFilter;
+                                    // Búsqueda libre (nombre)
+                                    let passesSearch = true;
+                                    if (currentSearch) {
+                                        passesSearch = normalizeString(nombre).includes(normalizeString(currentSearch));
+                                    }
+
+                                    return passesStateFilter && passesPersonFilter && passesSearch;
                                 });
 
                                 console.log(`Eventos filtrados: ${filtered.length} de ${allEvents.length}`);
@@ -159,6 +173,36 @@
                                 console.error("Error al cargar eventos:", error);
                                 failureCallback(error);
                             });
+                    },
+                    eventContent: function(arg) {
+                        // Render compacto: punto por puesto + nombre + chip de estado
+                        const title = arg.event.title || '';
+                        const ext = arg.event.extendedProps || {};
+                        const estado = ext.estado || (title.match(/\(([^)]+)\)/)?.[1]);
+                        const nombre = ext.nombre || title.split('(')[0].replace(/^(TS|ADM|Administrador\/a)\s*-\s*/, '').trim();
+                        const puesto = (ext.puesto || title.split(' - ')[0] || '').toLowerCase();
+                        
+                        // Festivo u otros
+                        if (/^festivo$/i.test(title)) return { html: `<div class="evt evt-festivo">${title}</div>` };
+
+                        const dotClass = puesto.includes('ts') ? 'dot-ts' : puesto.includes('adm') && !puesto.includes('administrador') ? 'dot-adm' : 'dot-admin';
+                        let pill = '';
+                        if (estado && estado !== 'PIAS') {
+                            const key = (estado || '').toLowerCase();
+                            const map = {
+                                'ausente': 'pill-ausente',
+                                'baja': 'pill-baja',
+                                'cade 30': 'pill-cade30',
+                                'cade 50': 'pill-cade50',
+                                'cade tardes': 'pill-cadetardes',
+                                'guardia cade': 'pill-guardia',
+                                'refuerzo cade': 'pill-refuerzo',
+                                'mail': 'pill-mail'
+                            };
+                            const cls = map[key] || 'pill-other';
+                            pill = `<span class="pill ${cls}">${estado}</span>`;
+                        }
+                        return { html: `<div class="evt"><span class="dot ${dotClass}"></span><span class="name">${nombre}</span>${pill}</div>` };
                     },
                     eventDidMount: function(info) {
                         if (info.event.title.includes("(Ausente)")) {
@@ -171,7 +215,8 @@
 
                 // Event listeners
                 const personFilter = document.getElementById('personFilter');
-                const stateFilter = document.getElementById('stateFilter');
+                const stateFilterGroup = document.getElementById('stateFilterGroup');
+                const searchInput = document.getElementById('searchInput');
 
                 personFilter.addEventListener('change', function() {
                     currentPersonFilter = this.value;
@@ -179,9 +224,29 @@
                     calendar.refetchEvents();
                 });
 
-                stateFilter.addEventListener('change', function() {
-                    currentStateFilter = this.value;
-                    console.log(`Aplicando filtro de estado: "${currentStateFilter}"`);
+                // Gestión de selección múltiple de estados
+                const allBox = stateFilterGroup.querySelector('input[value="todos"]');
+                const stateBoxes = Array.from(stateFilterGroup.querySelectorAll('input[type="checkbox"]:not([value="todos"])'));
+                function syncSelectedStates() {
+                    selectedStates.clear();
+                    stateBoxes.forEach(cb => { if (cb.checked) selectedStates.add(cb.value); });
+                    calendar.refetchEvents();
+                }
+                allBox.addEventListener('change', () => {
+                    if (allBox.checked) {
+                        stateBoxes.forEach(cb => cb.checked = false);
+                    }
+                    syncSelectedStates();
+                });
+                stateBoxes.forEach(cb => cb.addEventListener('change', () => {
+                    if (cb.checked) allBox.checked = false;
+                    const any = stateBoxes.some(b => b.checked);
+                    if (!any) allBox.checked = true; // sin selección = todos
+                    syncSelectedStates();
+                }));
+
+                searchInput.addEventListener('input', function() {
+                    currentSearch = this.value;
                     calendar.refetchEvents();
                 });
             } catch (error) {

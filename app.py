@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, flash
+from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, flash, send_file
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import datetime
 import boto3
@@ -14,6 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import time
 import uuid
 import json
+from io import BytesIO
 
 # Cargar variables de entorno
 load_dotenv()
@@ -552,18 +553,32 @@ def events():
                         color = "#49A275"  # Verde oscuro
                     elif evento_asignado == "Refuerzo Cade":
                         event_label += " (Refuerzo Cade)"
-                        color = "#E91E63"  # Rosa vibrante
+                        color = "#FCF2B1"  # Amarillo clarito
                     elif evento_asignado == "Mail":
                         event_label += " (Mail)"
                         color = "#8D6E63"  # Marrón rosado apagado
                 else:
                     disponibles_en_dia += 1
 
+                # Mapear el estado para el frontend (Vacaciones -> Ausente)
+                estado_value = "PIAS"
+                if evento_asignado:
+                    if evento_asignado == "Vacaciones":
+                        estado_value = "Ausente"
+                    else:
+                        estado_value = evento_asignado
+
                 eventos_dia.append({
                     "id": f"{nombre_completo}-{fecha_str}",
                     "title": event_label,
                     "start": fecha_str,
-                    "color": color
+                    "color": color,
+                    "extendedProps": {
+                        "nombre": nombre_completo,
+                        "puesto": usuario.get("puesto", ""),
+                        "estado": estado_value,
+                        "isDisponible": (evento_asignado is None)
+                    }
                 })
 
             eventos_dia.sort(key=lambda e: orden_puestos.get(e["title"].split(" - ")[0], 4))
@@ -648,6 +663,9 @@ def asignar_estados():
 @admin_required
 def duplicados():
     pipeline = [
+        # Excluir fines de semana antes de agrupar (independiente del tipo de campo)
+        {"$addFields": {"_fechaDate": {"$toDate": "$fecha_inicio"}}},
+        {"$match": {"$expr": {"$not": {"$in": [{"$isoDayOfWeek": "$_fechaDate"}, [6, 7]]}}}},
         {
             "$group": {
                 "_id": {
@@ -665,9 +683,8 @@ def duplicados():
                 "$expr": {"$gt": [{"$size": "$tipos"}, 1]}
             }
         },
-        {
-            "$sort": {"_id.fecha_inicio": 1}
-        }
+        {"$sort": {"_id.fecha_inicio": 1}},
+        {"$project": {"_fechaDate": 0}}
     ]
     duplicados = list(events_collection.aggregate(pipeline))
     return render_template("duplicados.html", duplicados=duplicados)
@@ -759,6 +776,95 @@ def dashboard_metrics():
         fecha_inicio=fecha_inicio,
         fecha_fin=fecha_fin
     )
+
+
+@app.route('/dashboard-metrics/export', methods=['GET'])
+@login_required
+@admin_required
+def dashboard_metrics_export():
+    """Exporta la tabla de métricas a Excel (.xlsx) o CSV (fallback)."""
+    use_xlsx = True
+    try:
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    except Exception:
+        use_xlsx = False
+
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_fin = request.args.get('fecha_fin')
+
+    metricas, estados, _ = calcular_metricas_por_usuario(fecha_inicio, fecha_fin)
+    headers = ["Trabajador"] + list(estados)
+
+    filename_parts = ["metricas"]
+    if fecha_inicio:
+        filename_parts.append(fecha_inicio)
+    if fecha_fin:
+        filename_parts.append(fecha_fin)
+
+    if use_xlsx:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Métricas"
+
+        ws.append(headers)
+        bold = Font(bold=True)
+        header_fill = PatternFill(start_color="E8EEF7", end_color="E8EEF7", fill_type="solid")
+        center = Alignment(horizontal="center")
+        thin = Side(border_style="thin", color="CCCCCC")
+        border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+        for col_idx, _ in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col_idx)
+            cell.font = bold
+            cell.fill = header_fill
+            cell.alignment = center
+            cell.border = border
+
+        for trabajador, datos in metricas.items():
+            row = [trabajador] + [int(datos.get(estado, 0)) for estado in estados]
+            ws.append(row)
+
+        ws.column_dimensions['A'].width = 40
+        for i in range(2, len(headers) + 1):
+            letter = ws.cell(row=1, column=i).column_letter
+            ws.column_dimensions[letter].width = 14
+
+        for r in range(2, ws.max_row + 1):
+            for c in range(1, ws.max_column + 1):
+                cell = ws.cell(row=r, column=c)
+                cell.border = border
+                if c > 1:
+                    cell.alignment = center
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        filename = "_".join(filename_parts) + ".xlsx"
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    else:
+        # Fallback a CSV para compatibilidad sin dependencias
+        import csv
+        from io import StringIO
+        sio = StringIO()
+        writer = csv.writer(sio)
+        writer.writerow(headers)
+        for trabajador, datos in metricas.items():
+            row = [trabajador] + [int(datos.get(estado, 0)) for estado in estados]
+            writer.writerow(row)
+        output = BytesIO(sio.getvalue().encode('utf-8-sig'))
+        filename = "_".join(filename_parts) + ".csv"
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/csv'
+        )
 
 
 # Configuramos asistente de IA

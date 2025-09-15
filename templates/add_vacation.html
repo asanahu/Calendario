@@ -63,18 +63,29 @@
     .calendar-container {
       margin-bottom: 20px;
       background: #f8f9fa;
-      padding: 20px;
+      padding: 12px;
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      max-width: 400px;
+      max-width: 360px;
       margin-left: auto;
       margin-right: auto;
     }
 
     #dateRangeCalendar {
-      max-width: 350px;
+      max-width: 340px;
       margin: 0 auto;
     }
+
+    /* Compactar FullCalendar dentro del contenedor */
+    .calendar-container .fc { font-size: 12px; }
+    .calendar-container .fc .fc-toolbar { margin-bottom: 6px; }
+    .calendar-container .fc .fc-toolbar-title { font-size: 1rem; }
+    .calendar-container .fc .fc-button { padding: 2px 6px; font-size: 12px; }
+    .calendar-container .fc .fc-daygrid-day-number { font-size: 0.8rem; padding: 2px; }
+    .calendar-container .fc .fc-daygrid-day-frame { padding: 2px; }
+    /* Eliminar espacio bajo el número del día (no mostramos eventos aquí) */
+    .calendar-container .fc .fc-daygrid-day-events { display: none; min-height: 0; }
+    .calendar-container .fc .fc-daygrid-day-bottom { display: none; }
 
     .date-range-info {
       margin-top: 10px;
@@ -311,140 +322,28 @@
 
   <!-- FullCalendar JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js" crossorigin="anonymous"></script>
+  <script src="{{ url_for('static', filename='js/range-calendar.js') }}"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      let startDate = null;
-      let endDate = null;
-      let isSelectingStart = true;
-      
-      const calendarEl = document.getElementById('dateRangeCalendar');
+      // Accesibilidad: anunciar rango seleccionado
       const rangeInfoEl = document.getElementById('dateRangeInfo');
-      const rangeTextEl = document.getElementById('rangeText');
-      const fechaInicioInput = document.getElementById('fecha_inicio');
-      const fechaFinInput = document.getElementById('fecha_fin');
-      const submitBtn = document.querySelector('button[type="submit"]');
-      
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        firstDay: 1, // Lunes
-        locale: 'es',
-        selectable: true,
-        selectMirror: true,
-        unselectAuto: false,
-        height: 'auto',
-        aspectRatio: 1.2,
-        headerToolbar: {
-          left: 'prev,next',
-          center: 'title',
-          right: ''
-        },
-        dayMaxEvents: false,
-        moreLinkClick: 'popover',
-        select: function(info) {
-          const selectedDate = info.startStr;
-          
-          if (isSelectingStart) {
-            // Primer clic: seleccionar fecha de inicio
-            startDate = selectedDate;
-            endDate = null;
-            isSelectingStart = false;
-            
-            // Limpiar selecciones previas
-            calendar.unselect();
-            
-            // Mostrar mensaje de instrucción
-            rangeTextEl.textContent = `Inicio: ${formatDate(selectedDate)} - Selecciona fin`;
-            rangeInfoEl.classList.remove('hidden');
-            
-            // Deshabilitar botón de envío
-            submitBtn.disabled = true;
-            
-          } else {
-            // Segundo clic: seleccionar fecha de fin
-            endDate = selectedDate;
-            
-            // Asegurar que la fecha de fin sea posterior o igual a la de inicio
-            if (new Date(endDate) < new Date(startDate)) {
-              const temp = startDate;
-              startDate = endDate;
-              endDate = temp;
-            }
-            
-            // Actualizar campos ocultos
-            fechaInicioInput.value = startDate;
-            fechaFinInput.value = endDate;
-            
-            // Mostrar rango seleccionado
-            rangeTextEl.textContent = `✅ ${formatDate(startDate)} → ${formatDate(endDate)}`;
-            rangeInfoEl.classList.remove('hidden');
-            
-            // Habilitar botón de envío
-            submitBtn.disabled = false;
-            
-            // Reiniciar para nueva selección
-            setTimeout(() => {
-              startDate = null;
-              endDate = null;
-              isSelectingStart = true;
-            }, 2000);
-          }
-        },
-        dateClick: function(info) {
-          // Manejar clic en fecha específica
-          const clickedDate = info.dateStr;
-          
-          if (isSelectingStart) {
-            startDate = clickedDate;
-            endDate = null;
-            isSelectingStart = false;
-            
-            rangeTextEl.textContent = `Inicio: ${formatDate(clickedDate)} - Selecciona fin`;
-            rangeInfoEl.classList.remove('hidden');
-            submitBtn.disabled = true;
-            
-          } else {
-            endDate = clickedDate;
-            
-            if (new Date(endDate) < new Date(startDate)) {
-              const temp = startDate;
-              startDate = endDate;
-              endDate = temp;
-            }
-            
-            fechaInicioInput.value = startDate;
-            fechaFinInput.value = endDate;
-            
-            rangeTextEl.textContent = `✅ ${formatDate(startDate)} → ${formatDate(endDate)}`;
-            rangeInfoEl.classList.remove('hidden');
-            submitBtn.disabled = false;
-            
-            setTimeout(() => {
-              startDate = null;
-              endDate = null;
-              isSelectingStart = true;
-            }, 2000);
-          }
-        }
+      rangeInfoEl.setAttribute('aria-live', 'polite');
+      rangeInfoEl.setAttribute('role', 'status');
+      initializeDateRangeCalendar({
+        calendarId: 'dateRangeCalendar',
+        startInputId: 'fecha_inicio',
+        endInputId: 'fecha_fin',
+        infoContainerId: 'dateRangeInfo',
+        infoTextId: 'rangeText',
+        submitSelector: 'button[type="submit"]'
       });
-      
-      calendar.render();
-      
-      // Función para formatear fechas
-      function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        });
-      }
-      
-      // Validación del formulario
+
       document.querySelector('form').addEventListener('submit', function(e) {
-        if (!fechaInicioInput.value || !fechaFinInput.value) {
+        const fi = document.getElementById('fecha_inicio').value;
+        const ff = document.getElementById('fecha_fin').value;
+        if (!fi || !ff) {
           e.preventDefault();
           alert('Por favor, selecciona un rango de fechas válido.');
-          return false;
         }
       });
     });

@@ -2,95 +2,156 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Métricas de Disponibilidad</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <h1>Métricas de Disponibilidad</h1>
-    <form method="get" class="filter-form">
-        <label for="fecha_inicio">Desde:</label>
-        <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
-        <label for="fecha_fin">Hasta:</label>
-        <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}">
-        <button type="submit">Filtrar</button>
-    </form>
-    <table>
-        <thead>
-            <tr>
-                <th>Trabajador</th>
-                {% for estado in estados %}
-                <th>{{ estado }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for trabajador, datos in metricas.items() %}
-            <tr>
-                <td>{{ trabajador }}</td>
-                {% for estado in estados %}
-                <td>{{ datos.get(estado, 0) }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <h2>Top 5 por Tipo</h2>
-    <div class="chart-grid">
-    {% for tipo, top5 in top5_por_tipo.items() %}
-        <div class="chart-container">
-            <h3>{{ tipo }}</h3>
-            <canvas id="chart-{{ loop.index }}"></canvas>
+    <div class="metrics-container">
+        <div class="metrics-header">
+            <h1>Métricas de Disponibilidad</h1>
+            <button class="back-button" onclick="window.location.href='/dashboard'">Volver</button>
         </div>
-        <script>
-            const ctx{{ loop.index }} = document.getElementById('chart-{{ loop.index }}').getContext('2d');
-            new Chart(ctx{{ loop.index }}, {
-                type: 'bar',
-                data: {
-                    labels: {{ top5 | map(attribute=0) | list | tojson }},
-                    datasets: [{
-                        label: '{{ tipo }}',
-                        data: {{ top5 | map(attribute=1) | list | tojson }},
-                        backgroundColor: '#36A2EB',
-                        borderColor: '#1E88E5',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#333'
+
+        <div class="card filter-card">
+            <form method="get" class="filter-form" id="metricsFilterForm">
+                <div class="filter-item">
+                    <label for="fecha_inicio">Desde</label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
+                </div>
+                <div class="filter-item">
+                    <label for="fecha_fin">Hasta</label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin or '' }}">
+                </div>
+                <div class="filter-actions">
+                    <button type="submit">Filtrar</button>
+                    <button type="button" id="exportExcelBtn">Exportar Excel</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Trabajadores</div>
+                <div class="kpi-value">{{ metricas|length }}</div>
+            </div>
+            {% for estado in estados %}
+                {% set total_ns = namespace(total=0) %}
+                {% for _trabajador, datos in metricas.items() %}
+                    {% set total_ns.total = total_ns.total + (datos.get(estado, 0)) %}
+                {% endfor %}
+                <div class="kpi-card">
+                    <div class="kpi-label">{{ estado }}</div>
+                    <div class="kpi-value">{{ total_ns.total }}</div>
+                </div>
+            {% endfor %}
+            {% set eventos_ns = namespace(total=0) %}
+            {% for _trabajador, datos in metricas.items() %}
+                {% for estado in estados %}
+                    {% set eventos_ns.total = eventos_ns.total + (datos.get(estado, 0)) %}
+                {% endfor %}
+            {% endfor %}
+            <div class="kpi-card">
+                <div class="kpi-label">Eventos (total)</div>
+                <div class="kpi-value">{{ eventos_ns.total }}</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-wrap">
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Trabajador</th>
+                            {% for estado in estados %}
+                            <th>{{ estado }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trabajador, datos in metricas.items() %}
+                        <tr>
+                            <td class="col-sticky">{{ trabajador }}</td>
+                            {% for estado in estados %}
+                            <td>{{ datos.get(estado, 0) }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-hint">Pulsa en un encabezado para ordenar</div>
+        </div>
+
+        <div class="section-header">
+            <h2>Top 5 por Tipo</h2>
+            <p class="section-subtitle">Comparativa rápida por estado</p>
+        </div>
+        <div class="chart-grid">
+        {% for tipo, top5 in top5_por_tipo.items() %}
+            <div class="chart-container">
+                <h3>{{ tipo }}</h3>
+                <canvas id="chart-{{ loop.index }}"></canvas>
+            </div>
+            <script>
+                const ctx{{ loop.index }} = document.getElementById('chart-{{ loop.index }}').getContext('2d');
+                new Chart(ctx{{ loop.index }}, {
+                    type: 'bar',
+                    data: {
+                        labels: {{ top5 | map(attribute=0) | list | tojson }},
+                        datasets: [{
+                            label: '{{ tipo }}',
+                            data: {{ top5 | map(attribute=1) | list | tojson }},
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: '#1E88E5',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#333' },
+                                grid: { display: false }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#333' },
+                                grid: { color: 'rgba(0,0,0,0.06)' }
                             }
                         }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#333' },
-                            grid: { color: 'rgba(0,0,0,0.1)' }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: '#333' },
-                            grid: { color: 'rgba(0,0,0,0.1)' }
-                        }
                     }
-                }
-            });
-        </script>
-    {% endfor %}
+                });
+            </script>
+        {% endfor %}
+        </div>
     </div>
-    <button onclick="window.location.href='/dashboard'">⬅️ Volver al Menú Principal</button>
 
     <script>
-        document.querySelectorAll('table th').forEach((header) => {
+        // Exportar Excel manteniendo los filtros actuales
+        document.getElementById('exportExcelBtn').addEventListener('click', function() {
+            const fi = document.getElementById('fecha_inicio').value;
+            const ff = document.getElementById('fecha_fin').value;
+            const params = new URLSearchParams();
+            if (fi) params.append('fecha_inicio', fi);
+            if (ff) params.append('fecha_fin', ff);
+            const url = '/dashboard-metrics/export' + (params.toString() ? ('?' + params.toString()) : '');
+            window.location.href = url;
+        });
+
+        // Ordenación de columnas con indicador visual
+        document.querySelectorAll('.metrics-table th').forEach((header) => {
             header.addEventListener('click', () => {
                 const table = header.closest('table');
                 const index = Array.from(header.parentElement.children).indexOf(header);
                 const rows = Array.from(table.querySelectorAll('tbody tr'));
                 const ascending = !header.classList.contains('asc');
+
                 rows.sort((a, b) => {
                     const cellA = a.children[index].innerText.trim();
                     const cellB = b.children[index].innerText.trim();
@@ -101,6 +162,8 @@
                     }
                     return ascending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
                 });
+
+                header.parentElement.querySelectorAll('th').forEach(h => h.classList.remove('asc', 'desc'));
                 header.classList.toggle('asc', ascending);
                 header.classList.toggle('desc', !ascending);
                 rows.forEach(row => table.querySelector('tbody').appendChild(row));

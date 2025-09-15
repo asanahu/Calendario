@@ -11,3 +11,4 @@ pinecone
 PyMuPDF
 frontend
 Flask-Admin
+openpyxl

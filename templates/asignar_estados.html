@@ -9,12 +9,12 @@
   <style>
     /* Contenedor principal del formulario */
     .form-container {
-      max-width: 1200px; /* Ajusta el ancho máximo para quepan más columnas */
+      max-width: 1200px;
       margin: 30px auto;
       padding: 20px;
       background: #f9f9f9;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     }
 
     .form-group {
@@ -37,19 +37,30 @@
     /* Estilos para el calendario compacto */
     .calendar-container {
       margin-bottom: 20px;
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      max-width: 400px;
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      max-width: 360px; /* Más compacto */
       margin-left: auto;
       margin-right: auto;
     }
 
     #dateRangeCalendar {
-      max-width: 350px;
+      max-width: 340px;
       margin: 0 auto;
     }
+
+    /* Compactar FullCalendar dentro del contenedor */
+    .calendar-container .fc { font-size: 12px; }
+    .calendar-container .fc .fc-toolbar { margin-bottom: 6px; }
+    .calendar-container .fc .fc-toolbar-title { font-size: 1rem; }
+    .calendar-container .fc .fc-button { padding: 2px 6px; font-size: 12px; }
+    .calendar-container .fc .fc-daygrid-day-number { font-size: 0.8rem; padding: 2px; }
+    .calendar-container .fc .fc-daygrid-day-frame { padding: 2px; }
+    /* Eliminar espacio bajo el número del día (no mostramos eventos aquí) */
+    .calendar-container .fc .fc-daygrid-day-events { display: none; min-height: 0; }
+    .calendar-container .fc .fc-daygrid-day-bottom { display: none; }
 
     .date-range-info {
       margin-top: 10px;
@@ -76,35 +87,74 @@
     }
 
     /* Contenedor que agrupa a todos los trabajadores */
-    .worker-list {
-      margin-top: 20px;
-      display: grid;
-      /* 3 columnas fijas; puedes ajustar a 4 si prefieres */
-      grid-template-columns: repeat(5, 1fr);
-      gap: 20px; /* Espacio entre columnas */
+    .filters-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #eaeef5;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
     }
+    .filters-bar input[type="search"], .filters-bar select {
+      padding: 8px 10px; border: 1px solid #dcdcdc; border-radius: 10px; background: #fff;
+    }
+    #filtroPuesto { font-size: 12px; padding: 6px 8px; width: auto; min-width: 120px; }
+    #searchTrab { font-size: 13px; padding: 6px 10px; min-width: 220px; }
+    .filters-bar .legend { margin-left: auto; font-size: 12px; color: #555; }
+    .legend .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; color: #222; font-weight: 600; margin-left: 6px; }
+    .tag.ts { background: #A3C4FF; }
+    .tag.adm { background: #B0FFB0; }
+    .tag.admin { background: #D1B3FF; }
+
+    .selection-actions { display: flex; gap: 8px; align-items: center; }
+    .selection-actions select { padding: 8px 10px; border: 1px solid #dcdcdc; border-radius: 8px; }
+    .selection-actions button { padding: 8px 12px; border-radius: 8px; background: #0d6efd; color: #fff; border: none; cursor: pointer; }
+    .selection-actions button:hover { background: #0b5ed7; }
+
+    /* Contenedor de secciones (puestos) apiladas verticalmente */
+    .columns { display: block; }
+    .column-box {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .column-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .column-title { font-weight: 700; color: #333; }
+    .column-apply select { padding: 6px 8px; border: 1px solid #ddd; border-radius: 8px; }
+    .rows { display: grid; grid-template-columns: repeat(3, minmax(200px, 1fr)); gap: 6px 10px; }
+    .row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid #f0f0f0; border-radius: 8px; }
+    .row .name { font-size: 13px; font-weight: 600; color: #222; }
+    .row select { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
+
+    /* Responsivo para asegurar legibilidad en pantallas más pequeñas */
+    @media (max-width: 1200px) { .rows { grid-template-columns: repeat(2, minmax(200px, 1fr)); } }
+    @media (max-width: 800px) { .rows { grid-template-columns: 1fr; } }
 
     .worker-item {
-      padding: 10px;
+      padding: 12px;
       border: 1px solid #eee;
       background: #fff;
-      border-radius: 4px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
     }
 
-    .worker-name {
-      font-size: 1.5em; 
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
+    .worker-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+    .worker-meta { font-size: 12px; color: #666; margin-bottom: 6px; }
 
     .btn {
       background-color: #007BFF;
       color: white;
-      padding: 10px 20px;
+      padding: 10px 16px;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       cursor: pointer;
-      margin-top: 20px;
+      margin-top: 16px;
     }
 
     .btn:hover {
@@ -114,6 +164,15 @@
     .btn:disabled {
       background-color: #ccc;
       cursor: not-allowed;
+    }
+
+    /* Utilidad de accesibilidad para labels ocultos visualmente */
+    .visually-hidden {
+      position: absolute !important;
+      height: 1px; width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -137,22 +196,71 @@
         </div>
       </div>
 
-      <div class="worker-list">
-        {% for trabajador in trabajadores %}
-          <div class="worker-item {% if trabajador.puesto == 'TS' %}ts{% elif trabajador.puesto == 'ADM' %}adm{% elif trabajador.puesto == 'Administrador/a' %}admin{% else %}default{% endif %}">
-            <p class="worker-name">{{ trabajador.nombre }} {{ trabajador.apellidos }}</p>
-            <label for="tipo_{{ trabajador._id }}">Estado:</label>
-            <select name="tipo_{{ trabajador._id }}" id="tipo_{{ trabajador._id }}">
-              <option value="">-- No modificar --</option>
-              <option value="normal">PIAS</option>
-              <option value="CADE 30">CADE 30</option>
-              <option value="CADE 50">CADE 50</option>
-              <option value="CADE Tardes">CADE Tardes</option>
-              <option value="Guardia CADE">Guardia CADE</option>
-              <option value="Refuerzo Cade">Refuerzo Cade</option>
-              <option value="Mail">Mail</option>
-              <option value="Baja">Baja Médica</option>
-            </select>
+      <div class="filters-bar" role="region" aria-label="Filtros de trabajadores">
+        <label for="searchTrab" class="visually-hidden">Buscar trabajador</label>
+        <input type="search" id="searchTrab" placeholder="Buscar por nombre…" aria-label="Buscar por nombre" />
+        <label for="filtroPuesto">Puesto:</label>
+        <select id="filtroPuesto" aria-label="Filtrar por puesto">
+          <option value="">Todos</option>
+          <option value="TS">TS</option>
+          <option value="ADM">ADM</option>
+          <option value="Administrador/a">Administrador/a</option>
+        </select>
+        <div class="selection-actions" style="margin-left:auto;">
+          <label for="applySelectedState">Aplicar a selección:</label>
+          <select id="applySelectedState" aria-label="Asignar estado a la selección">
+            <option value="">— Elige estado —</option>
+            <option value="-">-</option>
+            <option value="normal">PIAS</option>
+            <option value="CADE 30">CADE 30</option>
+            <option value="CADE 50">CADE 50</option>
+            <option value="CADE Tardes">CADE Tardes</option>
+            <option value="Guardia CADE">Guardia CADE</option>
+            <option value="Refuerzo Cade">Refuerzo Cade</option>
+            <option value="Mail">Mail</option>
+            <option value="Baja">Baja Médica</option>
+          </select>
+          <button type="button" id="applySelectedBtn">Aplicar</button>
+        </div>
+        <div class="legend" aria-hidden="true">
+          Leyenda:
+          <span class="tag ts">TS</span>
+          <span class="tag adm">ADM</span>
+          <span class="tag admin">Admin</span>
+        </div>
+      </div>
+
+      <div class="columns" id="columnsContainer">
+        {% set orden = ['TS','ADM','Administrador/a'] %}
+        {% for puesto in orden %}
+          <div class="column-box" data-col-puesto="{{ puesto }}">
+            <div class="column-header">
+              <div class="column-title">{{ puesto }}</div>
+              <!-- eliminado aplicar a columna -->
+            </div>
+            <div class="rows">
+              {% for trabajador in trabajadores %}
+                {% if trabajador.puesto == puesto %}
+                  <div class="row"
+                       data-nombre="{{ (trabajador.nombre ~ ' ' ~ trabajador.apellidos).lower() }}"
+                       data-puesto="{{ trabajador.puesto }}">
+                    <input type="checkbox" class="select-row" aria-label="Seleccionar {{ trabajador.nombre }} {{ trabajador.apellidos }}" />
+                    <span class="name">{{ trabajador.nombre }} {{ trabajador.apellidos }}</span>
+                    <select name="tipo_{{ trabajador._id }}" id="tipo_{{ trabajador._id }}">
+                      <option value="">—</option>
+                      <option value="normal">PIAS</option>
+                      <option value="CADE 30">CADE 30</option>
+                      <option value="CADE 50">CADE 50</option>
+                      <option value="CADE Tardes">CADE Tardes</option>
+                      <option value="Guardia CADE">Guardia CADE</option>
+                      <option value="Refuerzo Cade">Refuerzo Cade</option>
+                      <option value="Mail">Mail</option>
+                      <option value="Baja">Baja Médica</option>
+                    </select>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
           </div>
         {% endfor %}
       </div>
@@ -167,140 +275,70 @@
 
   <!-- FullCalendar JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js" crossorigin="anonymous"></script>
+  <script src="{{ url_for('static', filename='js/range-calendar.js') }}"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      let startDate = null;
-      let endDate = null;
-      let isSelectingStart = true;
-      
-      const calendarEl = document.getElementById('dateRangeCalendar');
+      // Calendario compacto, con avisos accesibles
       const rangeInfoEl = document.getElementById('dateRangeInfo');
-      const rangeTextEl = document.getElementById('rangeText');
-      const fechaInicioInput = document.getElementById('fecha_inicio');
-      const fechaFinInput = document.getElementById('fecha_fin');
-      const submitBtn = document.querySelector('button[type="submit"]');
-      
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        firstDay: 1, // Lunes
-        locale: 'es',
-        selectable: true,
-        selectMirror: true,
-        unselectAuto: false,
-        height: 'auto',
-        aspectRatio: 1.2,
-        headerToolbar: {
-          left: 'prev,next',
-          center: 'title',
-          right: ''
-        },
-        dayMaxEvents: false,
-        moreLinkClick: 'popover',
-        select: function(info) {
-          const selectedDate = info.startStr;
-          
-          if (isSelectingStart) {
-            // Primer clic: seleccionar fecha de inicio
-            startDate = selectedDate;
-            endDate = null;
-            isSelectingStart = false;
-            
-            // Limpiar selecciones previas
-            calendar.unselect();
-            
-            // Mostrar mensaje de instrucción
-            rangeTextEl.textContent = `Inicio: ${formatDate(selectedDate)} - Selecciona fin`;
-            rangeInfoEl.classList.remove('hidden');
-            
-            // Deshabilitar botón de envío
-            submitBtn.disabled = true;
-            
-          } else {
-            // Segundo clic: seleccionar fecha de fin
-            endDate = selectedDate;
-            
-            // Asegurar que la fecha de fin sea posterior o igual a la de inicio
-            if (new Date(endDate) < new Date(startDate)) {
-              const temp = startDate;
-              startDate = endDate;
-              endDate = temp;
-            }
-            
-            // Actualizar campos ocultos
-            fechaInicioInput.value = startDate;
-            fechaFinInput.value = endDate;
-            
-            // Mostrar rango seleccionado
-            rangeTextEl.textContent = `✅ ${formatDate(startDate)} → ${formatDate(endDate)}`;
-            rangeInfoEl.classList.remove('hidden');
-            
-            // Habilitar botón de envío
-            submitBtn.disabled = false;
-            
-            // Reiniciar para nueva selección
-            setTimeout(() => {
-              startDate = null;
-              endDate = null;
-              isSelectingStart = true;
-            }, 2000);
-          }
-        },
-        dateClick: function(info) {
-          // Manejar clic en fecha específica
-          const clickedDate = info.dateStr;
-          
-          if (isSelectingStart) {
-            startDate = clickedDate;
-            endDate = null;
-            isSelectingStart = false;
-            
-            rangeTextEl.textContent = `Inicio: ${formatDate(clickedDate)} - Selecciona fin`;
-            rangeInfoEl.classList.remove('hidden');
-            submitBtn.disabled = true;
-            
-          } else {
-            endDate = clickedDate;
-            
-            if (new Date(endDate) < new Date(startDate)) {
-              const temp = startDate;
-              startDate = endDate;
-              endDate = temp;
-            }
-            
-            fechaInicioInput.value = startDate;
-            fechaFinInput.value = endDate;
-            
-            rangeTextEl.textContent = `✅ ${formatDate(startDate)} → ${formatDate(endDate)}`;
-            rangeInfoEl.classList.remove('hidden');
-            submitBtn.disabled = false;
-            
-            setTimeout(() => {
-              startDate = null;
-              endDate = null;
-              isSelectingStart = true;
-            }, 2000);
-          }
-        }
+      rangeInfoEl.setAttribute('aria-live', 'polite');
+      rangeInfoEl.setAttribute('role', 'status');
+
+      initializeDateRangeCalendar({
+        calendarId: 'dateRangeCalendar',
+        startInputId: 'fecha_inicio',
+        endInputId: 'fecha_fin',
+        infoContainerId: 'dateRangeInfo',
+        infoTextId: 'rangeText',
+        submitSelector: 'button[type="submit"]'
       });
-      
-      calendar.render();
-      
-      // Función para formatear fechas
-      function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        });
-      }
-      
-      // Validación del formulario
+
+      // Validación simple
       document.querySelector('form').addEventListener('submit', function(e) {
-        if (!fechaInicioInput.value || !fechaFinInput.value) {
+        const fi = document.getElementById('fecha_inicio').value;
+        const ff = document.getElementById('fecha_fin').value;
+        if (!fi || !ff) {
           e.preventDefault();
           alert('Por favor, selecciona un rango de fechas válido.');
-          return false;
+        }
+      });
+
+      // Búsqueda y filtro por puesto
+      const search = document.getElementById('searchTrab');
+      const filtro = document.getElementById('filtroPuesto');
+      const rows = Array.from(document.querySelectorAll('#columnsContainer .row'));
+      function applyFilters() {
+        const q = (search.value || '').toLowerCase().trim();
+        const p = (filtro.value || '').trim();
+        rows.forEach(row => {
+          const matchesName = row.dataset.nombre.includes(q);
+          const matchesRole = !p || row.dataset.puesto === p;
+          row.style.display = (matchesName && matchesRole) ? '' : 'none';
+        });
+      }
+      search.addEventListener('input', applyFilters);
+      filtro.addEventListener('change', applyFilters);
+
+      // Aplicar a selección
+      const applySelectedState = document.getElementById('applySelectedState');
+      const applySelectedBtn = document.getElementById('applySelectedBtn');
+      applySelectedBtn.addEventListener('click', () => {
+        const val = applySelectedState.value;
+        if (!val) {
+          alert('Elige un estado para aplicar.');
+          return;
+        }
+        const selectedRows = document.querySelectorAll('#columnsContainer .row .select-row:checked');
+        let count = 0;
+        selectedRows.forEach(cb => {
+          const row = cb.closest('.row');
+          const sel = row.querySelector('select');
+          if (sel) {
+            sel.value = (val === '-') ? '' : val;
+            count++;
+          }
+        });
+        if (!count) {
+          alert('No hay trabajadores seleccionados.');
         }
       });
     });
