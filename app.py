@@ -32,6 +32,18 @@ historial_collection = db["historial_conversaciones"]
 
 ruta_faqs = "faqs_generadas.json"
 
+# 🔹 Sistema de caché simple para eventos
+events_cache = {}
+CACHE_DURATION = 300  # 5 minutos en segundos
+
+def get_cache_key(estados_filtro, persona_filtro, rol_filtro, busqueda):
+    """Genera una clave única para el caché basada en los filtros"""
+    return f"{sorted(estados_filtro)}_{persona_filtro}_{rol_filtro}_{busqueda}"
+
+def is_cache_valid(cache_entry):
+    """Verifica si una entrada del caché sigue siendo válida"""
+    return time.time() - cache_entry['timestamp'] < CACHE_DURATION
+
 # Lista de festivos utilizados en la aplicación
 FESTIVOS = {
     # Festivos 2025
@@ -713,8 +725,24 @@ def events():
         event_data = request.get_json()
         event_data["trabajador"] = f"{current_user.nombre} {current_user.apellidos}"
         events_collection.insert_one(event_data)
+        # Limpiar caché cuando se añade un evento
+        events_cache.clear()
         return jsonify({"message": "Evento agregado correctamente"}), 201
 
+    # 🔹 Obtener parámetros de filtro desde la query string
+    estados_filtro = request.args.getlist('estados')
+    persona_filtro = request.args.get('persona', 'todos')
+    rol_filtro = request.args.get('rol', 'todos')
+    busqueda = request.args.get('busqueda', '').strip()
+    
+    # 🔹 Verificar caché
+    cache_key = get_cache_key(estados_filtro, persona_filtro, rol_filtro, busqueda)
+    if cache_key in events_cache and is_cache_valid(events_cache[cache_key]):
+        print(f"🚀 Sirviendo desde caché: {cache_key}")
+        return jsonify(events_cache[cache_key]['data'])
+    
+    print(f"🔄 Generando datos frescos para: {cache_key}")
+    
     # 🔹 Lista de festivos
     festivos = FESTIVOS
 
@@ -726,12 +754,29 @@ def events():
         "TS": "#A3C4FF"
     }
 
-    # 🔹 Obtener todos los usuarios y aplicar orden por puesto
-    usuarios = list(users_collection.find({"visible_calendario": {"$ne": False}}))
+    # 🔹 Obtener usuarios con filtros aplicados
+    usuarios_query = {"visible_calendario": {"$ne": False}}
+    if rol_filtro != 'todos':
+        usuarios_query["puesto"] = rol_filtro
+    
+    usuarios = list(users_collection.find(usuarios_query))
     usuarios_ordenados = sorted(usuarios, key=lambda u: orden_puestos.get(u.get("puesto", ""), 4))
+    
+    # 🔹 Filtrar usuarios por persona si es necesario
+    if persona_filtro != 'todos':
+        usuarios_ordenados = [u for u in usuarios_ordenados 
+                            if f"{u['nombre']} {u['apellidos']}" == persona_filtro]
+    
+    # 🔹 Filtrar usuarios por búsqueda si es necesario
+    if busqueda:
+        busqueda_lower = busqueda.lower()
+        usuarios_ordenados = [u for u in usuarios_ordenados 
+                            if busqueda_lower in f"{u['nombre']} {u['apellidos']}".lower()]
 
-    # 🔹 Obtener todas las vacaciones registradas
-    eventos = list(events_collection.find())
+    # 🔹 Obtener eventos solo para los usuarios filtrados
+    nombres_usuarios = [f"{u['nombre']} {u['apellidos']}" for u in usuarios_ordenados]
+    eventos_query = {"trabajador": {"$in": nombres_usuarios}} if nombres_usuarios else {}
+    eventos = list(events_collection.find(eventos_query))
 
     # Agrupar los eventos por trabajador y por tipo
     eventos_por_trabajador = {}
@@ -831,6 +876,10 @@ def events():
                     else:
                         estado_value = evento_asignado
 
+                # 🔹 Aplicar filtro de estados en el backend
+                if estados_filtro and estado_value not in estados_filtro:
+                    continue
+
                 eventos_dia.append({
                     "id": f"{nombre_completo}-{fecha_str}",
                     "title": event_label,
@@ -850,7 +899,14 @@ def events():
 
         fecha_actual += timedelta(days=1)
 
-    return jsonify({"eventos": eventos_json, "contador": contador_disponibles})
+    # 🔹 Guardar en caché
+    result = {"eventos": eventos_json, "contador": contador_disponibles}
+    events_cache[cache_key] = {
+        'data': result,
+        'timestamp': time.time()
+    }
+    
+    return jsonify(result)
 
 @app.route('/api/events/<event_id>', methods=['DELETE'])
 @login_required
@@ -863,6 +919,8 @@ def delete_event(event_id):
         return jsonify({"message": "No puedes eliminar eventos de otros"}), 403
 
     events_collection.delete_one({"_id": ObjectId(event_id)})
+    # Limpiar caché cuando se elimina un evento
+    events_cache.clear()
     return jsonify({"message": "Evento eliminado, el usuario vuelve a estar disponible"}), 200
 
 @app.route('/admin/asignar-estados', methods=['GET', 'POST'])

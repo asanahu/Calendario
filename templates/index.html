@@ -104,6 +104,7 @@
                 let currentPersonFilter = 'todos';
                 let currentSearch = '';
                 let currentRoleFilter = 'todos';
+                let debounceTimer = null;
 
                 function cleanTitle(title) {
                     // Remove extra spaces and normalize text
@@ -117,6 +118,41 @@
                         .toLowerCase()
                         .replace(/\s+/g, ' ')
                         .trim();
+                }
+
+                function buildApiUrl() {
+                    const params = new URLSearchParams();
+                    
+                    // Añadir estados seleccionados
+                    if (selectedStates.size > 0) {
+                        selectedStates.forEach(estado => {
+                            params.append('estados', estado);
+                        });
+                    }
+                    
+                    // Añadir otros filtros
+                    if (currentPersonFilter !== 'todos') {
+                        params.append('persona', currentPersonFilter);
+                    }
+                    if (currentRoleFilter !== 'todos') {
+                        params.append('rol', currentRoleFilter);
+                    }
+                    if (currentSearch) {
+                        params.append('busqueda', currentSearch);
+                    }
+                    
+                    return `/api/events?${params.toString()}`;
+                }
+
+                function debounce(func, wait) {
+                    return function executedFunction(...args) {
+                        const later = () => {
+                            clearTimeout(debounceTimer);
+                            func(...args);
+                        };
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(later, wait);
+                    };
                 }
 
                 var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -136,59 +172,15 @@
                       right: 'dayGridMonth,timeGridWeek,timeGridDay'
                     },
                     events: function(fetchInfo, successCallback, failureCallback) {
-                        fetch('/api/events')
+                        const apiUrl = buildApiUrl();
+                        console.log("🚀 Llamando a:", apiUrl);
+                        
+                        fetch(apiUrl)
                             .then(response => response.json())
                             .then(data => {
                                 allEvents = data.eventos;
-                                console.log("Filtros actuales:", {
-                                    estados: Array.from(selectedStates),
-                                    persona: currentPersonFilter,
-                                    rol: currentRoleFilter,
-                                    search: currentSearch
-                                });
-
-                                const filtered = allEvents.filter(event => {
-                                    const eventTitle = cleanTitle(event.title || '');
-                                    const ext = event.extendedProps || {};
-                                    const estado = (ext.estado || (eventTitle.match(/\(([^)]+)\)/)?.[1] || 'PIAS'));
-                                    const nombre = (ext.nombre || eventTitle.split('(')[0].replace(/^(TS|ADM|Administrador\/a)\s*-\s*/, '').trim());
-                                    
-                                    // Filtro por estados múltiples: vacío = todos
-                                    let passesStateFilter = true;
-                                    if (selectedStates.size > 0) {
-                                        passesStateFilter = selectedStates.has(estado);
-                                    }
-                                    
-                                    // Filtro por persona
-                                    let passesPersonFilter = true;
-                                    if (currentPersonFilter !== 'todos') {
-                                        const normalizedFullName = normalizeString(nombre);
-                                        const normalizedFilter = normalizeString(currentPersonFilter);
-                                        passesPersonFilter = normalizedFullName === normalizedFilter;
-                                        
-                                        if (passesPersonFilter) {
-                                            console.log(`Evento coincidente: "${eventTitle}" -> "${nombre}"`);
-                                        }
-                                    }
-
-                                    // Filtro por rol
-                                    let passesRole = true;
-                                    if (currentRoleFilter !== 'todos') {
-                                        const puesto = (ext.puesto || '').trim();
-                                        passesRole = puesto === currentRoleFilter;
-                                    }
-
-                                    // Búsqueda libre (nombre)
-                                    let passesSearch = true;
-                                    if (currentSearch) {
-                                        passesSearch = normalizeString(nombre).includes(normalizeString(currentSearch));
-                                    }
-
-                                    return passesStateFilter && passesPersonFilter && passesRole && passesSearch;
-                                });
-
-                                console.log(`Eventos filtrados: ${filtered.length} de ${allEvents.length}`);
-                                successCallback(filtered);
+                                console.log(`✅ Eventos recibidos: ${allEvents.length} (ya filtrados en backend)`);
+                                successCallback(allEvents);
                             })
                             .catch(error => {
                                 console.error("Error al cargar eventos:", error);
@@ -270,9 +262,15 @@
                     calendar.refetchEvents();
                 });
 
+                // Debounced search input
+                const debouncedSearch = debounce(function() {
+                    console.log(`Aplicando búsqueda: "${currentSearch}"`);
+                    calendar.refetchEvents();
+                }, 300);
+                
                 searchInput.addEventListener('input', function() {
                     currentSearch = this.value;
-                    calendar.refetchEvents();
+                    debouncedSearch();
                 });
             } catch (error) {
                 console.error("Error al inicializar el calendario:", error);
