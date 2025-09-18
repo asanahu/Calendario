@@ -1003,7 +1003,7 @@ def aplicar_pias(metricas, dias_periodo):
     for datos in metricas.values():
         dias_ocupados = 0
         for clave, valor in datos.items():
-            if clave == 'PIAS':
+            if clave in ('PIAS', 'CADE Total'):
                 continue
             try:
                 dias_ocupados += int(valor)
@@ -1030,15 +1030,22 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None, puesto=None
     elif fecha_fin:
         match_stage = {"fecha_inicio": {"$lte": fecha_fin}}
 
+    trabajadores_query = {"visible_calendario": {"$ne": False}}
     pipeline = []
-    # Filtrar por puesto/rol si se solicita
     if puesto:
-        # Normaliza "Admin" al valor almacenado en BD
         puesto_db = "Administrador/a" if puesto.lower() in ["admin", "administrador", "administrador/a"] else puesto
-        nombres = [f"{u['nombre']} {u['apellidos']}" for u in users_collection.find(
-            {"puesto": puesto_db, "visible_calendario": {"$ne": False}}, {"nombre": 1, "apellidos": 1}
-        )]
-        pipeline.append({"$match": {"trabajador": {"$in": nombres}}})
+        trabajadores_query["puesto"] = puesto_db
+
+    trabajadores_base = [
+        f"{u['nombre']} {u['apellidos']}".strip()
+        for u in users_collection.find(trabajadores_query, {"nombre": 1, "apellidos": 1})
+    ]
+
+    if puesto:
+        if trabajadores_base:
+            pipeline.append({"$match": {"trabajador": {"$in": trabajadores_base}}})
+        else:
+            pipeline.append({"$match": {"_id": {"$exists": False}}})
     if match_stage:
         pipeline.append({"$match": match_stage})
     
@@ -1119,6 +1126,9 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None, puesto=None
             top5_por_tipo[tipo] = []
         top5_por_tipo[tipo].append((trabajador, item["count"]))
 
+    for trabajador in trabajadores_base:
+        metricas.setdefault(trabajador, {})
+
     # Ordenar alfabéticamente los trabajadores
     metricas = dict(sorted(metricas.items(), key=lambda x: x[0]))
 
@@ -1129,6 +1139,34 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None, puesto=None
     for datos in metricas.values():
         for estado in estados_final:
             datos.setdefault(estado, 0)
+
+    cade_estados = ("CADE 30", "CADE 50", "CADE Tardes")
+    cade_label = "CADE Total"
+
+    for datos in metricas.values():
+        sum_cade = 0
+        for estado in cade_estados:
+            try:
+                sum_cade += int(datos.get(estado, 0))
+            except (TypeError, ValueError):
+                continue
+        datos[cade_label] = sum_cade
+
+    if cade_label not in estados_final:
+        estados_list = list(estados_final)
+        insert_pos = -1
+        for estado in cade_estados:
+            if estado in estados_list:
+                idx = estados_list.index(estado)
+                if idx > insert_pos:
+                    insert_pos = idx
+        if insert_pos >= 0:
+            estados_list.insert(insert_pos + 1, cade_label)
+        else:
+            estados_list.append(cade_label)
+        estados_final = estados_list
+    else:
+        estados_final = list(estados_final)
 
     # Seleccionar top 5 por tipo
     for tipo, lista in top5_por_tipo.items():
