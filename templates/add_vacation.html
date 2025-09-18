@@ -279,7 +279,8 @@
       {% if grupos_vacaciones %}
         <!-- Resumen de vacaciones -->
         <div class="vacation-summary">
-          📊 Tienes {{ grupos_vacaciones|length }} período{{ 's' if grupos_vacaciones|length != 1 else '' }} de vacaciones registrado{{ 's' if grupos_vacaciones|length != 1 else '' }}
+          📊 Tienes {{ grupos_vacaciones|length }} período{{ 's' if grupos_vacaciones|length != 1 else '' }} de vacaciones registrado{{ 's' if grupos_vacaciones|length != 1 else '' }}<br>
+          🗓️ Total de días hábiles disfrutados: {{ total_dias_habiles }} día{{ 's' if total_dias_habiles != 1 else '' }}
         </div>
 
         <table class="vacations-table">
@@ -288,8 +289,9 @@
             <tr class="group-header" onclick="toggleGroup('{{ loop.index0 }}')">
               <td colspan="3">
                 <strong>
-                  🏖️ Vacaciones del {{ grupo[0].fecha_inicio.strftime('%d/%m/%Y') }} al {{ grupo[-1].fecha_fin.strftime('%d/%m/%Y') }}
-                  ({{ grupo|length }} día{{ 's' if grupo|length != 1 else '' }})
+                  {% set info = grupos_info[loop.index0] %}
+                  🏖️ Vacaciones del {{ info.inicio.strftime('%d/%m/%Y') }} al {{ info.fin.strftime('%d/%m/%Y') }}
+                  ({{ info.dias_habiles }} día{{ 's' if info.dias_habiles != 1 else '' }} hábil{{ 'es' if info.dias_habiles != 1 else '' }})
                 </strong>
                 <span id="icon-{{ loop.index0 }}" class="toggle-icon">&#9660;</span>
               </td>

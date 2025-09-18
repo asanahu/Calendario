@@ -5,7 +5,7 @@ import boto3
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from functools import wraps
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING
 from bson.objectid import ObjectId
 from bson import ObjectId
 import os
@@ -47,6 +47,79 @@ FESTIVOS = {
     "2027-05-01", "2027-08-16", "2027-10-12", "2027-11-01", "2027-12-06", 
     "2027-12-08", "2027-12-25", "2027-12-24", "2027-12-31"
 }
+
+FESTIVOS_LIST = sorted(FESTIVOS)
+FESTIVOS_DATES = {datetime.strptime(fecha, "%Y-%m-%d").date() for fecha in FESTIVOS_LIST}
+
+
+def es_dia_habil(fecha):
+    """Devuelve True si la fecha no cae en fin de semana ni en la lista de festivos."""
+    if isinstance(fecha, str):
+        fecha = datetime.strptime(fecha, "%Y-%m-%d")
+    if isinstance(fecha, datetime):
+        fecha = fecha.date()
+    return fecha.weekday() < 5 and fecha not in FESTIVOS_DATES
+
+
+def contar_dias_habiles_en_rango(fecha_inicio, fecha_fin):
+    """Cuenta los días hábiles dentro de un rango cerrado, excluyendo festivos y fines de semana."""
+    if isinstance(fecha_inicio, str):
+        fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+    if isinstance(fecha_fin, str):
+        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d")
+    fecha_actual = fecha_inicio.date()
+    fecha_fin_date = fecha_fin.date()
+    dias = 0
+    while fecha_actual <= fecha_fin_date:
+        if es_dia_habil(fecha_actual):
+            dias += 1
+        fecha_actual += timedelta(days=1)
+    return dias
+
+
+def normalizar_fecha_str(fecha_valor):
+    if isinstance(fecha_valor, datetime):
+        return fecha_valor.strftime("%Y-%m-%d")
+    if isinstance(fecha_valor, str):
+        return fecha_valor
+    if hasattr(fecha_valor, "strftime"):
+        return fecha_valor.strftime("%Y-%m-%d")
+    return str(fecha_valor)
+
+
+def limpiar_vacaciones_duplicadas(trabajador):
+    """Elimina duplicados exactos (mismo día) para un trabajador manteniendo un único registro."""
+    cursor = events_collection.find(
+        {"trabajador": trabajador, "tipo": "Vacaciones"},
+        sort=[("fecha_inicio", ASCENDING), ("_id", ASCENDING)]
+    )
+    vistos = set()
+    ids_a_borrar = []
+    for vacacion in cursor:
+        inicio = normalizar_fecha_str(vacacion.get("fecha_inicio"))
+        fin = normalizar_fecha_str(vacacion.get("fecha_fin"))
+        clave = (inicio, fin)
+        if clave in vistos:
+            ids_a_borrar.append(vacacion["_id"])
+        else:
+            vistos.add(clave)
+    if ids_a_borrar:
+        events_collection.delete_many({"_id": {"$in": ids_a_borrar}})
+
+
+def filtrar_vacaciones_unicas(vacaciones):
+    """Devuelve sólo un registro por día para evitar duplicados en memoria."""
+    resultado = []
+    vistos = set()
+    for vacacion in vacaciones:
+        inicio = normalizar_fecha_str(vacacion.get("fecha_inicio"))
+        fin = normalizar_fecha_str(vacacion.get("fecha_fin"))
+        clave = (inicio, fin)
+        if clave in vistos:
+            continue
+        vistos.add(clave)
+        resultado.append(vacacion)
+    return resultado
 
 # Inicializar el cliente de boto3
 s3_client = boto3.client(
@@ -326,15 +399,31 @@ def add_vacation():
                 "fecha_fin": day_str,
                 "tipo": "Vacaciones"
             }
-            events_collection.insert_one(event)
+            query = {
+                "trabajador": vacation_data["trabajador"],
+                "fecha_inicio": day_str,
+                "fecha_fin": day_str,
+                "tipo": "Vacaciones"
+            }
+            existentes = list(events_collection.find(query, {"_id": 1}).sort("_id", ASCENDING))
+            if existentes:
+                ids_sobrantes = [doc["_id"] for doc in existentes[1:]]
+                if ids_sobrantes:
+                    events_collection.delete_many({"_id": {"$in": ids_sobrantes}})
+            else:
+                events_collection.insert_one(event)
             current_day += timedelta(days=1)
+        limpiar_vacaciones_duplicadas(vacation_data["trabajador"])
         return redirect('/add-vacation')
     
     # Obtener las vacaciones existentes para el usuario, ordenadas por fecha de inicio
+    trabajador_actual = f"{current_user.nombre} {current_user.apellidos}"
+    limpiar_vacaciones_duplicadas(trabajador_actual)
     vacaciones = list(events_collection.find({
-        "trabajador": f"{current_user.nombre} {current_user.apellidos}",
+        "trabajador": trabajador_actual,
         "tipo": "Vacaciones"
     }).sort("fecha_inicio", 1))
+    vacaciones = filtrar_vacaciones_unicas(vacaciones)
     
     # Convertir los strings de fechas a objetos datetime
     for vacacion in vacaciones:
@@ -344,7 +433,25 @@ def add_vacation():
     # Agrupar las vacaciones consecutivas
     grupos_vacaciones = agrupar_vacaciones(vacaciones)
 
-    return render_template('add_vacation.html', grupos_vacaciones=grupos_vacaciones)
+    grupos_info = []
+    total_dias_habiles = 0
+    for grupo in grupos_vacaciones:
+        if not grupo:
+            continue
+        dias_habiles = contar_dias_habiles_en_rango(grupo[0]["fecha_inicio"], grupo[-1]["fecha_fin"])
+        grupos_info.append({
+            "inicio": grupo[0]["fecha_inicio"],
+            "fin": grupo[-1]["fecha_fin"],
+            "dias_habiles": dias_habiles
+        })
+        total_dias_habiles += dias_habiles
+
+    return render_template(
+        'add_vacation.html',
+        grupos_vacaciones=grupos_vacaciones,
+        grupos_info=grupos_info,
+        total_dias_habiles=total_dias_habiles
+    )
 
 @app.route('/add-recurring', methods=['GET', 'POST'])
 @login_required
@@ -412,9 +519,12 @@ def user_vacations(user_id):
         abort(404)
 
     # Obtener las vacaciones, ordenadas por fecha de inicio (ascendente)
+    nombre_completo = f"{usuario['nombre']} {usuario['apellidos']}"
+    limpiar_vacaciones_duplicadas(nombre_completo)
     vacaciones = list(events_collection.find(
-        {"trabajador": f"{usuario['nombre']} {usuario['apellidos']}", "tipo": "Vacaciones"}
+        {"trabajador": nombre_completo, "tipo": "Vacaciones"}
     ).sort("fecha_inicio", 1))
+    vacaciones = filtrar_vacaciones_unicas(vacaciones)
 
     # Convertir las fechas de string a objetos datetime
     for vacacion in vacaciones:
@@ -424,7 +534,26 @@ def user_vacations(user_id):
     # Agrupar las vacaciones consecutivas
     grupos_vacaciones = agrupar_vacaciones(vacaciones)
 
-    return render_template('user_vacations.html', usuario=usuario, grupos_vacaciones=grupos_vacaciones)
+    grupos_info = []
+    total_dias_habiles = 0
+    for grupo in grupos_vacaciones:
+        if not grupo:
+            continue
+        dias_habiles = contar_dias_habiles_en_rango(grupo[0]["fecha_inicio"], grupo[-1]["fecha_fin"])
+        grupos_info.append({
+            "inicio": grupo[0]["fecha_inicio"],
+            "fin": grupo[-1]["fecha_fin"],
+            "dias_habiles": dias_habiles
+        })
+        total_dias_habiles += dias_habiles
+
+    return render_template(
+        'user_vacations.html',
+        usuario=usuario,
+        grupos_vacaciones=grupos_vacaciones,
+        grupos_info=grupos_info,
+        total_dias_habiles=total_dias_habiles
+    )
 
 @app.route('/delete-vacation/<vacation_id>', methods=['POST'])
 @login_required
@@ -722,18 +851,41 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None, puesto=None
         pipeline.append({"$match": {"trabajador": {"$in": nombres}}})
     if match_stage:
         pipeline.append({"$match": match_stage})
-        
-    # Excluir festivos y fines de semana
-    pipeline.append({"$match": {"fecha_inicio": {"$nin": list(FESTIVOS)}}})
+    
     pipeline.append({
         "$addFields": {
-            "fecha_date": {"$dateFromString": {"dateString": "$fecha_inicio"}}
+            "fecha_date": {
+                "$switch": {
+                    "branches": [
+                        {
+                            "case": {"$eq": [{"$type": "$fecha_inicio"}, "date"]},
+                            "then": "$fecha_inicio"
+                        },
+                        {
+                            "case": {"$eq": [{"$type": "$fecha_inicio"}, "string"]},
+                            "then": {"$dateFromString": {"dateString": "$fecha_inicio"}}
+                        }
+                    ],
+                    "default": {"$toDate": "$fecha_inicio"}
+                }
+            }
         }
     })
+    pipeline.append({"$match": {"fecha_date": {"$ne": None}}})
     pipeline.append({
         "$match": {
             "$expr": {
                 "$and": [
+                    {
+                        "$not": [
+                            {
+                                "$in": [
+                                    {"$dateToString": {"format": "%Y-%m-%d", "date": "$fecha_date"}},
+                                    FESTIVOS_LIST
+                                ]
+                            }
+                        ]
+                    },
                     {"$ne": [{"$dayOfWeek": "$fecha_date"}, 1]},
                     {"$ne": [{"$dayOfWeek": "$fecha_date"}, 7]}
                 ]
@@ -743,7 +895,16 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None, puesto=None
 
     pipeline.append({
         "$group": {
-            "_id": {"trabajador": "$trabajador", "tipo": "$tipo"},
+            "_id": {
+                "trabajador": "$trabajador",
+                "tipo": "$tipo",
+                "fecha": {"$dateToString": {"format": "%Y-%m-%d", "date": "$fecha_date"}}
+            }
+        }
+    })
+    pipeline.append({
+        "$group": {
+            "_id": {"trabajador": "$_id.trabajador", "tipo": "$_id.tipo"},
             "count": {"$sum": 1}
         }
     })
