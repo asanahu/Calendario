@@ -1,64 +1,96 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Informe de Uso de IA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body>
-    <div class="container">
-        <h1 class="page-title">Informe de Uso de la IA</h1>
-
-        
+<body class="report-page">
+    <div class="report-container">
+        <header class="report-header">
+            <div class="report-heading">
+                <p class="page-kicker">Actividad del asistente</p>
+                <h1 class="page-title">Informe de Uso de la IA</h1>
+                {% if fecha_faqs or fecha_origen %}
+                <p class="page-meta">
+                    {% if fecha_faqs %}Datos actualizados el {{ fecha_faqs }}{% endif %}
+                    {% if fecha_origen %}
+                        {% if fecha_faqs %}&nbsp;&middot;&nbsp;{% endif %}
+                        Consultas desde {{ fecha_origen }}
+                    {% endif %}
+                </p>
+                {% else %}
+                <p class="page-meta">Visi&oacute;n general de la actividad reciente del asistente de IA.</p>
+                {% endif %}
+            </div>
+            <div class="report-actions">
+                <a class="button button-secondary" href="/dashboard">&#127968; Inicio</a>
+                <a class="button" href="/ai-assistant">&#129302; Ir al asistente</a>
+            </div>
+        </header>
 
         {% if faqs %}
-        <h2 style="margin-top: 40px;">
-            FAQs 
-            {% if fecha_faqs or fecha_origen %}
-                <span style="font-size: 0.6em; font-weight: normal;">
-                (
-                    {% if fecha_faqs %}actualizado el {{ fecha_faqs }}{% endif %}
-                    {% if fecha_origen %} con fecha desde {{ fecha_origen }}{% endif %}
-                )
-                </span>
-            {% endif %}
-        </h2>
-        <div style="text-align: left;">
-            {% for faq in faqs %}
-            <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px; box-shadow: 0px 2px 6px rgba(0,0,0,0.15); font-size: 1.3em; line-height: 1.6;">
-                <p><strong>Pregunta:</strong> {{ faq.pregunta }}</p>
-                <p><strong>Respuesta:</strong> {{ faq.respuesta }}</p>
-                <p><em>Frecuencia:</em> {{ faq.frecuencia }}</p>
+        <section class="report-section">
+            <div class="section-header">
+                <h2>Preguntas frecuentes</h2>
+                <p class="section-subtitle">Listado de las preguntas con mayor recurrencia y sus respuestas sugeridas.</p>
             </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-
-        
-        {% if consultas_por_usuario %}
-        <h2 style="margin-top: 40px;">Número de consultas por usuario</h2>
-        <div style="max-height: 200px; overflow-y: auto; padding: 15px; background: #f0f0f0; border-radius: 8px; box-shadow: inset 0 0 6px rgba(0,0,0,0.1); width: 80%; margin: 0 auto; text-align: center;">
-            <ul style="list-style: none; padding-left: 0; margin: 0;">
-                {% for usuario, cantidad in consultas_por_usuario %}
-                <li><strong>{{ usuario }}</strong>: {{ cantidad }}</li>
+            <div class="faq-grid">
+                {% for faq in faqs %}
+                <article class="faq-item">
+                    <h3 class="faq-question">{{ faq.pregunta }}</h3>
+                    <p class="faq-answer">{{ faq.respuesta }}</p>
+                    <p class="faq-meta">Frecuencia: <span class="badge">{{ faq.frecuencia }}</span></p>
+                </article>
                 {% endfor %}
-            </ul>
-        </div>
+            </div>
+        </section>
         {% endif %}
-        
-        <form method="GET" action="/informe_uso_ia">
-            <label for="fecha" style="margin-top: 20px; display: inline-block;">Mostrar consultas por usuario desde:</label>
-            <input type="date" id="fecha" name="fecha">
-            <button type="submit">🔍 Procesar Informe</button>
-        </form>
 
-        <div class="button-container" style="margin-top: 30px;">
-            <button onclick="window.location.href='/dashboard'" style="margin-right: 10px;">🏠 Volver al inicio</button>
-            <button onclick="window.location.href='/ai-assistant'">🤖 Ir al Asistente de IA</button>
-        </div>
+        <section class="report-section">
+            <div class="section-header">
+                <h2>Consultas por usuario</h2>
+                {% if consultas_por_usuario %}
+                    {% set resumen = namespace(total=0) %}
+                    {% for _, cantidad in consultas_por_usuario %}
+                        {% set resumen.total = resumen.total + cantidad %}
+                    {% endfor %}
+                    <p class="section-subtitle">Se registraron {{ resumen.total }} consultas de {{ consultas_por_usuario|length }} usuarios.</p>
+                {% else %}
+                    <p class="section-subtitle">No se encontraron consultas para la fecha indicada.</p>
+                {% endif %}
+            </div>
+            <form method="GET" action="/informe_uso_ia" class="report-filters">
+                <div class="input-group">
+                    <label for="fecha">Mostrar consultas desde</label>
+                    <input type="date" id="fecha" name="fecha">
+                </div>
+                <button type="submit" class="button button-primary">&#128269; Procesar informe</button>
+            </form>
+
+            {% if consultas_por_usuario %}
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Consultas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario, cantidad in consultas_por_usuario %}
+                        <tr>
+                            <td>{{ usuario }}</td>
+                            <td>{{ cantidad }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="empty-state">Los usuarios no realizaron consultas en el periodo seleccionado.</p>
+            {% endif %}
+        </section>
     </div>
 </body>
 </html>
-
-
