@@ -13,34 +13,57 @@
         float: right;
         font-size: 18px;
       }
+      .year-header {
+        background: linear-gradient(45deg, #36b0ff, #3f51b5);
+        color: white;
+        cursor: pointer;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .year-header:hover {
+        background: linear-gradient(45deg, #3f51b5, #36b0ff);
+      }
+      .year-summary {
+        margin-left: 10px;
+        font-weight: 500;
+        font-size: 0.95em;
+      }
     </style>
 </head>
 <body>
     <h1 class="page-title">Vacaciones de {{ usuario.nombre }} {{ usuario.apellidos }}</h1>
     
-    {% if grupos_vacaciones and grupos_vacaciones|length > 0 %}
-        <p><strong>Total de días hábiles disfrutados:</strong> {{ total_dias_habiles }} día{{ 's' if total_dias_habiles != 1 else '' }}</p>
-        <table border="1">
-            {% for grupo in grupos_vacaciones %}
-                <!-- Encabezado del grupo: muestra el rango de días consecutivos con un ícono de toggle -->
-                <tr class="group-header" onclick="toggleGroup('{{ loop.index0 }}')">
+    {% if total_grupos %}
+        <p><strong>Resumen:</strong> {{ total_grupos }} período{{ 's' if total_grupos != 1 else '' }} registrados · {{ total_dias_habiles }} día{{ 's' if total_dias_habiles != 1 else '' }} hábil{{ 'es' if total_dias_habiles != 1 else '' }}</p>
+        <table border="1" style="width: 100%; border-collapse: collapse;">
+            {% for ciclo in vacaciones_por_ciclo %}
+                <tr class="year-header" onclick="toggleYear('{{ ciclo.label }}')">
                     <td colspan="2">
-                        <strong>
-                            {% set info = grupos_info[loop.index0] %}
-                            Vacaciones del {{ info.inicio.strftime('%d/%m/%Y') }} al {{ info.fin.strftime('%d/%m/%Y') }} ({{ info.dias_habiles }} día{% if info.dias_habiles != 1 %}s{% endif %} hábil{% if info.dias_habiles != 1 %}es{% endif %})
-                        </strong>
-                        <span id="icon-{{ loop.index0 }}" class="toggle-icon">&#9660;</span>
+                        <strong>📆 {{ ciclo.label }} · {{ ciclo.inicio.strftime('%d/%m/%Y') }} - {{ ciclo.fin_inclusivo.strftime('%d/%m/%Y') }}</strong>
+                        <span class="year-summary">{{ ciclo.total_dias_habiles }} día{{ 's' if ciclo.total_dias_habiles != 1 else '' }} hábil{{ 'es' if ciclo.total_dias_habiles != 1 else '' }}</span>
+                        <span id="year-icon-{{ ciclo.label }}" class="toggle-icon">&#9660;</span>
                     </td>
                 </tr>
-                <!-- Cuerpo del grupo, inicialmente oculto -->
-                <tbody id="group-{{ loop.index0 }}" style="display: none;">
-                    {% for vacacion in grupo %}
-                    <tr>
-                        <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                {% for grupo in ciclo.grupos %}
+                    <tbody class="cycle-body cycle-{{ ciclo.label }}" style="display: none;">
+                        <tr class="group-header" onclick="toggleGroup('{{ ciclo.label }}-{{ loop.index0 }}')">
+                            <td colspan="2">
+                                <strong>
+                                    Vacaciones del {{ grupo.inicio.strftime('%d/%m/%Y') }} al {{ grupo.fin.strftime('%d/%m/%Y') }} ({{ grupo.dias_habiles }} día{% if grupo.dias_habiles != 1 %}s{% endif %} hábil{% if grupo.dias_habiles != 1 %}es{% endif %})
+                                </strong>
+                                <span id="icon-{{ ciclo.label }}-{{ loop.index0 }}" class="toggle-icon">&#9660;</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody class="cycle-body cycle-{{ ciclo.label }}" id="group-{{ ciclo.label }}-{{ loop.index0 }}" data-group-body="true" style="display: none;">
+                        {% for vacacion in grupo.vacaciones %}
+                        <tr>
+                            <td>{{ vacacion.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ vacacion.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                {% endfor %}
             {% endfor %}
         </table>
     {% else %}
@@ -51,15 +74,50 @@
     <a href="/admin/users">⬅️ Volver a la gestión de usuarios</a>
 
     <script>
+      function toggleYear(yearId) {
+          var sections = document.querySelectorAll('.cycle-' + yearId);
+          var icon = document.getElementById('year-icon-' + yearId);
+          var shouldShow = true;
+
+          sections.forEach(function(section) {
+              if (section.style.display && section.style.display !== 'none') {
+                  shouldShow = false;
+              }
+          });
+
+          sections.forEach(function(section) {
+              if (section.dataset && section.dataset.groupBody === 'true') {
+                  section.style.display = 'none';
+              } else {
+                  section.style.display = shouldShow ? 'table-row-group' : 'none';
+              }
+          });
+
+          document.querySelectorAll('[id^="icon-' + yearId + '"]').forEach(function(iconEl) {
+              iconEl.innerHTML = "&#9660;";
+          });
+
+          if (icon) {
+              icon.innerHTML = shouldShow ? "&#9650;" : "&#9660;";
+          }
+      }
+
       function toggleGroup(groupId) {
           var groupElem = document.getElementById('group-' + groupId);
           var icon = document.getElementById('icon-' + groupId);
-          if (groupElem.style.display === 'none') {
+          if (!groupElem) {
+              return;
+          }
+          if (!groupElem.style.display || groupElem.style.display === 'none') {
               groupElem.style.display = 'table-row-group';
-              icon.innerHTML = "&#9650;";  // Flecha hacia arriba
+              if (icon) {
+                  icon.innerHTML = "&#9650;";  // Flecha hacia arriba
+              }
           } else {
               groupElem.style.display = 'none';
-              icon.innerHTML = "&#9660;";  // Flecha hacia abajo
+              if (icon) {
+                  icon.innerHTML = "&#9660;";  // Flecha hacia abajo
+              }
           }
       }
     </script>

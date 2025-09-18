@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, a
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import datetime
 import boto3
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 from dotenv import load_dotenv
 from functools import wraps
 from pymongo import MongoClient, ASCENDING
@@ -120,6 +120,91 @@ def filtrar_vacaciones_unicas(vacaciones):
         vistos.add(clave)
         resultado.append(vacacion)
     return resultado
+
+
+VACATION_CYCLES = [
+    {"label": "2025", "inicio": date(2025, 1, 15), "fin": date(2026, 1, 15)},
+    {"label": "2026", "inicio": date(2026, 1, 15), "fin": date(2027, 1, 15)},
+    {"label": "2027", "inicio": date(2027, 1, 15), "fin": date(2028, 1, 15)}
+]
+
+
+def obtener_ciclo_label(fecha):
+    if isinstance(fecha, datetime):
+        fecha = fecha.date()
+    for idx, ciclo in enumerate(VACATION_CYCLES):
+        inicio = ciclo["inicio"]
+        fin = ciclo["fin"]
+
+        if fecha == inicio and idx > 0:
+            return VACATION_CYCLES[idx - 1]["label"]
+
+        if inicio <= fecha <= fin:
+            return ciclo["label"]
+
+    if fecha < VACATION_CYCLES[0]["inicio"]:
+        return VACATION_CYCLES[0]["label"]
+    return VACATION_CYCLES[-1]["label"]
+
+
+def dividir_grupo_por_ciclo(grupo):
+    if not grupo:
+        return []
+    subgrupos = []
+    ordenados = sorted(grupo, key=lambda v: v["fecha_inicio"])
+    ciclo_actual = obtener_ciclo_label(ordenados[0]["fecha_inicio"])
+    acumulado = []
+    for vacacion in ordenados:
+        ciclo_vacacion = obtener_ciclo_label(vacacion["fecha_inicio"])
+        if ciclo_vacacion != ciclo_actual:
+            if acumulado:
+                subgrupos.append((ciclo_actual, acumulado))
+            acumulado = []
+            ciclo_actual = ciclo_vacacion
+        acumulado.append(vacacion)
+    if acumulado:
+        subgrupos.append((ciclo_actual, acumulado))
+    return subgrupos
+
+
+def preparar_vacaciones_para_template(grupos_vacaciones):
+    ciclos_preparados = []
+    ciclos_index = {}
+    for ciclo in VACATION_CYCLES:
+        entrada = {
+            "label": ciclo["label"],
+            "inicio": ciclo["inicio"],
+            "fin": ciclo["fin"],
+            "fin_inclusivo": ciclo["fin"],
+            "grupos": [],
+            "total_dias_habiles": 0
+        }
+        ciclos_preparados.append(entrada)
+        ciclos_index[ciclo["label"]] = entrada
+
+    total_dias = 0
+    total_grupos = 0
+
+    for grupo in grupos_vacaciones:
+        for ciclo_label, subgrupo in dividir_grupo_por_ciclo(grupo):
+            if not subgrupo:
+                continue
+            inicio = subgrupo[0]["fecha_inicio"]
+            fin = subgrupo[-1]["fecha_fin"]
+            dias_habiles = contar_dias_habiles_en_rango(inicio, fin)
+            informacion = {
+                "inicio": inicio,
+                "fin": fin,
+                "dias_habiles": dias_habiles,
+                "vacaciones": subgrupo
+            }
+            ciclos_index[ciclo_label]["grupos"].append(informacion)
+            ciclos_index[ciclo_label]["total_dias_habiles"] += dias_habiles
+            total_dias += dias_habiles
+            total_grupos += 1
+
+    ciclos_con_datos = [ciclo for ciclo in ciclos_preparados if ciclo["grupos"]]
+    return ciclos_con_datos, total_dias, total_grupos
 
 # Inicializar el cliente de boto3
 s3_client = boto3.client(
@@ -432,25 +517,14 @@ def add_vacation():
     
     # Agrupar las vacaciones consecutivas
     grupos_vacaciones = agrupar_vacaciones(vacaciones)
-
-    grupos_info = []
-    total_dias_habiles = 0
-    for grupo in grupos_vacaciones:
-        if not grupo:
-            continue
-        dias_habiles = contar_dias_habiles_en_rango(grupo[0]["fecha_inicio"], grupo[-1]["fecha_fin"])
-        grupos_info.append({
-            "inicio": grupo[0]["fecha_inicio"],
-            "fin": grupo[-1]["fecha_fin"],
-            "dias_habiles": dias_habiles
-        })
-        total_dias_habiles += dias_habiles
+    vacaciones_por_ciclo, total_dias_habiles, total_grupos = preparar_vacaciones_para_template(grupos_vacaciones)
 
     return render_template(
         'add_vacation.html',
         grupos_vacaciones=grupos_vacaciones,
-        grupos_info=grupos_info,
-        total_dias_habiles=total_dias_habiles
+        vacaciones_por_ciclo=vacaciones_por_ciclo,
+        total_dias_habiles=total_dias_habiles,
+        total_grupos=total_grupos
     )
 
 @app.route('/add-recurring', methods=['GET', 'POST'])
@@ -533,26 +607,15 @@ def user_vacations(user_id):
 
     # Agrupar las vacaciones consecutivas
     grupos_vacaciones = agrupar_vacaciones(vacaciones)
-
-    grupos_info = []
-    total_dias_habiles = 0
-    for grupo in grupos_vacaciones:
-        if not grupo:
-            continue
-        dias_habiles = contar_dias_habiles_en_rango(grupo[0]["fecha_inicio"], grupo[-1]["fecha_fin"])
-        grupos_info.append({
-            "inicio": grupo[0]["fecha_inicio"],
-            "fin": grupo[-1]["fecha_fin"],
-            "dias_habiles": dias_habiles
-        })
-        total_dias_habiles += dias_habiles
+    vacaciones_por_ciclo, total_dias_habiles, total_grupos = preparar_vacaciones_para_template(grupos_vacaciones)
 
     return render_template(
         'user_vacations.html',
         usuario=usuario,
         grupos_vacaciones=grupos_vacaciones,
-        grupos_info=grupos_info,
-        total_dias_habiles=total_dias_habiles
+        vacaciones_por_ciclo=vacaciones_por_ciclo,
+        total_dias_habiles=total_dias_habiles,
+        total_grupos=total_grupos
     )
 
 @app.route('/delete-vacation/<vacation_id>', methods=['POST'])
@@ -631,7 +694,7 @@ def events():
 
     # 🔹 Generar eventos desde el 1 de enero hasta el 31 de diciembre de 2025
     fecha_actual = datetime(2025, 1, 1)
-    fecha_fin = datetime(2027, 12, 31)
+    fecha_fin = datetime(2028, 1, 15)
   
     while fecha_actual <= fecha_fin:
         fecha_str = fecha_actual.strftime("%Y-%m-%d")
