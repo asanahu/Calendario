@@ -24,6 +24,7 @@
         .filter-grid { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; }
         .filter-controls { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
         .filter-controls .filter-item { display: flex; flex-direction: column; }
+        .table-period-info { margin: 0 0 12px 0; padding: 8px 12px; background: #eef3ff; border-left: 4px solid #5c6bc0; border-radius: 6px; font-size: 13px; color: #32436a; }
     </style>
 </head>
 <body>
@@ -74,6 +75,10 @@
                 <div class="kpi-label">Trabajadores</div>
                 <div class="kpi-value">{{ metricas|length }}</div>
             </div>
+            <div class="kpi-card">
+                <div class="kpi-label">PIAS</div>
+                <div class="kpi-value">{{ total_pias|int }}</div>
+            </div>
             {% for estado in estados %}
                 {% set total_ns = namespace(total=0) %}
                 {% for _trabajador, datos in metricas.items() %}
@@ -97,11 +102,15 @@
         </div>
 
         <div class="card">
+            {% if fecha_inicio and fecha_fin %}
+            <div class="table-period-info">Mostrando datos del <strong>{{ fecha_inicio }}</strong> al <strong>{{ fecha_fin }}</strong> ({{ dias_periodo|int }} dias habiles)</div>
+            {% endif %}
             <div class="table-wrap">
                 <table class="metrics-table">
                     <thead>
                         <tr>
                             <th>Trabajador</th>
+                            <th>PIAS</th>
                             {% for estado in estados %}
                             <th>{{ estado }}</th>
                             {% endfor %}
@@ -111,6 +120,7 @@
                         {% for trabajador, datos in metricas.items() %}
                         <tr>
                             <td class="col-sticky">{{ trabajador }}</td>
+                            <td>{{ datos.get('PIAS', 0)|int }}</td>
                             {% for estado in estados %}
                             <td>{{ datos.get(estado, 0) }}</td>
                             {% endfor %}

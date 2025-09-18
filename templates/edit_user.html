@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1 class="page-title">Editar Usuario</h1>
+
+    <form method="POST">
+        <label>Nombre:</label>
+        <input type="text" name="nombre" value="{{ request.form.get('nombre', usuario.nombre) }}" required><br>
+
+        <label>Apellidos:</label>
+        <input type="text" name="apellidos" value="{{ request.form.get('apellidos', usuario.apellidos) }}" required><br>
+
+        <label>Usuario:</label>
+        <input type="text" name="usuario" value="{{ request.form.get('usuario', usuario.usuario) }}" required><br>
+
+        <label>Puesto:</label>
+        {% set puesto_actual = request.form.get('puesto', usuario.puesto) %}
+        <select name="puesto" required>
+            <option value="Administrador/a" {% if puesto_actual == 'Administrador/a' %}selected{% endif %}>Administrador/a</option>
+            <option value="ADM" {% if puesto_actual == 'ADM' %}selected{% endif %}>ADM</option>
+            <option value="TS" {% if puesto_actual == 'TS' %}selected{% endif %}>TS</option>
+        </select><br>
+
+        <label>Visible en Calendario:</label>
+        {% set visible_actual = request.form.get('visible_calendario', 'true' if usuario.visible_calendario else 'false') %}
+        <select name="visible_calendario" required>
+            <option value="true" {% if visible_actual == 'true' %}selected{% endif %}>Sí</option>
+            <option value="false" {% if visible_actual == 'false' %}selected{% endif %}>No</option>
+        </select><br>
+
+        <button type="submit">Guardar Cambios</button>
+    </form>
+
+    <br>
+    <a href="{{ url_for('admin_users') }}">Volver a la Gestión de Usuarios</a>
+</body>
+</html>

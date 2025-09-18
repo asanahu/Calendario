@@ -3,6 +3,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import datetime
 import boto3
 from datetime import datetime, timedelta, timezone, date
+from calendar import monthrange
 from dotenv import load_dotenv
 from functools import wraps
 from pymongo import MongoClient, ASCENDING
@@ -366,6 +367,68 @@ def add_user():
         users_collection.insert_one(user_data)
         return redirect('/admin/users')
     return render_template('add_user.html')
+
+@app.route('/admin/edit_user/<user_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_user(user_id):
+    usuario = users_collection.find_one({"_id": ObjectId(user_id)})
+
+    if not usuario:
+        abort(404)
+
+    usuario.setdefault('visible_calendario', False)
+
+    if request.method == 'POST':
+        nombre = request.form.get('nombre', '').strip()
+        apellidos = request.form.get('apellidos', '').strip()
+        usuario_login = request.form.get('usuario', '').strip()
+        puesto = request.form.get('puesto', '').strip()
+        visible_str = request.form.get('visible_calendario', 'false')
+        visible = visible_str.lower() == 'true'
+
+        usuario_actualizado = dict(usuario)
+        usuario_actualizado.update({
+            'nombre': nombre,
+            'apellidos': apellidos,
+            'usuario': usuario_login,
+            'puesto': puesto,
+            'visible_calendario': visible
+        })
+
+        if not all([nombre, apellidos, usuario_login, puesto]):
+            flash('Todos los campos son obligatorios', 'error')
+            return render_template('edit_user.html', usuario=usuario_actualizado), 400
+
+        existing_user = users_collection.find_one({"usuario": usuario_login, "_id": {"$ne": ObjectId(user_id)}})
+        if existing_user:
+            flash('El nombre de usuario ya existe', 'error')
+            return render_template('edit_user.html', usuario=usuario_actualizado), 400
+
+        nombre_anterior = f"{usuario['nombre']} {usuario['apellidos']}".strip()
+        nuevo_nombre_completo = f"{nombre} {apellidos}".strip()
+
+        users_collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {
+                'nombre': nombre,
+                'apellidos': apellidos,
+                'usuario': usuario_login,
+                'puesto': puesto,
+                'visible_calendario': visible
+            }}
+        )
+
+        if nombre_anterior != nuevo_nombre_completo:
+            events_collection.update_many(
+                {"trabajador": nombre_anterior},
+                {"$set": {"trabajador": nuevo_nombre_completo}}
+            )
+
+        flash('Usuario actualizado correctamente', 'success')
+        return redirect(url_for('admin_users'))
+
+    return render_template('edit_user.html', usuario=usuario)
 
 @app.route('/admin/delete_user/<user_id>', methods=['POST'])
 @login_required
@@ -890,6 +953,70 @@ def duplicados():
     return render_template("duplicados.html", duplicados=duplicados)
 
 
+def _parse_metrics_date(value):
+    if not value:
+        return None
+    value = value.strip()
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        try:
+            return datetime.fromisoformat(value).date()
+        except ValueError:
+            return None
+
+
+def resolver_rango_metricas(fecha_inicio, fecha_fin):
+    """Normalize metrics date range and return business days count."""
+    today = datetime.today().date()
+
+    start_date = _parse_metrics_date(fecha_inicio)
+    end_date = _parse_metrics_date(fecha_fin)
+
+    if start_date is None and end_date is None:
+        start_date = today.replace(day=1)
+        end_day = monthrange(today.year, today.month)[1]
+        end_date = date(today.year, today.month, end_day)
+    elif start_date and end_date and start_date > end_date:
+        start_date, end_date = end_date, start_date
+    elif start_date and not end_date:
+        end_date = start_date
+    elif end_date and not start_date:
+        start_date = end_date
+
+    start_str = start_date.strftime("%Y-%m-%d") if start_date else None
+    end_str = end_date.strftime("%Y-%m-%d") if end_date else None
+
+    if start_date and end_date:
+        dias_periodo = contar_dias_habiles_en_rango(start_str, end_str)
+    else:
+        dias_periodo = 0
+
+    return start_str, end_str, dias_periodo
+
+
+def aplicar_pias(metricas, dias_periodo):
+    total_pias = 0
+    dias_periodo_int = int(dias_periodo or 0)
+    for datos in metricas.values():
+        dias_ocupados = 0
+        for clave, valor in datos.items():
+            if clave == 'PIAS':
+                continue
+            try:
+                dias_ocupados += int(valor)
+            except (TypeError, ValueError):
+                continue
+        pias_valor = dias_periodo_int - dias_ocupados
+        if pias_valor < 0:
+            pias_valor = 0
+        datos['PIAS'] = pias_valor
+        total_pias += pias_valor
+    return total_pias
+
+
 def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None, puesto=None):
     """Devuelve un diccionario con el conteo de eventos por tipo para cada trabajador
     y el ranking de los 5 con más registros por tipo. Se pueden filtrar los
@@ -973,14 +1100,16 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None, puesto=None
     })
     resultado = list(events_collection.aggregate(pipeline))
 
+    estados_base = [estado for estado in events_collection.distinct("tipo") if estado and estado != "PIAS"]
+
     metricas = {}
-    estados = set()
+    estados_periodo = set()
     top5_por_tipo = {}
 
     for item in resultado:
         trabajador = item["_id"]["trabajador"]
         tipo = item["_id"].get("tipo", "Desconocido")
-        estados.add(tipo)
+        estados_periodo.add(tipo)
 
         if trabajador not in metricas:
             metricas[trabajador] = {}
@@ -993,27 +1122,40 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None, puesto=None
     # Ordenar alfabéticamente los trabajadores
     metricas = dict(sorted(metricas.items(), key=lambda x: x[0]))
 
+
+
+    estados_final = sorted(set(estados_base) | estados_periodo, key=lambda s: str(s).lower())
+
+    for datos in metricas.values():
+        for estado in estados_final:
+            datos.setdefault(estado, 0)
+
     # Seleccionar top 5 por tipo
     for tipo, lista in top5_por_tipo.items():
         lista.sort(key=lambda x: x[1], reverse=True)
         top5_por_tipo[tipo] = lista[:5]
 
-    return metricas, sorted(estados), top5_por_tipo
+    return metricas, estados_final, top5_por_tipo
 
 
 @app.route('/dashboard-metrics')
 @login_required
 @admin_required
 def dashboard_metrics():
-    fecha_inicio = request.args.get('fecha_inicio')
-    fecha_fin = request.args.get('fecha_fin')
+    fecha_inicio_raw = request.args.get('fecha_inicio')
+    fecha_fin_raw = request.args.get('fecha_fin')
     puesto = request.args.get('puesto')
+    fecha_inicio, fecha_fin, dias_periodo = resolver_rango_metricas(fecha_inicio_raw, fecha_fin_raw)
     metricas, estados, top5_por_tipo = calcular_metricas_por_usuario(fecha_inicio, fecha_fin, puesto)
+
+    total_pias = aplicar_pias(metricas, dias_periodo)
     return render_template(
         'dashboard_metrics.html',
         metricas=metricas,
         estados=estados,
         top5_por_tipo=top5_por_tipo,
+        dias_periodo=dias_periodo,
+        total_pias=total_pias,
         fecha_inicio=fecha_inicio,
         fecha_fin=fecha_fin,
         puesto=puesto
@@ -1032,12 +1174,14 @@ def dashboard_metrics_export():
     except Exception:
         use_xlsx = False
 
-    fecha_inicio = request.args.get('fecha_inicio')
-    fecha_fin = request.args.get('fecha_fin')
+    fecha_inicio_raw = request.args.get('fecha_inicio')
+    fecha_fin_raw = request.args.get('fecha_fin')
     puesto = request.args.get('puesto')
 
+    fecha_inicio, fecha_fin, dias_periodo = resolver_rango_metricas(fecha_inicio_raw, fecha_fin_raw)
     metricas, estados, _ = calcular_metricas_por_usuario(fecha_inicio, fecha_fin, puesto)
-    headers = ["Trabajador"] + list(estados)
+    aplicar_pias(metricas, dias_periodo)
+    headers = ["Trabajador", "PIAS"] + list(estados)
 
     filename_parts = ["metricas"]
     if fecha_inicio:
@@ -1067,7 +1211,7 @@ def dashboard_metrics_export():
             cell.border = border
 
         for trabajador, datos in metricas.items():
-            row = [trabajador] + [int(datos.get(estado, 0)) for estado in estados]
+            row = [trabajador, int(datos.get('PIAS', 0))] + [int(datos.get(estado, 0)) for estado in estados]
             ws.append(row)
 
         ws.column_dimensions['A'].width = 40
@@ -1100,7 +1244,7 @@ def dashboard_metrics_export():
         writer = csv.writer(sio)
         writer.writerow(headers)
         for trabajador, datos in metricas.items():
-            row = [trabajador] + [int(datos.get(estado, 0)) for estado in estados]
+            row = [trabajador, int(datos.get('PIAS', 0))] + [int(datos.get(estado, 0)) for estado in estados]
             writer.writerow(row)
         output = BytesIO(sio.getvalue().encode('utf-8-sig'))
         filename = "_".join(filename_parts) + ".csv"

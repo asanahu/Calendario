@@ -29,8 +29,9 @@
             <td>{{ usuario.puesto }}</td>
             <td>  <!-- 🔹 Acciones en una sola celda -->
                 <a href="/admin/user_vacations/{{ usuario._id }}">📅 Ver Vacaciones</a>
+                <a href="{{ url_for('edit_user', user_id=usuario._id) }}">✏️ Editar</a>
                 <form method="POST" action="/admin/delete_user/{{ usuario._id }}" style="display:inline;">
-                    <button type="submit">❌ Eliminar</button>
+                    <button type="submit" onclick="return confirm('¿Seguro que deseas eliminar este usuario?');">❌ Eliminar</button>
                 </form>
                 
             </td>
