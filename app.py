@@ -32,9 +32,10 @@ historial_collection = db["historial_conversaciones"]
 
 ruta_faqs = "faqs_generadas.json"
 
-# 🔹 Sistema de caché simple para eventos
+# 🔹 Sistema de caché mejorado para eventos
 events_cache = {}
-CACHE_DURATION = 300  # 5 minutos en segundos
+CACHE_DURATION = 60  # 1 minuto en segundos (más corto para datos críticos)
+last_data_modification = time.time()  # Timestamp de la última modificación de datos
 
 def get_cache_key(estados_filtro, persona_filtro, rol_filtro, busqueda):
     """Genera una clave única para el caché basada en los filtros"""
@@ -42,7 +43,19 @@ def get_cache_key(estados_filtro, persona_filtro, rol_filtro, busqueda):
 
 def is_cache_valid(cache_entry):
     """Verifica si una entrada del caché sigue siendo válida"""
-    return time.time() - cache_entry['timestamp'] < CACHE_DURATION
+    current_time = time.time()
+    # El caché es válido si:
+    # 1. No ha expirado por tiempo
+    # 2. No se han modificado datos desde que se creó
+    return (current_time - cache_entry['timestamp'] < CACHE_DURATION and 
+            cache_entry['timestamp'] > last_data_modification)
+
+def invalidate_cache():
+    """Invalida todo el caché cuando se modifican datos críticos"""
+    global last_data_modification
+    last_data_modification = time.time()
+    events_cache.clear()
+    print("🗑️ Caché invalidado por modificación de datos")
 
 # Lista de festivos utilizados en la aplicación
 FESTIVOS = {
@@ -118,6 +131,7 @@ def limpiar_vacaciones_duplicadas(trabajador):
             vistos.add(clave)
     if ids_a_borrar:
         events_collection.delete_many({"_id": {"$in": ids_a_borrar}})
+        invalidate_cache()  # Invalidar caché al limpiar duplicados
 
 
 def filtrar_vacaciones_unicas(vacaciones):
@@ -377,6 +391,7 @@ def add_user():
         if users_collection.find_one({"usuario": user_data["usuario"]}):
             return "El usuario ya existe", 400
         users_collection.insert_one(user_data)
+        invalidate_cache()  # Invalidar caché al añadir usuario
         return redirect('/admin/users')
     return render_template('add_user.html')
 
@@ -437,6 +452,7 @@ def edit_user(user_id):
                 {"$set": {"trabajador": nuevo_nombre_completo}}
             )
 
+        invalidate_cache()  # Invalidar caché al modificar usuario
         flash('Usuario actualizado correctamente', 'success')
         return redirect(url_for('admin_users'))
 
@@ -456,6 +472,7 @@ def delete_user(user_id):
         return jsonify({"message": "No puedes eliminarte a ti mismo"}), 403
 
     users_collection.delete_one({"_id": ObjectId(user_id)})
+    invalidate_cache()  # Invalidar caché al eliminar usuario
     return redirect('/admin/users')
 
 # Página para que los super administradores puedan resetear contraseñas
@@ -574,6 +591,7 @@ def add_vacation():
                 events_collection.insert_one(event)
             current_day += timedelta(days=1)
         limpiar_vacaciones_duplicadas(vacation_data["trabajador"])
+        invalidate_cache()  # Invalidar caché al añadir vacaciones
         return redirect('/add-vacation')
     
     # Obtener las vacaciones existentes para el usuario, ordenadas por fecha de inicio
@@ -653,6 +671,7 @@ def add_recurring():
                     }
                     events_collection.insert_one(nuevo_evento)
 
+        invalidate_cache()  # Invalidar caché al asignar estados recurrentes
         return redirect('/add-recurring')
 
     trabajadores = list(users_collection.find({"visible_calendario": True}))
@@ -725,8 +744,8 @@ def events():
         event_data = request.get_json()
         event_data["trabajador"] = f"{current_user.nombre} {current_user.apellidos}"
         events_collection.insert_one(event_data)
-        # Limpiar caché cuando se añade un evento
-        events_cache.clear()
+        # Invalidar caché cuando se añade un evento
+        invalidate_cache()
         return jsonify({"message": "Evento agregado correctamente"}), 201
 
     # 🔹 Obtener parámetros de filtro desde la query string
@@ -919,8 +938,8 @@ def delete_event(event_id):
         return jsonify({"message": "No puedes eliminar eventos de otros"}), 403
 
     events_collection.delete_one({"_id": ObjectId(event_id)})
-    # Limpiar caché cuando se elimina un evento
-    events_cache.clear()
+    # Invalidar caché cuando se elimina un evento
+    invalidate_cache()
     return jsonify({"message": "Evento eliminado, el usuario vuelve a estar disponible"}), 200
 
 @app.route('/admin/asignar-estados', methods=['GET', 'POST'])
@@ -972,6 +991,7 @@ def asignar_estados():
                     
                 current_day += timedelta(days=1)
             
+        invalidate_cache()  # Invalidar caché al asignar estados masivos
         return redirect(url_for('asignar_estados'))
     else:
         trabajadores = list(users_collection.find({"visible_calendario": True}))
