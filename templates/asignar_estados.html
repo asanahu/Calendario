@@ -242,10 +242,10 @@
               {% for trabajador in trabajadores %}
                 {% if trabajador.puesto == puesto %}
                   <div class="row"
-                       data-nombre="{{ (trabajador.nombre ~ ' ' ~ trabajador.apellidos).lower() }}"
-                       data-puesto="{{ trabajador.puesto }}">
-                    <input type="checkbox" class="select-row" aria-label="Seleccionar {{ trabajador.nombre }} {{ trabajador.apellidos }}" />
-                    <span class="name">{{ trabajador.nombre }} {{ trabajador.apellidos }}</span>
+                      data-nombre="{{ trabajador.search_value }}"
+                      data-puesto="{{ trabajador.puesto }}">
+                    <input type="checkbox" class="select-row" aria-label="Seleccionar {{ hide_real_names and trabajador.display_name or trabajador.full_name }}" />
+                    <span class="name">{{ hide_real_names and trabajador.display_name or trabajador.full_name }}</span>
                     <select name="tipo_{{ trabajador._id }}" id="tipo_{{ trabajador._id }}">
                       <option value="">—</option>
                       <option value="normal">PIAS</option>

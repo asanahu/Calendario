@@ -37,6 +37,66 @@ events_cache = {}
 CACHE_DURATION = 60  # 1 minuto en segundos (más corto para datos críticos)
 last_data_modification = time.time()  # Timestamp de la última modificación de datos
 
+DEMO_ADMIN_USERS = {"admin"}
+
+
+def is_demo_admin_user():
+    """Return True when the current session belongs to the demo admin."""
+    try:
+        return current_user.is_authenticated and current_user.usuario in DEMO_ADMIN_USERS
+    except Exception:
+        return False
+
+
+def build_anonymized_label_map(visible_only=True, include_fullname_map=False):
+    """Generate deterministic masked labels for users.
+
+    Args:
+        visible_only: cuando es True solo considera usuarios visibles en calendario.
+        include_fullname_map: devuelve un segundo diccionario {nombre completo: alias}.
+    """
+    query = {"visible_calendario": {"$ne": False}} if visible_only else {}
+    usuarios = list(
+        users_collection.find(
+            query,
+            {"_id": 1, "nombre": 1, "apellidos": 1}
+        ).sort([('nombre', ASCENDING), ('apellidos', ASCENDING)])
+    )
+    id_map = {}
+    fullname_map = {}
+    for idx, usuario in enumerate(usuarios, start=1):
+        label = f"Trabajador {idx:02d}"
+        user_id = str(usuario["_id"])
+        id_map[user_id] = label
+        fullname = f"{usuario.get('nombre', '')} {usuario.get('apellidos', '')}".strip()
+        if fullname:
+            fullname_map[fullname] = label
+    if include_fullname_map:
+        return id_map, fullname_map
+    return id_map
+
+
+def get_display_name_for_user(usuario, anonymized_labels=None):
+    """Return the name to show in UI, masking it when required."""
+    real_name = f"{usuario.get('nombre', '')} {usuario.get('apellidos', '')}".strip()
+    if anonymized_labels:
+        label = anonymized_labels.get(str(usuario["_id"]))
+        if label:
+            return label
+    return real_name
+
+
+def resolve_persona_nombre(persona_param):
+    """Map persona filter values to a real full name when possible."""
+    if not persona_param or persona_param == 'todos':
+        return None
+    if ObjectId.is_valid(persona_param):
+        usuario = users_collection.find_one({"_id": ObjectId(persona_param)}, {"nombre": 1, "apellidos": 1})
+        if usuario:
+            return f"{usuario.get('nombre', '')} {usuario.get('apellidos', '')}".strip()
+    return persona_param
+
+
 def get_cache_key(estados_filtro, persona_filtro, rol_filtro, busqueda):
     """Genera una clave única para el caché basada en los filtros"""
     return f"{sorted(estados_filtro)}_{persona_filtro}_{rol_filtro}_{busqueda}"
@@ -306,17 +366,19 @@ def calendar_page():
         {"visible_calendario": {"$ne": False}},
         {"nombre": 1, "apellidos": 1}
     ))
-    
-    # Convertir ObjectId a string para serialización JSON
+
+    anonymized_labels = build_anonymized_label_map() if is_demo_admin_user() else None
+    usuarios_context = []
     for usuario in usuarios:
-        usuario['_id'] = str(usuario['_id'])
-    
-    # Ordenar usuarios por nombre
-    usuarios_ordenados = sorted(
-        usuarios, 
-        key=lambda x: f"{x['nombre']} {x['apellidos']}".lower()
-    )
-    return render_template('index.html', usuarios=usuarios_ordenados)
+        usuario_id = str(usuario['_id'])
+        display_name = get_display_name_for_user(usuario, anonymized_labels)
+        usuarios_context.append({
+            "id": usuario_id,
+            "display_name": display_name
+        })
+
+    usuarios_context.sort(key=lambda x: x["display_name"].lower())
+    return render_template('index.html', usuarios=usuarios_context)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -367,7 +429,11 @@ def get_color_by_puesto(puesto):
 @admin_required
 def admin_users():
     usuarios = list(users_collection.find().sort("nombre"))
-    return render_template('admin_users.html', usuarios=usuarios)
+    demo_mode = is_demo_admin_user()
+    anonymized_labels = build_anonymized_label_map(visible_only=False) if demo_mode else None
+    for usuario in usuarios:
+        usuario['display_name'] = get_display_name_for_user(usuario, anonymized_labels)
+    return render_template('admin_users.html', usuarios=usuarios, hide_real_names=demo_mode)
 
 @app.route('/admin/add_user', methods=['GET', 'POST'])
 @login_required
@@ -676,7 +742,15 @@ def add_recurring():
 
     trabajadores = list(users_collection.find({"visible_calendario": True}))
     trabajadores = sorted(trabajadores, key=lambda x: (x['nombre'].lower(), x['apellidos'].lower()))
-    return render_template('add_recurring.html', trabajadores=trabajadores)
+    demo_mode = is_demo_admin_user()
+    anonymized_labels = build_anonymized_label_map() if demo_mode else None
+    for trabajador in trabajadores:
+        trabajador['display_name'] = get_display_name_for_user(trabajador, anonymized_labels)
+        full_name = f"{trabajador.get('nombre', '')} {trabajador.get('apellidos', '')}".strip()
+        trabajador['full_name'] = full_name
+        search_source = trabajador['display_name'] if demo_mode else full_name
+        trabajador['search_value'] = search_source.lower()
+    return render_template('add_recurring.html', trabajadores=trabajadores, hide_real_names=demo_mode)
 
 @app.route('/admin/user_vacations/<user_id>')
 @login_required
@@ -753,13 +827,17 @@ def events():
     persona_filtro = request.args.get('persona', 'todos')
     rol_filtro = request.args.get('rol', 'todos')
     busqueda = request.args.get('busqueda', '').strip()
-    
+    persona_nombre = resolve_persona_nombre(persona_filtro)
+
+    demo_admin_mode = is_demo_admin_user()
+    anonymized_labels = build_anonymized_label_map() if demo_admin_mode else None
+
     # 🔹 Verificar caché
-    cache_key = get_cache_key(estados_filtro, persona_filtro, rol_filtro, busqueda)
+    cache_key = f"{get_cache_key(estados_filtro, persona_filtro, rol_filtro, busqueda)}|anon={int(demo_admin_mode)}"
     if cache_key in events_cache and is_cache_valid(events_cache[cache_key]):
         print(f"🚀 Sirviendo desde caché: {cache_key}")
         return jsonify(events_cache[cache_key]['data'])
-    
+
     print(f"🔄 Generando datos frescos para: {cache_key}")
     
     # 🔹 Lista de festivos
@@ -779,21 +857,26 @@ def events():
         usuarios_query["puesto"] = rol_filtro
     
     usuarios = list(users_collection.find(usuarios_query))
-    usuarios_ordenados = sorted(usuarios, key=lambda u: orden_puestos.get(u.get("puesto", ""), 4))
-    
+    for usuario in usuarios:
+        usuario['_id'] = str(usuario['_id'])
+        usuario['nombre_completo'] = f"{usuario.get('nombre', '')} {usuario.get('apellidos', '')}".strip()
+        usuario['display_name'] = get_display_name_for_user(usuario, anonymized_labels)
+    usuarios_ordenados = sorted(usuarios, key=lambda u: orden_puestos.get(u.get('puesto', ''), 4))
+
     # 🔹 Filtrar usuarios por persona si es necesario
-    if persona_filtro != 'todos':
-        usuarios_ordenados = [u for u in usuarios_ordenados 
-                            if f"{u['nombre']} {u['apellidos']}" == persona_filtro]
-    
+    if persona_nombre:
+        usuarios_ordenados = [u for u in usuarios_ordenados if u['nombre_completo'] == persona_nombre]
+
     # 🔹 Filtrar usuarios por búsqueda si es necesario
     if busqueda:
         busqueda_lower = busqueda.lower()
-        usuarios_ordenados = [u for u in usuarios_ordenados 
-                            if busqueda_lower in f"{u['nombre']} {u['apellidos']}".lower()]
+        usuarios_ordenados = [
+            u for u in usuarios_ordenados
+            if busqueda_lower in (u['display_name'] if demo_admin_mode else u['nombre_completo']).lower()
+        ]
 
     # 🔹 Obtener eventos solo para los usuarios filtrados
-    nombres_usuarios = [f"{u['nombre']} {u['apellidos']}" for u in usuarios_ordenados]
+    nombres_usuarios = [u['nombre_completo'] for u in usuarios_ordenados]
     eventos_query = {"trabajador": {"$in": nombres_usuarios}} if nombres_usuarios else {}
     eventos = list(events_collection.find(eventos_query))
 
@@ -842,9 +925,10 @@ def events():
             eventos_dia = []
 
             for usuario in usuarios_ordenados:
-                nombre_completo = f"{usuario['nombre']} {usuario['apellidos']}"
+                nombre_completo = usuario['nombre_completo']
+                display_name = usuario['display_name']
                 color = colores_puestos.get(usuario["puesto"], "#D3D3D3")
-                event_label = f"{usuario['puesto']} - {nombre_completo}"
+                event_label = f"{usuario['puesto']} - {display_name}"
 
                 # Verifica si hay eventos asignados para este usuario en la fecha
                 user_events = eventos_por_trabajador.get(nombre_completo, {})
@@ -900,12 +984,12 @@ def events():
                     continue
 
                 eventos_dia.append({
-                    "id": f"{nombre_completo}-{fecha_str}",
+                    "id": f"{usuario['_id']}-{fecha_str}",
                     "title": event_label,
                     "start": fecha_str,
                     "color": color,
                     "extendedProps": {
-                        "nombre": nombre_completo,
+                        "nombre": display_name,
                         "puesto": usuario.get("puesto", ""),
                         "estado": estado_value,
                         "isDisponible": (evento_asignado is None)
@@ -996,7 +1080,15 @@ def asignar_estados():
     else:
         trabajadores = list(users_collection.find({"visible_calendario": True}))
         trabajadores = sorted(trabajadores, key=lambda x: (x['nombre'].lower(), x['apellidos'].lower()))
-        return render_template("asignar_estados.html", trabajadores=trabajadores)
+        demo_mode = is_demo_admin_user()
+        anonymized_labels = build_anonymized_label_map() if demo_mode else None
+        for trabajador in trabajadores:
+            trabajador['display_name'] = get_display_name_for_user(trabajador, anonymized_labels)
+            full_name = f"{trabajador.get('nombre', '')} {trabajador.get('apellidos', '')}".strip()
+            trabajador['full_name'] = full_name
+            search_source = trabajador['display_name'] if demo_mode else full_name
+            trabajador['search_value'] = search_source.lower()
+        return render_template("asignar_estados.html", trabajadores=trabajadores, hide_real_names=demo_mode)
     
 
 @app.route('/admin/duplicados', methods=['GET'])
@@ -1028,7 +1120,17 @@ def duplicados():
         {"$project": {"_fechaDate": 0}}
     ]
     duplicados = list(events_collection.aggregate(pipeline))
-    return render_template("duplicados.html", duplicados=duplicados)
+    demo_mode = is_demo_admin_user()
+    fullname_labels = None
+    if demo_mode:
+        _, fullname_labels = build_anonymized_label_map(visible_only=False, include_fullname_map=True)
+    for dup in duplicados:
+        real_name = dup["_id"].get("trabajador", "")
+        if fullname_labels:
+            dup["display_trabajador"] = fullname_labels.get(real_name, real_name)
+        else:
+            dup["display_trabajador"] = real_name
+    return render_template("duplicados.html", duplicados=duplicados, hide_real_names=demo_mode)
 
 
 def _parse_metrics_date(value):
@@ -1254,6 +1356,28 @@ def calcular_metricas_por_usuario(fecha_inicio=None, fecha_fin=None, puesto=None
     return metricas, estados_final, top5_por_tipo
 
 
+def anonymize_metric_results(metricas, top5_por_tipo, fullname_labels):
+    """Devuelve copias de metricas/top5 usando etiquetas anonimizadas."""
+    if not fullname_labels:
+        return metricas, top5_por_tipo
+
+    top5_por_tipo = top5_por_tipo or {}
+    masked_metricas = {}
+    for nombre, datos in metricas.items():
+        label = fullname_labels.get(nombre, nombre)
+        masked_metricas[label] = dict(datos)
+    masked_metricas = dict(sorted(masked_metricas.items(), key=lambda x: x[0]))
+
+    masked_top5 = {}
+    for tipo, lista in top5_por_tipo.items():
+        masked_top5[tipo] = [
+            (fullname_labels.get(nombre, nombre), count)
+            for nombre, count in lista
+        ]
+
+    return masked_metricas, masked_top5
+
+
 @app.route('/dashboard-metrics')
 @login_required
 @admin_required
@@ -1263,6 +1387,10 @@ def dashboard_metrics():
     puesto = request.args.get('puesto')
     fecha_inicio, fecha_fin, dias_periodo = resolver_rango_metricas(fecha_inicio_raw, fecha_fin_raw)
     metricas, estados, top5_por_tipo = calcular_metricas_por_usuario(fecha_inicio, fecha_fin, puesto)
+    demo_mode = is_demo_admin_user()
+    if demo_mode:
+        _, fullname_labels = build_anonymized_label_map(visible_only=False, include_fullname_map=True)
+        metricas, top5_por_tipo = anonymize_metric_results(metricas, top5_por_tipo, fullname_labels)
 
     total_pias = aplicar_pias(metricas, dias_periodo)
     return render_template(
@@ -1274,7 +1402,8 @@ def dashboard_metrics():
         total_pias=total_pias,
         fecha_inicio=fecha_inicio,
         fecha_fin=fecha_fin,
-        puesto=puesto
+        puesto=puesto,
+        hide_real_names=demo_mode
     )
 
 
@@ -1296,6 +1425,10 @@ def dashboard_metrics_export():
 
     fecha_inicio, fecha_fin, dias_periodo = resolver_rango_metricas(fecha_inicio_raw, fecha_fin_raw)
     metricas, estados, _ = calcular_metricas_por_usuario(fecha_inicio, fecha_fin, puesto)
+    demo_mode = is_demo_admin_user()
+    if demo_mode:
+        _, fullname_labels = build_anonymized_label_map(visible_only=False, include_fullname_map=True)
+        metricas, _ = anonymize_metric_results(metricas, None, fullname_labels)
     aplicar_pias(metricas, dias_periodo)
     headers = ["Trabajador", "PIAS"] + list(estados)
 

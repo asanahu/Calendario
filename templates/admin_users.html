@@ -23,8 +23,8 @@
         </tr>
         {% for usuario in usuarios %}
         <tr>
-            <td>{{ usuario.nombre }}</td>
-            <td>{{ usuario.apellidos }}</td>
+            <td>{{ usuario.display_name if hide_real_names else usuario.nombre }}</td>
+            <td>{{ '—' if hide_real_names else usuario.apellidos }}</td>
             <td>{{ usuario.usuario }}</td>
             <td>{{ usuario.puesto }}</td>
             <td>  <!-- 🔹 Acciones en una sola celda -->

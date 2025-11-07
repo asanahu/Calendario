@@ -46,7 +46,7 @@
         <tbody>
           {% for dup in duplicados %}
           <tr>
-            <td>{{ dup._id.trabajador }}</td>
+            <td>{{ dup.display_trabajador }}</td>
             <td>
               {% if dup._id.fecha_inicio is string %}
                 {{ dup._id.fecha_inicio[8:10] }}/{{ dup._id.fecha_inicio[5:7] }}/{{ dup._id.fecha_inicio[0:4] }}
@@ -114,7 +114,7 @@
       const events = [
         {% for dup in duplicados %}
         {
-          title: "{{ dup._id.trabajador }} ({{ dup.count }})",
+          title: "{{ dup.display_trabajador }} ({{ dup.count }})",
           start: "{% if dup._id.fecha_inicio is string %}{{ dup._id.fecha_inicio }}{% else %}{{ dup._id.fecha_inicio.strftime('%Y-%m-%d') }}{% endif %}"
         },
         {% endfor %}

@@ -59,8 +59,8 @@
                 <option value="todos">Todos</option>
                 {% if usuarios %}
                     {% for usuario in usuarios %}
-                        <option value="{{ usuario.nombre }} {{ usuario.apellidos }}">
-                            {{ usuario.nombre }} {{ usuario.apellidos }}
+                        <option value="{{ usuario.id }}">
+                            {{ usuario.display_name }}
                         </option>
                     {% endfor %}
                 {% else %}
