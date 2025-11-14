@@ -725,6 +725,11 @@ def add_recurring():
                     "tipo": {"$in": ["Baja", "CADE 30", "CADE 50", "CADE Tardes", "Guardia CADE", "Refuerzo Cade", "Mail"]}
                 }
 
+                if not es_dia_habil(dia):
+                    if estado == "normal":
+                        events_collection.delete_many(query_filter)
+                    continue
+
                 if estado == "normal":
                     events_collection.delete_many(query_filter)
                 else:
@@ -1058,6 +1063,13 @@ def asignar_estados():
                     "tipo": {"$in": ["Baja", "CADE 30", "CADE 50", "CADE Tardes", "Guardia CADE", "Refuerzo Cade", "Mail"]}
                 }
 
+                # Saltar fines de semana y festivos, pero permitir limpieza de eventos si se selecciona "normal"
+                if not es_dia_habil(current_day):
+                    if estado == "normal":
+                        events_collection.delete_many(query_filter)
+                    current_day += timedelta(days=1)
+                    continue
+
                 if estado == "normal":
                     # Intentamos eliminar los eventos especiales para este trabajador y este rango
                     events_collection.delete_many(query_filter)
@@ -1099,6 +1111,18 @@ def duplicados():
         # Excluir fines de semana antes de agrupar (independiente del tipo de campo)
         {"$addFields": {"_fechaDate": {"$toDate": "$fecha_inicio"}}},
         {"$match": {"$expr": {"$not": {"$in": [{"$isoDayOfWeek": "$_fechaDate"}, [6, 7]]}}}},
+        {
+            "$match": {
+                "$expr": {
+                    "$not": {
+                        "$in": [
+                            {"$dateToString": {"format": "%Y-%m-%d", "date": "$_fechaDate"}},
+                            FESTIVOS_LIST
+                        ]
+                    }
+                }
+            }
+        },
         {
             "$group": {
                 "_id": {
