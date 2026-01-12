@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Vista de Cuadrante</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .week-header {
+            font-size: 1.3em;
+            margin: 25px 0 10px 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .week-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        .day-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+        }
+
+        .day-header {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+            text-transform: capitalize;
+        }
+
+        .shift-group {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .shift-users {
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .user-pill {
+            display: block;
+            padding: 1px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+            margin-right: 5px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Colores por tipo de turno */
+        .color-tarde {
+            background-color: #6f42c1;
+        }
+
+        .color-c30 {
+            background-color: #fd7e14;
+        }
+
+        .color-c50 {
+            background-color: #28a745;
+        }
+
+        .color-guardia {
+            background-color: #dc3545;
+        }
+
+        .color-refuerzo {
+            background-color: #e83e8c;
+        }
+
+        .color-pias {
+            background-color: #6c757d;
+        }
+
+        .color-baja {
+            background-color: #343a40;
+        }
+
+        .header-actions {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 20px 0;
+            z-index: 100;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Modern Filter Bar */
+        .filters-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .filters-label {
+            font-weight: 700;
+            color: #495057;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filter-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 50px;
+            background: #f1f3f5;
+            color: #495057;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+
+        .filter-pill:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .filter-pill input {
+            display: none;
+        }
+
+        .filter-pill.active {
+            background: #e7f5ff;
+            color: #228be6;
+            border-color: #a5d8ff;
+            box-shadow: 0 2px 4px rgba(34, 139, 230, 0.1);
+        }
+
+        /* Specific category colors when active */
+        .filter-pill[data-val="CADE 30"].active {
+            background: #e7f5ff;
+            color: #1c7ed6;
+            border-color: #a5d8ff;
+        }
+
+        .filter-pill[data-val="CADE 50"].active {
+            background: #fff4e6;
+            color: #d9480f;
+            border-color: #ffd8a8;
+        }
+
+        .filter-pill[data-val="CADE Tardes"].active {
+            background: #f3f0ff;
+            color: #6741d9;
+            border-color: #d0bfff;
+        }
+
+        .filter-pill[data-val="Mail"].active {
+            background: #fff0f6;
+            color: #c2255c;
+            border-color: #ffdeeb;
+        }
+
+        .filter-pill[data-val="PIAS"].active {
+            background: #f8f9fa;
+            color: #212529;
+            border-color: #dee2e6;
+        }
+
+        .filter-pill[data-val="Ausente"].active {
+            background: #e9ecef;
+            color: #495057;
+            border-color: #ced4da;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 10px;
+            padding-left: 10px;
+            border-left: 1px solid #dee2e6;
+        }
+
+        .btn-mini {
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            color: #868e96;
+            cursor: pointer;
+        }
+
+        .btn-mini:hover {
+            background: #f8f9fa;
+            color: #495057;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" style="max-width: 1400px;">
+        <div class="header-actions">
+            <div style="flex: 1; padding-right: 20px;">
+                <h1 class="page-title" style="margin: 0 0 15px 0; font-size: 1.8rem; color: #212529;">Cuadrante Actual
+                </h1>
+
+                <div class="filters-container">
+                    <div class="filters-label">
+                        <span>👁️ FILTRAR VISTA</span>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-pill active" data-val="CADE 30">
+                            <input type="checkbox" checked class="filter-cb" value="CADE 30"> CADE 30
+                        </label>
+                        <label class="filter-pill active" data-val="CADE 50">
+                            <input type="checkbox" checked class="filter-cb" value="CADE 50"> CADE 50
+                        </label>
+                        <label class="filter-pill active" data-val="CADE Tardes">
+                            <input type="checkbox" checked class="filter-cb" value="CADE Tardes"> CADE Tardes
+                        </label>
+                        <label class="filter-pill active" data-val="Guardia">
+                            <input type="checkbox" checked class="filter-cb" value="Guardia"> Guardia
+                        </label>
+                        <label class="filter-pill active" data-val="Refuerzo">
+                            <input type="checkbox" checked class="filter-cb" value="Refuerzo"> Refuerzo
+                        </label>
+                        <label class="filter-pill active" data-val="Mail">
+                            <input type="checkbox" checked class="filter-cb" value="Mail"> Mail
+                        </label>
+                        <label class="filter-pill active" data-val="PIAS">
+                            <input type="checkbox" checked class="filter-cb" value="PIAS"> PIAS (Libres)
+                        </label>
+                        <label class="filter-pill active" data-val="Ausente">
+                            <input type="checkbox" checked class="filter-cb" value="Ausente"> Ausente/Vacaciones
+                        </label>
+                        <label class="filter-pill active" data-val="Baja">
+                            <input type="checkbox" checked class="filter-cb" value="Baja"> Baja (Histórica)
+                        </label>
+
+                        <div class="filter-actions">
+                            <button type="button" class="btn-mini" onclick="toggleAllFilters(true)">Todos</button>
+                            <button type="button" class="btn-mini" onclick="toggleAllFilters(false)">Ninguno</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ url_for('view_roster_select') }}" class="btn btn-secondary">← Volver</a>
+
+                <form method="POST" action="{{ url_for('export_roster') }}" target="_blank">
+                    <!-- Hidden inputs to pass selection to export -->
+                    <input type="hidden" name="year" value="{{ selected_year }}">
+                    {% for m in selected_months %}
+                    <input type="hidden" name="months" value="{{ m }}">
+                    {% endfor %}
+                    <button type="submit" class="btn btn-success">📥 Exportar Excel</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="roster-container">
+            {% if not grouped_weeks %}
+            <div style="text-align: center; padding: 50px; color: #777;">
+                <h3>No hay turnos asignados para este periodo.</h3>
+            </div>
+            {% endif %}
+
+            {% for week_num, days in grouped_weeks.items() %}
+            <div class="week-section">
+                <h3 class="week-header">
+                    Semana {{ week_num }}
+                    {% if week_month_map and week_month_map[week_num] %}
+                    <span style="font-weight: normal; color: #666; font-size: 0.8em; margin-left: 10px;">
+                        — {{ week_month_map[week_num] }}
+                    </span>
+                    {% endif %}
+                </h3>
+                <div class="week-grid">
+                    {% for day, events in days.items() %}
+                    <div class="day-card">
+                        <div class="day-header">
+                            {% set parts = day.split('-') %}
+                            {{ parts[2] }}/{{ parts[1] }}/{{ parts[0] }}
+                        </div>
+
+                        {% for tipo, users in events.items() %}
+                        <div class="shift-group" data-shift-type="{{ tipo }}">
+                            <span class="badge 
+                                {% if 'Tardes' in tipo %}color-tarde
+                                {% elif '30' in tipo %}color-c30
+                                {% elif '50' in tipo %}color-c50
+                                {% elif 'Guardia' in tipo %}color-guardia
+                                {% elif 'Refuerzo' in tipo %}color-refuerzo
+                                {% elif 'PIAS' in tipo %}color-pias
+                                {% elif 'Ausencia' in tipo %}color-baja
+                                {% elif 'Baja' in tipo %}color-baja
+                                {% else %}color-pias{% endif %}">
+                                {% if 'Ausencia' in tipo %}Ausente{% else %}{{ tipo }}{% endif %}
+                            </span>
+                            <div class="shift-users">
+                                {% for user in users %}
+                                <div class="user-pill">{{ user }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkboxes = document.querySelectorAll('.filter-cb');
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updatePillStyles();
+                    filterShifts();
+                });
+            });
+            // Sync initial state
+            updatePillStyles();
+        });
+
+        function updatePillStyles() {
+            document.querySelectorAll('.filter-pill').forEach(pill => {
+                const cb = pill.querySelector('.filter-cb');
+                if (cb.checked) {
+                    pill.classList.add('active');
+                } else {
+                    pill.classList.remove('active');
+                }
+            });
+        }
+
+        function toggleAllFilters(enable) {
+            document.querySelectorAll('.filter-cb').forEach(cb => cb.checked = enable);
+            updatePillStyles();
+            filterShifts();
+        }
+
+        function filterShifts() {
+            const checkedValues = Array.from(document.querySelectorAll('.filter-cb:checked')).map(cb => cb.value);
+            const groups = document.querySelectorAll('.shift-group');
+
+            groups.forEach(group => {
+                const type = (group.getAttribute('data-shift-type') || '').trim();
+                let isVisible = false;
+
+                if (checkedValues.length === 0) {
+                    group.style.display = 'none';
+                    return;
+                }
+
+                for (let val of checkedValues) {
+                    if (val === 'CADE 30' && type.includes('CADE 30')) { isVisible = true; break; }
+                    if (val === 'CADE 50' && type.includes('CADE 50')) { isVisible = true; break; }
+                    if (val === 'CADE Tardes' && type.includes('Tardes')) { isVisible = true; break; }
+                    if (val === 'Guardia' && type.includes('Guardia')) { isVisible = true; break; }
+                    if (val === 'Refuerzo' && type.includes('Refuerzo')) { isVisible = true; break; }
+                    if (val === 'Mail' && type.includes('Mail')) { isVisible = true; break; }
+                    if (val === 'PIAS' && type.includes('PIAS')) { isVisible = true; break; }
+                    if (val === 'Ausente' && (type.includes('Ausencia') || type.includes('Vacaciones') || type.includes('Ausente'))) { isVisible = true; break; }
+                    if (val === 'Baja' && type.includes('Baja')) { isVisible = true; break; }
+                }
+
+                group.style.display = isVisible ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+
+</html>

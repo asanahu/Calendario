@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Matriz de Habilidades (TS)</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Sticky Header */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            padding: 15px 25px;
+            margin: -20px -20px 25px -20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge-count {
+            background: #e2e8f0;
+            color: #475569;
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        /* Matrix Card */
+        .matrix-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            overflow: hidden;
+            border: 1px solid #f1f5f9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 18px 24px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+            transition: background-color 0.2s ease;
+        }
+
+        /* User Info */
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 0.95rem;
+        }
+
+        .user-username {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* Chips */
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .role-chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #64748b;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .role-chip:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            transform: translateY(-1px);
+        }
+
+        .role-chip.selected {
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Chip Colors */
+        .chip-none.selected {
+            background-color: #94a3b8;
+        }
+
+        .chip-c30.selected {
+            background-color: #fbbf24;
+            color: #78350f;
+        }
+
+        /* Amber */
+        .chip-c50.selected {
+            background-color: #f97316;
+        }
+
+        /* Orange */
+        .chip-tardes.selected {
+            background-color: #8b5cf6;
+        }
+
+        /* Violet */
+        .chip-pias.selected {
+            background-color: #10b981;
+        }
+
+        /* Emerald */
+        .chip-mail.selected {
+            background-color: #ec4899;
+        }
+
+        /* Pink */
+
+        /* Toggle Switches */
+        .switch-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input:checked+.slider {
+            background-color: #3b82f6;
+        }
+
+        /* Specific colors for specific toggles */
+        input[name^="tarde"]:checked+.slider {
+            background-color: #8b5cf6;
+            /* Matching Tardes Color */
+        }
+
+        input[name^="flex"]:checked+.slider {
+            background-color: #10b981;
+            /* Greenish */
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+            margin-right: 10px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <form id="matrixForm" method="POST">
+            <div class="sticky-header">
+                <div class="page-title">
+                    Matriz de Habilidades
+                    <span class="badge-count">{{ users|length }} Usuarios Technical Support</span>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">⬅ Volver</a>
+                    <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+                </div>
+            </div>
+
+            <div class="matrix-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Usuario</th>
+                            <th style="width: 35%;">Roles Fijos / Permitidos</th>
+                            <th style="width: 15%; text-align: center;">Turno Tarde</th>
+                            <th style="width: 15%; text-align: center;">Mail</th>
+                            <th style="width: 15%; text-align: center;">Flexibilidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <span class="user-name">{{ user.nombre }} {{ user.apellidos }}</span>
+                                    <span class="user-username">@{{ user.usuario }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <!-- Hidden Select for Form Submission -->
+                                <select name="roles_{{ user._id }}" id="select_{{ user._id }}" multiple
+                                    style="display:none;">
+                                    <option value="">-- Ninguno --</option>
+                                    <option value="CADE 30">CADE 30</option>
+                                    <option value="CADE 50">CADE 50</option>
+                                    <option value="CADE Tardes">CADE Tardes</option>
+                                    <option value="PIAS">PIAS</option>
+                                </select>
+
+                                <!-- Interactive Chips -->
+                                <div class="chips-container" id="chips_{{ user._id }}">
+                                    <!-- Initial state logic -->
+                                    {% set current_roles = user.fixed_shift_role if user.fixed_shift_role is iterable
+                                    and user.fixed_shift_role is not string else [user.fixed_shift_role] if
+                                    user.fixed_shift_role else [] %}
+
+                                    <div class="role-chip chip-none {% if not current_roles %}selected{% endif %}"
+                                        onclick="toggleChip('{{ user._id }}', '')">Rotativo (Ninguno)</div>
+
+                                    <div class="role-chip chip-c30 {% if 'CADE 30' in current_roles %}selected{% endif %}"
+                                        onclick="toggleChip('{{ user._id }}', 'CADE 30')">CADE 30</div>
+
+                                    <div class="role-chip chip-c50 {% if 'CADE 50' in current_roles %}selected{% endif %}"
+                                        onclick="toggleChip('{{ user._id }}', 'CADE 50')">CADE 50</div>
+
+                                    <div class="role-chip chip-tardes {% if 'CADE Tardes' in current_roles %}selected{% endif %}"
+                                        onclick="toggleChip('{{ user._id }}', 'CADE Tardes')">Tardes</div>
+
+                                    <div class="role-chip chip-pias {% if 'PIAS' in current_roles %}selected{% endif %}"
+                                        onclick="toggleChip('{{ user._id }}', 'PIAS')">PIAS</div>
+                                </div>
+                                <script>
+                                    // Sync initial state to hidden select
+                                    (function () {
+                                        const select = document.getElementById('select_{{ user._id }}');
+                                        const roles = {{ current_roles | tojson
+                                    }};
+                                    if (roles.length === 0) {
+                                        select.value = "";
+                                    } else {
+                                        Array.from(select.options).forEach(opt => {
+                                            if (roles.includes(opt.value)) opt.selected = true;
+                                        });
+                                    }
+                                    }) ();
+                                </script>
+                            </td>
+                            <td>
+                                <div class="switch-container">
+                                    <label class="switch">
+                                        <input type="checkbox" name="tarde_{{ user._id }}" value="true" {% if 'Tarde' in
+                                            user.get('skills', []) %}checked{% endif %}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="switch-container">
+                                    <label class="switch">
+                                        <input type="checkbox" name="mail_{{ user._id }}" value="true" {% if 'Mail' in
+                                            user.get('skills', []) %}checked{% endif %}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="switch-container">
+                                    <label class="switch">
+                                        <input type="checkbox" name="flexibilidad_{{ user._id }}" value="true" {%
+                                            if 'Flexibilidad' in user.get('skills', []) or 'Reducción' in
+                                            user.get('skills', []) %}checked{% endif %}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function toggleChip(userId, value) {
+            const select = document.getElementById('select_' + userId);
+            const chipsDiv = document.getElementById('chips_' + userId);
+            const clickedChip = event.currentTarget; // The div that was clicked
+
+            // Logic:
+            // If value is '', verify if we select it or if it's already selected.
+            // If it's a role, toggle it. If 'None' was selected, deselect 'None'.
+            // If we deselect the last role, select 'None'.
+
+            // 1. Update UI visually first for responsiveness, then sync Select
+
+            if (value === '') {
+                // Clicked "Ninguno"
+                // Deselect all others
+                Array.from(chipsDiv.children).forEach(c => c.classList.remove('selected'));
+                clickedChip.classList.add('selected');
+
+                // Update Select
+                select.selectedIndex = -1; // Clear
+                select.querySelector('option[value=""]').selected = true;
+                return;
+            }
+
+            // Clicked a specific role
+            const noneChip = chipsDiv.querySelector('.chip-none');
+
+            if (clickedChip.classList.contains('selected')) {
+                // Deselecting
+                clickedChip.classList.remove('selected');
+                // Check if any remain selected
+                const anySelected = chipsDiv.querySelectorAll('.role-chip.selected').length > 0;
+                if (!anySelected) {
+                    noneChip.classList.add('selected');
+                }
+            } else {
+                // Selecting
+                clickedChip.classList.add('selected');
+                noneChip.classList.remove('selected');
+            }
+
+            // Sync Hidden Select
+            const selectedValues = Array.from(chipsDiv.querySelectorAll('.role-chip.selected'))
+                .map(c => {
+                    // Map chip classes/text to values, OR easier:
+                    // Pass value in onclick is simplest.
+                    // We need to reconstruct selection based on current UI state?
+                    // Actually, we can just toggle the specific OPTION in the select.
+                    return null;
+                });
+
+            // Let's do a robust sync from UI state to Select
+            // Clear Select
+            select.selectedIndex = -1;
+
+            // Get all selected chips
+            const selectedChips = chipsDiv.querySelectorAll('.role-chip.selected');
+            if (selectedChips.length === 0) {
+                select.querySelector('option[value=""]').selected = true;
+            } else {
+                selectedChips.forEach(chip => {
+                    // Find the value associated with this chip.
+                    // We can infer it from the onclick attribute or store it in data-val
+                    // Let's use the `value` argument passed to this function to toggle, 
+                    // but for full sync, we need to know the values of ALL chips.
+
+                    // Optimization: Just map the specific chip logic to the specific option logic.
+                });
+
+                // Re-implementation of Sync:
+                // Iterate all chips, see if they are selected, find matching option, select it.
+                // To do this easily, let's add data-value to chips.
+            }
+        }
+    </script>
+
+    <!-- Better Script Implementation -->
+    <script>
+        // Override the previous function with a cleaner logic using data attributes which I will add now via DOM or just rewriting the HTML above slightly
+        // Actually, I'll rewrite the HTML above to include data-value for easier JS
+    </script>
+
+    <script>
+        // Re-defining the function to be robust
+        // I will attach this to the window to overwrite inline defined function
+        window.toggleChip = function (userId, value) {
+            const select = document.getElementById('select_' + userId);
+            const container = document.getElementById('chips_' + userId);
+
+            // Identify the chip element based on text or class is tricky if generic.
+            // Let's use the event target.
+            const target = event.target;
+
+            // 1. Toggle Visual Class
+            if (value === "") {
+                // Clicked "None"
+                // Deselect all others
+                const all = container.querySelectorAll('.role-chip');
+                all.forEach(el => el.classList.remove('selected'));
+                target.classList.add('selected');
+            } else {
+                // Clicked a Role
+                if (target.classList.contains('selected')) {
+                    target.classList.remove('selected');
+                } else {
+                    target.classList.add('selected');
+                }
+
+                // Handle "None" chip exclusivity
+                const noneChip = container.querySelector('.chip-none');
+                const anyRoleSelected = container.querySelectorAll('.role-chip.selected:not(.chip-none)').length > 0;
+
+                if (anyRoleSelected) {
+                    noneChip.classList.remove('selected');
+                } else {
+                    noneChip.classList.add('selected');
+                }
+            }
+
+            // 2. Sync Hidden Select
+            // Reset options
+            Array.from(select.options).forEach(opt => opt.selected = false);
+
+            const finalSelected = container.querySelectorAll('.role-chip.selected');
+            finalSelected.forEach(chip => {
+                let val = "";
+                if (chip.classList.contains('chip-c30')) val = "CADE 30";
+                if (chip.classList.contains('chip-c50')) val = "CADE 50";
+                if (chip.classList.contains('chip-tardes')) val = "CADE Tardes";
+                if (chip.classList.contains('chip-pias')) val = "PIAS";
+                if (chip.classList.contains('chip-mail')) val = "Mail";
+                if (chip.classList.contains('chip-none')) val = "";
+
+                // Find option
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value === val) {
+                        select.options[i].selected = true;
+                        break;
+                    }
+                    // If the chip is 'None' and its value is empty string, ensure the empty option is selected
+                    if (chip.classList.contains('chip-none') && val === "" && select.options[i].value === "") {
+                        select.options[i].selected = true;
+                        break;
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

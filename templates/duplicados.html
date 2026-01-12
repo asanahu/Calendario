@@ -1,95 +1,144 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Duplicados de Vacaciones</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <!-- FullCalendar CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.css"
+    crossorigin="anonymous" />
   <style>
-    .filter-container { margin-bottom: 20px; }
-    #calendar { max-width: 900px; margin: 0 auto; }
-    .toggle-button { margin: 10px; padding: 5px 10px; cursor: pointer; border: 1px solid #ccc; display: inline-block; }
-    .active { background-color: #ccc; }
-    table { width: 90%; margin: 0 auto; border-collapse: collapse; }
-    table th, table td { padding: 8px; text-align: center; }
+    .filter-container {
+      margin-bottom: 20px;
+    }
+
+    #calendar {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .toggle-button {
+      margin: 10px;
+      padding: 5px 10px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      display: inline-block;
+    }
+
+    .active {
+      background-color: #ccc;
+    }
+
+    table {
+      width: 90%;
+      margin: 0 auto;
+      border-collapse: collapse;
+    }
+
+    table th,
+    table td {
+      padding: 8px;
+      text-align: center;
+    }
   </style>
 </head>
+
 <body>
   <h1 class="page-title">Duplicados de Vacaciones</h1>
-  
+
   <!-- Filtro por nombre -->
   <div class="filter-container">
     <label for="filterName">Filtrar por Nombre:</label>
     <input type="text" id="filterName" placeholder="Introduce un nombre">
     <button id="filterBtn">Filtrar</button>
   </div>
-  
+
+  <div
+    style="text-align: right; margin-bottom: 15px; width: 90%; margin: 0 auto; display: flex; justify-content: flex-end; gap: 10px;">
+    <form action="{{ url_for('clean_redundant_duplicates') }}" method="POST" style="display: inline-block;">
+      <button type="submit" class="toggle-button"
+        style="background-color: #17a2b8; color: white; border: none; font-weight: bold;"
+        onclick="return confirm('Esto buscará y eliminará registros idénticos repetidos (mismo día y tipo), dejando solo uno. ¿Confirmar?');">
+        🧹 Limpiar Redundancias (Fix Técnico)
+      </button>
+    </form>
+
+    <form action="{{ url_for('approve_vacations_conflicts') }}" method="POST" style="display: inline-block;">
+      <button type="submit" class="toggle-button"
+        style="background-color: #28a745; color: white; border: none; font-weight: bold;"
+        onclick="return confirm('Esto eliminará TODOS los eventos que coincidan con Vacaciones (quedando solo la Vacación). ¿Confirmar?');">
+        ✅ Aprobar Vacaciones (Resolver Conflictos)
+      </button>
+    </form>
+  </div>
+
   <!-- Botones para cambiar de vista -->
   <div>
     <span class="toggle-button active" id="tableViewBtn">Vista Tabla</span>
     <span class="toggle-button" id="calendarViewBtn">Vista Calendario</span>
   </div>
-  
+
   <!-- Vista en Tabla -->
   <div id="tableView">
     {% if duplicados and duplicados|length > 0 %}
-      <table border="1" id="duplicatesTable">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Fecha</th>
-            <th>Tipos</th>
-            <th>Cantidad</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for dup in duplicados %}
-          <tr>
-            <td>{{ dup.display_trabajador }}</td>
-            <td>
-              {% if dup._id.fecha_inicio is string %}
-                {{ dup._id.fecha_inicio[8:10] }}/{{ dup._id.fecha_inicio[5:7] }}/{{ dup._id.fecha_inicio[0:4] }}
-              {% else %}
-                {{ dup._id.fecha_inicio.strftime('%d/%m/%Y') }}
-              {% endif %}
-            </td>
-            <td>
-              {% if dup.tipos %}
-                {{ dup.tipos | join(', ') }}
-              {% endif %}
-            </td>
-            <td>{{ dup.count }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <table border="1" id="duplicatesTable">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Fecha</th>
+          <th>Tipos</th>
+          <th>Cantidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for dup in duplicados %}
+        <tr>
+          <td>{{ dup.display_trabajador }}</td>
+          <td>
+            {% if dup._id.fecha_inicio is string %}
+            {{ dup._id.fecha_inicio[8:10] }}/{{ dup._id.fecha_inicio[5:7] }}/{{ dup._id.fecha_inicio[0:4] }}
+            {% else %}
+            {{ dup._id.fecha_inicio.strftime('%d/%m/%Y') }}
+            {% endif %}
+          </td>
+          <td>
+            {% if dup.tipos %}
+            {{ dup.tipos | join(', ') }}
+            {% endif %}
+          </td>
+          <td>{{ dup.count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
     {% else %}
-      <p>No se encontraron duplicados.</p>
+    <p>No se encontraron duplicados.</p>
     {% endif %}
   </div>
-  
+
   <!-- Vista en Calendario -->
   <div id="calendarView" style="display: none;">
     <div id="calendar"></div>
   </div>
-  
+
   <!-- FullCalendar JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js"
+    crossorigin="anonymous"></script>
   <script>
     // Alternar entre vistas
     const tableViewBtn = document.getElementById('tableViewBtn');
     const calendarViewBtn = document.getElementById('calendarViewBtn');
     const tableView = document.getElementById('tableView');
     const calendarView = document.getElementById('calendarView');
-    
+
     tableViewBtn.addEventListener('click', () => {
       tableView.style.display = 'block';
       calendarView.style.display = 'none';
       tableViewBtn.classList.add('active');
       calendarViewBtn.classList.remove('active');
     });
-    
+
     calendarViewBtn.addEventListener('click', () => {
       tableView.style.display = 'none';
       calendarView.style.display = 'block';
@@ -97,7 +146,7 @@
       tableViewBtn.classList.remove('active');
       renderCalendar();
     });
-    
+
     // Filtrado de la tabla por nombre
     document.getElementById('filterBtn').addEventListener('click', () => {
       const filterValue = document.getElementById('filterName').value.toLowerCase();
@@ -107,30 +156,31 @@
         row.style.display = name.includes(filterValue) ? '' : 'none';
       });
     });
-    
+
     function renderCalendar() {
-      if(window.calendarInitialized) return; // Evitar reinicializaciones
+      if (window.calendarInitialized) return; // Evitar reinicializaciones
       const calendarEl = document.getElementById('calendar');
       const events = [
         {% for dup in duplicados %}
-        {
-          title: "{{ dup.display_trabajador }} ({{ dup.count }})",
-          start: "{% if dup._id.fecha_inicio is string %}{{ dup._id.fecha_inicio }}{% else %}{{ dup._id.fecha_inicio.strftime('%Y-%m-%d') }}{% endif %}"
-        },
-        {% endfor %}
+    {
+      title: "{{ dup.display_trabajador }} ({{ dup.count }})",
+        start: "{% if dup._id.fecha_inicio is string %}{{ dup._id.fecha_inicio }}{% else %}{{ dup._id.fecha_inicio.strftime('%Y-%m-%d') }}{% endif %}"
+    },
+    {% endfor %}
       ];
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        firstDay: 1, // 1 = Lunes (0 sería Domingo)
-        locale: 'es', // Usar configuración española
-        events: events,
-      });
-      calendar.render();
-      window.calendarInitialized = true;
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      firstDay: 1, // 1 = Lunes (0 sería Domingo)
+      locale: 'es', // Usar configuración española
+      events: events,
+    });
+    calendar.render();
+    window.calendarInitialized = true;
     }
   </script>
-  
+
   <br>
   <a href="/calendar">⬅️ Volver al Calendario</a>
 </body>
+
 </html>

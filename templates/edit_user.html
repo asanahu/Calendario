@@ -1,10 +1,12 @@
 ﻿<!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Editar Usuario</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
+
 <body>
     <h1 class="page-title">Editar Usuario</h1>
 
@@ -21,22 +23,167 @@
         <label>Puesto:</label>
         {% set puesto_actual = request.form.get('puesto', usuario.puesto) %}
         <select name="puesto" required>
-            <option value="Administrador/a" {% if puesto_actual == 'Administrador/a' %}selected{% endif %}>Administrador/a</option>
-            <option value="ADM" {% if puesto_actual == 'ADM' %}selected{% endif %}>ADM</option>
-            <option value="TS" {% if puesto_actual == 'TS' %}selected{% endif %}>TS</option>
+            <option value="Administrador/a" {% if puesto_actual=='Administrador/a' %}selected{% endif %}>Administrador/a
+            </option>
+            <option value="ADM" {% if puesto_actual=='ADM' %}selected{% endif %}>ADM</option>
+            <option value="TS" {% if puesto_actual=='TS' %}selected{% endif %}>TS</option>
         </select><br>
 
         <label>Visible en Calendario:</label>
-        {% set visible_actual = request.form.get('visible_calendario', 'true' if usuario.visible_calendario else 'false') %}
+        {% set visible_actual = request.form.get('visible_calendario', 'true' if usuario.visible_calendario else
+        'false') %}
         <select name="visible_calendario" required>
-            <option value="true" {% if visible_actual == 'true' %}selected{% endif %}>Sí</option>
-            <option value="false" {% if visible_actual == 'false' %}selected{% endif %}>No</option>
+            <option value="true" {% if visible_actual=='true' %}selected{% endif %}>Sí</option>
+            <option value="false" {% if visible_actual=='false' %}selected{% endif %}>No</option>
         </select><br>
+
+        <!-- Sección Específica para TS -->
+        <div id="skills-container" class="ts-options-panel" style="display: none;">
+            <h3 class="panel-title">Configuración Específica de TS</h3>
+
+            <div class="form-group">
+                <label class="panel-label">Roles Fijos / Permitidos:</label>
+                <div class="help-text">Mantén pulsado Ctrl para seleccionar varios.</div>
+                <select name="fixed_shift_role" multiple class="modern-multi-select">
+                    <option value="">-- Ninguno (Rotativo) --</option>
+                    {% set current_roles = usuario.fixed_shift_role if usuario.fixed_shift_role is iterable and
+                    usuario.fixed_shift_role is not string else [usuario.fixed_shift_role] if usuario.fixed_shift_role
+                    else [] %}
+                    <option value="CADE 30" {% if 'CADE 30' in current_roles %}selected{% endif %}>CADE 30</option>
+                    <option value="CADE 50" {% if 'CADE 50' in current_roles %}selected{% endif %}>CADE 50</option>
+                    <option value="CADE Tardes" {% if 'CADE Tardes' in current_roles %}selected{% endif %}>CADE Tardes
+                    </option>
+                    <option value="PIAS" {% if 'PIAS' in current_roles %}selected{% endif %}>PIAS</option>
+
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="panel-label">Habilidades / Etiquetas:</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="skill_tarde" value="true" {% if 'Tarde' in usuario.get('skills',
+                            []) %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        Turno Tarde
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="skill_flexibilidad" value="true" {% if 'Flexibilidad' in
+                            usuario.get('skills', []) or 'Reducción' in usuario.get('skills', []) %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        Flexibilidad / Reducción
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="skill_mail" value="true" {% if 'Mail' in usuario.get('skills', [])
+                            %}checked{% endif %}>
+                        <span class="checkmark"></span>
+                        Gestión Mail
+                    </label>
+                </div>
+            </div>
+        </div>
 
         <button type="submit">Guardar Cambios</button>
     </form>
 
+    <style>
+        /* Estilos mejorados para el panel de TS */
+        .ts-options-panel {
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            border: 1px solid #bcccdc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .panel-title {
+            margin-top: 0;
+            color: #334e68;
+            font-size: 1.1em;
+            border-bottom: 2px solid #829ab1;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .panel-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #486581;
+        }
+
+        .help-text {
+            font-size: 0.85em;
+            color: #627d98;
+            margin-bottom: 5px;
+            font-style: italic;
+        }
+
+        .modern-multi-select {
+            width: 100%;
+            height: 120px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            padding: 5px;
+            background-color: white;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e0e6ed;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item:hover {
+            background: #f0f7ff;
+            border-color: #b3d7ff;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const puestoSelect = document.querySelector('select[name="puesto"]');
+            const skillsContainer = document.getElementById('skills-container');
+
+            function toggleSkills() {
+                if (puestoSelect.value === 'TS') {
+                    skillsContainer.style.display = 'block';
+                    skillsContainer.animate([
+                        { opacity: 0, transform: 'translateY(-10px)' },
+                        { opacity: 1, transform: 'translateY(0)' }
+                    ], {
+                        duration: 300,
+                        easing: 'ease-out'
+                    });
+                } else {
+                    skillsContainer.style.display = 'none';
+                }
+            }
+
+            puestoSelect.addEventListener('change', toggleSkills);
+            toggleSkills(); // Initial check
+        });
+    </script>
+
+
+
     <br>
     <a href="{{ url_for('admin_users') }}">Volver a la Gestión de Usuarios</a>
 </body>
+
 </html>

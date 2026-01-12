@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Usuarios</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
+
 <body>
     <h1 class="page-title">Usuarios Registrados</h1>
-    
+
     <a href="/admin/add_user" class="add-user-button">➕ Añadir Usuario</a>
+    <a href="{{ url_for('admin_skills') }}" class="add-user-button" style="background-color: #17a2b8;">🧠 Matriz de
+        Habilidades (TS)</a>
     {% if current_user.usuario in ['sclavero', 'asanahuja'] %}
     <a href="/admin/reset_passwords" class="add-user-button">🔑 Resetear Contraseñas</a>
     {% endif %}
@@ -27,20 +31,23 @@
             <td>{{ '—' if hide_real_names else usuario.apellidos }}</td>
             <td>{{ usuario.usuario }}</td>
             <td>{{ usuario.puesto }}</td>
-            <td>  <!-- 🔹 Acciones en una sola celda -->
+            <td> <!-- 🔹 Acciones en una sola celda -->
                 <a href="/admin/user_vacations/{{ usuario._id }}">📅 Ver Vacaciones</a>
                 <a href="{{ url_for('edit_user', user_id=usuario._id) }}">✏️ Editar</a>
                 <form method="POST" action="/admin/delete_user/{{ usuario._id }}" style="display:inline;">
-                    <button type="submit" onclick="return confirm('¿Seguro que deseas eliminar este usuario?');">❌ Eliminar</button>
+                    <button type="submit"
+                        onclick="return confirm('¿Seguro que deseas eliminar este usuario?\n\n⚠️ ESTO ELIMINARÁ TAMBIÉN TODOS SUS ESTADOS ASIGNADOS EN EL CALENDARIO.');">❌
+                        Eliminar</button>
                 </form>
-                
+
             </td>
         </tr>
         {% endfor %}
     </table>
-    
-    
+
+
     <br>
     <a href="/calendar">⬅️ Volver al Calendario</a>
 </body>
+
 </html>

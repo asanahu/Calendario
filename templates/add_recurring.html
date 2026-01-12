@@ -1,48 +1,198 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Asignar Estados Recurrentes</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <!-- FullCalendar CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.css"
+    crossorigin="anonymous" />
   <style>
-    .hidden { display: none; }
+    .hidden {
+      display: none;
+    }
+
     .form-container {
       max-width: 1200px;
       margin: 30px auto;
       padding: 20px;
       background: #f9f9f9;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; }
-    select, input[type="date"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    select,
+    input[type="date"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
     /* Filtros + acciones */
-    .filters-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border: 1px solid #eaeef5; padding: 12px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); margin: 16px 0; }
-    .filters-bar input[type="search"], .filters-bar select { padding: 8px 10px; border: 1px solid #dcdcdc; border-radius: 10px; background: #fff; }
-    #filtroPuesto { font-size: 12px; padding: 6px 8px; width: auto; min-width: 120px; }
-    #searchTrab { font-size: 13px; padding: 6px 10px; min-width: 220px; }
-    .selection-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; }
-    .selection-actions select { padding: 8px 10px; border: 1px solid #dcdcdc; border-radius: 8px; }
-    .selection-actions button { padding: 8px 12px; border-radius: 8px; background: #0d6efd; color: #fff; border: none; cursor: pointer; }
-    .selection-actions button:hover { background: #0b5ed7; }
+    .filters-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #eaeef5;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+      margin: 16px 0;
+    }
+
+    .filters-bar input[type="search"],
+    .filters-bar select {
+      padding: 8px 10px;
+      border: 1px solid #dcdcdc;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    #filtroPuesto {
+      font-size: 12px;
+      padding: 6px 8px;
+      width: auto;
+      min-width: 120px;
+    }
+
+    #searchTrab {
+      font-size: 13px;
+      padding: 6px 10px;
+      min-width: 220px;
+    }
+
+    .selection-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .selection-actions select {
+      padding: 8px 10px;
+      border: 1px solid #dcdcdc;
+      border-radius: 8px;
+    }
+
+    .selection-actions button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    .selection-actions button:hover {
+      background: #0b5ed7;
+    }
+
     /* Secciones y grilla en 3 columnas */
-    .columns { display: block; }
-    .column-box { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 12px; margin-bottom: 16px; }
-    .column-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .column-title { font-weight: 700; color: #333; }
-    .rows { display: grid; grid-template-columns: repeat(3, minmax(200px, 1fr)); gap: 6px 10px; }
-    .row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid #f0f0f0; border-radius: 8px; }
-    .row .name { font-size: 13px; font-weight: 600; color: #222; }
-    .row select { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
-    @media (max-width: 1200px) { .rows { grid-template-columns: repeat(2, minmax(200px, 1fr)); } }
-    @media (max-width: 800px)  { .rows { grid-template-columns: 1fr; } }
-    .visually-hidden { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
-    .btn { background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px; }
-    .btn:hover { background-color: #0056b3; }
-    .btn:disabled { background-color: #ccc; cursor: not-allowed; }
+    .columns {
+      display: block;
+    }
+
+    .column-box {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .column-title {
+      font-weight: 700;
+      color: #333;
+    }
+
+    .rows {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(200px, 1fr));
+      gap: 6px 10px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border: 1px solid #f0f0f0;
+      border-radius: 8px;
+    }
+
+    .row .name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    .row select {
+      padding: 6px 8px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 1200px) {
+      .rows {
+        grid-template-columns: repeat(2, minmax(200px, 1fr));
+      }
+    }
+
+    @media (max-width: 800px) {
+      .rows {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      height: 1px;
+      width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap;
+    }
+
+    .btn {
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    .btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
 
     /* Estilos para el calendario compacto */
     .calendar-container {
@@ -50,7 +200,7 @@
       background: white;
       padding: 12px;
       border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
       max-width: 360px;
       margin-left: auto;
       margin-right: auto;
@@ -62,15 +212,41 @@
     }
 
     /* Compactar FullCalendar dentro del contenedor */
-    .calendar-container .fc { font-size: 12px; }
-    .calendar-container .fc .fc-toolbar { margin-bottom: 6px; }
-    .calendar-container .fc .fc-toolbar-title { font-size: 1rem; }
-    .calendar-container .fc .fc-button { padding: 2px 6px; font-size: 12px; }
-    .calendar-container .fc .fc-daygrid-day-number { font-size: 0.8rem; padding: 2px; }
-    .calendar-container .fc .fc-daygrid-day-frame { padding: 2px; }
+    .calendar-container .fc {
+      font-size: 12px;
+    }
+
+    .calendar-container .fc .fc-toolbar {
+      margin-bottom: 6px;
+    }
+
+    .calendar-container .fc .fc-toolbar-title {
+      font-size: 1rem;
+    }
+
+    .calendar-container .fc .fc-button {
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+
+    .calendar-container .fc .fc-daygrid-day-number {
+      font-size: 0.8rem;
+      padding: 2px;
+    }
+
+    .calendar-container .fc .fc-daygrid-day-frame {
+      padding: 2px;
+    }
+
     /* Eliminar espacio bajo el número del día (no mostramos eventos aquí) */
-    .calendar-container .fc .fc-daygrid-day-events { display: none; min-height: 0; }
-    .calendar-container .fc .fc-daygrid-day-bottom { display: none; }
+    .calendar-container .fc .fc-daygrid-day-events {
+      display: none;
+      min-height: 0;
+    }
+
+    .calendar-container .fc .fc-daygrid-day-bottom {
+      display: none;
+    }
 
     .date-range-info {
       margin-top: 10px;
@@ -101,31 +277,100 @@
       background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
       border: 1px solid #eaeef5;
       border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
       padding: 12px;
       margin: 16px 0;
     }
-    .recur-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .recur-label { font-weight: 700; color: #333; }
-    .recur-input { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #dcdcdc; border-radius: 10px; padding: 6px 10px; }
-    .recur-input input[type="number"] { width: 80px; border: none; outline: none; font-size: 14px; text-align: center; }
-    .recur-suffix { color: #556070; font-size: 13px; }
 
-    .weekday-header { margin: 10px 0 6px; font-weight: 700; color: #333; }
-    .weekday-group { display: flex; gap: 8px; flex-wrap: wrap; }
-    .weekday-toggle { position: relative; }
-    .weekday-input { position: absolute; opacity: 0; pointer-events: none; }
-    .weekday-pill {
-      display: inline-block; padding: 8px 10px; border-radius: 999px;
-      background: #fff; border: 1px solid #dcdcdc; color: #1f2d3d;
-      font-size: 13px; font-weight: 700; letter-spacing: 0.2px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer; user-select: none;
+    .recur-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
-    .weekday-input:checked + .weekday-pill { background: #0d6efd; color: #fff; border-color: #0b5ed7; }
-    .weekday-pill:hover { background: #f5f8ff; }
-    .weekday-input:focus + .weekday-pill { outline: 3px solid rgba(13,110,253,0.25); outline-offset: 2px; }
+
+    .recur-label {
+      font-weight: 700;
+      color: #333;
+    }
+
+    .recur-input {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #dcdcdc;
+      border-radius: 10px;
+      padding: 6px 10px;
+    }
+
+    .recur-input input[type="number"] {
+      width: 80px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .recur-suffix {
+      color: #556070;
+      font-size: 13px;
+    }
+
+    .weekday-header {
+      margin: 10px 0 6px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .weekday-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .weekday-toggle {
+      position: relative;
+    }
+
+    .weekday-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .weekday-pill {
+      display: inline-block;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #dcdcdc;
+      color: #1f2d3d;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .weekday-input:checked+.weekday-pill {
+      background: #0d6efd;
+      color: #fff;
+      border-color: #0b5ed7;
+    }
+
+    .weekday-pill:hover {
+      background: #f5f8ff;
+    }
+
+    .weekday-input:focus+.weekday-pill {
+      outline: 3px solid rgba(13, 110, 253, 0.25);
+      outline-offset: 2px;
+    }
   </style>
 </head>
+
 <body>
   <div class="form-container">
     <h1 class="page-title">Asignar Estados Recurrentes</h1>
@@ -133,7 +378,7 @@
       <!-- Campos ocultos para enviar las fechas al backend -->
       <input type="hidden" id="fecha_inicio" name="fecha_inicio" required>
       <input type="hidden" id="fecha_fin" name="fecha_fin" required>
-      
+
       <!-- Calendario compacto para selección de rango de fechas -->
       <div class="calendar-container">
         <h3 style="text-align: center; margin-bottom: 10px; color: #333;">📅 Seleccionar Fechas</h3>
@@ -217,46 +462,49 @@
       <div class="columns" id="columnsContainer">
         {% set orden = ['TS','ADM','Administrador/a'] %}
         {% for puesto in orden %}
-          <div class="column-box" data-col-puesto="{{ puesto }}">
-            <div class="column-header">
-              <div class="column-title">{{ puesto }}</div>
-            </div>
-            <div class="rows">
-              {% for trabajador in trabajadores %}
-                {% if trabajador.puesto == puesto %}
-                  <div class="row" data-nombre="{{ trabajador.search_value }}" data-puesto="{{ trabajador.puesto }}">
-                    <input type="checkbox" class="select-row" aria-label="Seleccionar {{ hide_real_names and trabajador.display_name or trabajador.full_name }}" />
-                    <span class="name">{{ hide_real_names and trabajador.display_name or trabajador.full_name }}</span>
-                    <select name="tipo_{{ trabajador._id }}" id="tipo_{{ trabajador._id }}">
-                      <option value="">—</option>
-                      <option value="normal">PIAS</option>
-                      <option value="CADE 30">CADE 30</option>
-                      <option value="CADE 50">CADE 50</option>
-                      <option value="CADE Tardes">CADE Tardes</option>
-                      <option value="Guardia CADE">Guardia CADE</option>
-                      <option value="Refuerzo Cade">Refuerzo Cade</option>
-                      <option value="Mail">Mail</option>
-                      <option value="Baja">Baja Médica</option>
-                    </select>
-                  </div>
-                {% endif %}
-              {% endfor %}
-            </div>
+        <div class="column-box" data-col-puesto="{{ puesto }}">
+          <div class="column-header">
+            <div class="column-title">{{ puesto }}</div>
           </div>
+          <div class="rows">
+            {% for trabajador in trabajadores %}
+            {% if trabajador.puesto == puesto %}
+            <div class="row" data-nombre="{{ trabajador.search_value }}" data-puesto="{{ trabajador.puesto }}">
+              <input type="checkbox" class="select-row"
+                aria-label="Seleccionar {{ hide_real_names and trabajador.display_name or trabajador.full_name }}" />
+              <span class="name">{{ hide_real_names and trabajador.display_name or trabajador.full_name }}</span>
+              <select name="tipo_{{ trabajador._id }}" id="tipo_{{ trabajador._id }}">
+                <option value="">—</option>
+                <option value="normal">PIAS</option>
+                <option value="CADE 30">CADE 30</option>
+                <option value="CADE 50">CADE 50</option>
+                <option value="CADE Tardes">CADE Tardes</option>
+                <option value="Guardia CADE">Guardia CADE</option>
+                <option value="Refuerzo Cade">Refuerzo Cade</option>
+                <option value="Mail">Mail</option>
+                <option value="Baja">Baja Médica</option>
+              </select>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
         {% endfor %}
       </div>
 
       <button type="submit" class="btn">✅ Asignar Estados</button>
-      <button type="button" class="btn" onclick="window.location.href='/admin/duplicados'">🗂️ Ver Estados Duplicados</button>
-      <button type="button" class="btn" onclick="window.location.href='/calendar'">🔙 Atrás</button>  
+      <button type="button" class="btn" onclick="window.location.href='/admin/duplicados'">🗂️ Ver Estados
+        Duplicados</button>
+      <button type="button" class="btn" onclick="window.location.href='/calendar'">🔙 Atrás</button>
     </form>
   </div>
 
   <!-- FullCalendar JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js"
+    crossorigin="anonymous"></script>
   <script src="{{ url_for('static', filename='js/range-calendar.js') }}"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       // Accesibilidad: anunciar rango seleccionado
       const rangeInfoEl = document.getElementById('dateRangeInfo');
       rangeInfoEl.setAttribute('aria-live', 'polite');
@@ -270,7 +518,7 @@
         submitSelector: 'button[type="submit"]'
       });
 
-      document.querySelector('form').addEventListener('submit', function(e) {
+      document.querySelector('form').addEventListener('submit', function (e) {
         const fi = document.getElementById('fecha_inicio').value;
         const ff = document.getElementById('fecha_fin').value;
         if (!fi || !ff) {
@@ -316,4 +564,5 @@
     });
   </script>
 </body>
+
 </html>

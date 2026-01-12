@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Vista Previa de Turnos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .warning {
+            color: red;
+            font-weight: bold;
+        }
+
+        .logs-container {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .week-header {
+            font-size: 1.3em;
+            margin: 25px 0 10px 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .week-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        .day-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+        }
+
+        .day-header {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+            text-transform: capitalize;
+        }
+
+        .shift-group {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .shift-users {
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .user-pill {
+            display: block;
+            /* Stack users */
+            padding: 1px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+            margin-right: 5px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Colores por tipo de turno */
+        .color-tarde {
+            background-color: #6f42c1;
+        }
+
+        /* Morado */
+        .color-c30 {
+            background-color: #fd7e14;
+        }
+
+        /* Naranja */
+        .color-c50 {
+            background-color: #28a745;
+        }
+
+        /* Verde */
+        .color-guardia {
+            background-color: #dc3545;
+        }
+
+        /* Rojo */
+        .color-refuerzo {
+            background-color: #e83e8c;
+        }
+
+        /* Rosa */
+        .color-pias {
+            background-color: #6c757d;
+        }
+
+        /* Gris */
+        .color-baja {
+            background-color: #343a40;
+        }
+
+        /* Negro/Gris oscuro */
+
+        .header-actions {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 0;
+            z-index: 100;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" style="max-width: 1400px;">
+        <div class="header-actions">
+            <div>
+                <h1 class="page-title" style="margin: 0;">Vista Previa de Turnos</h1>
+                <small>Total Eventos generados: {{ results|length }}</small>
+            </div>
+
+            <form method="POST" action="{{ url_for('save_shifts') }}" style="display: flex; gap: 10px;">
+                <input type="hidden" name="events_json" value='{{ events_json }}'>
+                <a href="{{ url_for('generate_shifts') }}" class="btn btn-secondary">♻️ Re-generar</a>
+                <button type="submit" class="btn btn-success"
+                    onclick="return confirm('¿Seguro que quieres guardar estos turnos en la base de datos?');">💾
+                    CONFIRMAR Y GUARDAR</button>
+            </form>
+        </div>
+
+        {% if warnings %}
+        <div class="warnings-card"
+            style="background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; padding: 20px; margin-bottom: 25px; color: #856404;">
+            <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
+                ⚠️ Se encontraron incidencias durante la generación
+            </h3>
+            <p>Los siguientes turnos no pudieron completarse según los requisitos. Por favor, revisa y ajusta
+                manualmente si es necesario.</p>
+
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; background: white;">
+                <thead>
+                    <tr style="background: #f8f9fa; text-align: left;">
+                        <th style="padding: 10px; border-bottom: 2px solid #dee2e6;">Fecha</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #dee2e6;">Tipo</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #dee2e6;">Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in warnings %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px; font-weight: bold;">
+                            {{ w.date.split('-')[2] }}/{{ w.date.split('-')[1] }}/{{ w.date.split('-')[0] }}
+                        </td>
+                        <td style="padding: 10px;"><span class="badge color-guardia">{{ w.type }}</span></td>
+                        <td style="padding: 10px; color: #dc3545;">{{ w.message }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if logs %}
+        <div class="logs-container">
+            <strong>Log de Generación:</strong>
+            <ul style="list-style: none; padding-left: 0; margin: 5px 0 0 0;">
+                {% for log in logs %}
+                <li class="{{ 'warning' if 'WARNING' in log else '' }}">{{ log }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="roster-container">
+            {% for week_num, days in grouped_weeks.items() %}
+            <div class="week-section">
+                <h3 class="week-header">Semana {{ week_num }}</h3>
+                <div class="week-grid">
+                    {% for day, events in days.items() %}
+                    <div class="day-card">
+                        <div class="day-header">
+                            {% set parts = day.split('-') %}
+                            {{ parts[2] }}/{{ parts[1] }}/{{ parts[0] }}
+                        </div>
+
+                        {% for tipo, users in events.items() %}
+                        <div class="shift-group">
+                            <span class="badge 
+                                {% if 'Tardes' in tipo %}color-tarde
+                                {% elif '30' in tipo %}color-c30
+                                {% elif '50' in tipo %}color-c50
+                                {% elif 'Guardia' in tipo %}color-guardia
+                                {% elif 'Refuerzo' in tipo %}color-refuerzo
+                                {% elif 'PIAS' in tipo %}color-pias
+                                {% elif 'Baja' in tipo %}color-baja
+                                {% else %}color-pias{% endif %}">
+                                {{ tipo }}
+                            </span>
+                            <div class="shift-users">
+                                {% for user in users %}
+                                <div class="user-pill">{{ user }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>

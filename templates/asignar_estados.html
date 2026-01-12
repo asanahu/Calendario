@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Asignar Estados Semanales</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <!-- FullCalendar CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.css"
+    crossorigin="anonymous" />
   <style>
     /* Contenedor principal del formulario */
     .form-container {
@@ -14,7 +16,7 @@
       padding: 20px;
       background: #f9f9f9;
       border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     }
 
     .form-group {
@@ -27,7 +29,8 @@
       font-weight: bold;
     }
 
-    select, input[type="date"] {
+    select,
+    input[type="date"] {
       width: 100%;
       padding: 8px;
       border: 1px solid #ccc;
@@ -40,8 +43,9 @@
       background: #ffffff;
       padding: 12px;
       border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      max-width: 360px; /* Más compacto */
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      max-width: 360px;
+      /* Más compacto */
       margin-left: auto;
       margin-right: auto;
     }
@@ -52,15 +56,41 @@
     }
 
     /* Compactar FullCalendar dentro del contenedor */
-    .calendar-container .fc { font-size: 12px; }
-    .calendar-container .fc .fc-toolbar { margin-bottom: 6px; }
-    .calendar-container .fc .fc-toolbar-title { font-size: 1rem; }
-    .calendar-container .fc .fc-button { padding: 2px 6px; font-size: 12px; }
-    .calendar-container .fc .fc-daygrid-day-number { font-size: 0.8rem; padding: 2px; }
-    .calendar-container .fc .fc-daygrid-day-frame { padding: 2px; }
+    .calendar-container .fc {
+      font-size: 12px;
+    }
+
+    .calendar-container .fc .fc-toolbar {
+      margin-bottom: 6px;
+    }
+
+    .calendar-container .fc .fc-toolbar-title {
+      font-size: 1rem;
+    }
+
+    .calendar-container .fc .fc-button {
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+
+    .calendar-container .fc .fc-daygrid-day-number {
+      font-size: 0.8rem;
+      padding: 2px;
+    }
+
+    .calendar-container .fc .fc-daygrid-day-frame {
+      padding: 2px;
+    }
+
     /* Eliminar espacio bajo el número del día (no mostramos eventos aquí) */
-    .calendar-container .fc .fc-daygrid-day-events { display: none; min-height: 0; }
-    .calendar-container .fc .fc-daygrid-day-bottom { display: none; }
+    .calendar-container .fc .fc-daygrid-day-events {
+      display: none;
+      min-height: 0;
+    }
+
+    .calendar-container .fc .fc-daygrid-day-bottom {
+      display: none;
+    }
 
     .date-range-info {
       margin-top: 10px;
@@ -96,56 +126,174 @@
       border: 1px solid #eaeef5;
       padding: 12px;
       border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
       margin-bottom: 16px;
     }
-    .filters-bar input[type="search"], .filters-bar select {
-      padding: 8px 10px; border: 1px solid #dcdcdc; border-radius: 10px; background: #fff;
-    }
-    #filtroPuesto { font-size: 12px; padding: 6px 8px; width: auto; min-width: 120px; }
-    #searchTrab { font-size: 13px; padding: 6px 10px; min-width: 220px; }
-    .filters-bar .legend { margin-left: auto; font-size: 12px; color: #555; }
-    .legend .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; color: #222; font-weight: 600; margin-left: 6px; }
-    .tag.ts { background: #A3C4FF; }
-    .tag.adm { background: #B0FFB0; }
-    .tag.admin { background: #D1B3FF; }
 
-    .selection-actions { display: flex; gap: 8px; align-items: center; }
-    .selection-actions select { padding: 8px 10px; border: 1px solid #dcdcdc; border-radius: 8px; }
-    .selection-actions button { padding: 8px 12px; border-radius: 8px; background: #0d6efd; color: #fff; border: none; cursor: pointer; }
-    .selection-actions button:hover { background: #0b5ed7; }
+    .filters-bar input[type="search"],
+    .filters-bar select {
+      padding: 8px 10px;
+      border: 1px solid #dcdcdc;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    #filtroPuesto {
+      font-size: 12px;
+      padding: 6px 8px;
+      width: auto;
+      min-width: 120px;
+    }
+
+    #searchTrab {
+      font-size: 13px;
+      padding: 6px 10px;
+      min-width: 220px;
+    }
+
+    .filters-bar .legend {
+      margin-left: auto;
+      font-size: 12px;
+      color: #555;
+    }
+
+    .legend .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      color: #222;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+
+    .tag.ts {
+      background: #A3C4FF;
+    }
+
+    .tag.adm {
+      background: #B0FFB0;
+    }
+
+    .tag.admin {
+      background: #D1B3FF;
+    }
+
+    .selection-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .selection-actions select {
+      padding: 8px 10px;
+      border: 1px solid #dcdcdc;
+      border-radius: 8px;
+    }
+
+    .selection-actions button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    .selection-actions button:hover {
+      background: #0b5ed7;
+    }
 
     /* Contenedor de secciones (puestos) apiladas verticalmente */
-    .columns { display: block; }
+    .columns {
+      display: block;
+    }
+
     .column-box {
       background: #fff;
       border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       padding: 12px;
       margin-bottom: 16px;
     }
-    .column-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .column-title { font-weight: 700; color: #333; }
-    .column-apply select { padding: 6px 8px; border: 1px solid #ddd; border-radius: 8px; }
-    .rows { display: grid; grid-template-columns: repeat(3, minmax(200px, 1fr)); gap: 6px 10px; }
-    .row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid #f0f0f0; border-radius: 8px; }
-    .row .name { font-size: 13px; font-weight: 600; color: #222; }
-    .row select { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
+
+    .column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .column-title {
+      font-weight: 700;
+      color: #333;
+    }
+
+    .column-apply select {
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    .rows {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(200px, 1fr));
+      gap: 6px 10px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border: 1px solid #f0f0f0;
+      border-radius: 8px;
+    }
+
+    .row .name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    .row select {
+      padding: 6px 8px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
 
     /* Responsivo para asegurar legibilidad en pantallas más pequeñas */
-    @media (max-width: 1200px) { .rows { grid-template-columns: repeat(2, minmax(200px, 1fr)); } }
-    @media (max-width: 800px) { .rows { grid-template-columns: 1fr; } }
+    @media (max-width: 1200px) {
+      .rows {
+        grid-template-columns: repeat(2, minmax(200px, 1fr));
+      }
+    }
+
+    @media (max-width: 800px) {
+      .rows {
+        grid-template-columns: 1fr;
+      }
+    }
 
     .worker-item {
       padding: 12px;
       border: 1px solid #eee;
       background: #fff;
       border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
     }
 
-    .worker-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
-    .worker-meta { font-size: 12px; color: #666; margin-bottom: 6px; }
+    .worker-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .worker-meta {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 6px;
+    }
 
     .btn {
       background-color: #007BFF;
@@ -169,13 +317,15 @@
     /* Utilidad de accesibilidad para labels ocultos visualmente */
     .visually-hidden {
       position: absolute !important;
-      height: 1px; width: 1px;
+      height: 1px;
+      width: 1px;
       overflow: hidden;
       clip: rect(1px, 1px, 1px, 1px);
       white-space: nowrap;
     }
   </style>
 </head>
+
 <body>
   <div class="form-container">
     <h1 class="page-title">Asignar Estados Semanales</h1>
@@ -183,7 +333,7 @@
       <!-- Campos ocultos para enviar las fechas al backend -->
       <input type="hidden" id="fecha_inicio" name="fecha_inicio" required>
       <input type="hidden" id="fecha_fin" name="fecha_fin" required>
-      
+
       <!-- Calendario compacto para selección de rango de fechas -->
       <div class="calendar-container">
         <h3 style="text-align: center; margin-bottom: 10px; color: #333;">📅 Seleccionar Fechas</h3>
@@ -218,7 +368,7 @@
             <option value="Guardia CADE">Guardia CADE</option>
             <option value="Refuerzo Cade">Refuerzo Cade</option>
             <option value="Mail">Mail</option>
-            <option value="Baja">Baja Médica</option>
+            <option value="Ausencia">Ausencia</option>
           </select>
           <button type="button" id="applySelectedBtn">Aplicar</button>
         </div>
@@ -233,51 +383,52 @@
       <div class="columns" id="columnsContainer">
         {% set orden = ['TS','ADM','Administrador/a'] %}
         {% for puesto in orden %}
-          <div class="column-box" data-col-puesto="{{ puesto }}">
-            <div class="column-header">
-              <div class="column-title">{{ puesto }}</div>
-              <!-- eliminado aplicar a columna -->
-            </div>
-            <div class="rows">
-              {% for trabajador in trabajadores %}
-                {% if trabajador.puesto == puesto %}
-                  <div class="row"
-                      data-nombre="{{ trabajador.search_value }}"
-                      data-puesto="{{ trabajador.puesto }}">
-                    <input type="checkbox" class="select-row" aria-label="Seleccionar {{ hide_real_names and trabajador.display_name or trabajador.full_name }}" />
-                    <span class="name">{{ hide_real_names and trabajador.display_name or trabajador.full_name }}</span>
-                    <select name="tipo_{{ trabajador._id }}" id="tipo_{{ trabajador._id }}">
-                      <option value="">—</option>
-                      <option value="normal">PIAS</option>
-                      <option value="CADE 30">CADE 30</option>
-                      <option value="CADE 50">CADE 50</option>
-                      <option value="CADE Tardes">CADE Tardes</option>
-                      <option value="Guardia CADE">Guardia CADE</option>
-                      <option value="Refuerzo Cade">Refuerzo Cade</option>
-                      <option value="Mail">Mail</option>
-                      <option value="Baja">Baja Médica</option>
-                    </select>
-                  </div>
-                {% endif %}
-              {% endfor %}
-            </div>
+        <div class="column-box" data-col-puesto="{{ puesto }}">
+          <div class="column-header">
+            <div class="column-title">{{ puesto }}</div>
+            <!-- eliminado aplicar a columna -->
           </div>
+          <div class="rows">
+            {% for trabajador in trabajadores %}
+            {% if trabajador.puesto == puesto %}
+            <div class="row" data-nombre="{{ trabajador.search_value }}" data-puesto="{{ trabajador.puesto }}">
+              <input type="checkbox" class="select-row"
+                aria-label="Seleccionar {{ hide_real_names and trabajador.display_name or trabajador.full_name }}" />
+              <span class="name">{{ hide_real_names and trabajador.display_name or trabajador.full_name }}</span>
+              <select name="tipo_{{ trabajador._id }}" id="tipo_{{ trabajador._id }}">
+                <option value="">—</option>
+                <option value="normal">PIAS</option>
+                <option value="CADE 30">CADE 30</option>
+                <option value="CADE 50">CADE 50</option>
+                <option value="CADE Tardes">CADE Tardes</option>
+                <option value="Guardia CADE">Guardia CADE</option>
+                <option value="Refuerzo Cade">Refuerzo Cade</option>
+                <option value="Mail">Mail</option>
+                <option value="Ausencia">Ausencia</option>
+              </select>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
         {% endfor %}
       </div>
 
       <button type="submit" class="btn">✅ Asignar Estados</button>
-      <button type="button" class="btn" onclick="window.location.href='/admin/duplicados'">🗂️ Ver Estados Duplicados</button>
+      <button type="button" class="btn" onclick="window.location.href='/admin/duplicados'">🗂️ Ver Estados
+        Duplicados</button>
       <button type="button" class="btn" onclick="window.location.href='/add-recurring'">🔁 Estados Recurrentes</button>
       <button type="button" class="btn" onclick="window.location.href='/calendar'">🔙 Atrás</button>
-      
+
     </form>
   </div>
 
   <!-- FullCalendar JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.4/index.global.min.js"
+    crossorigin="anonymous"></script>
   <script src="{{ url_for('static', filename='js/range-calendar.js') }}"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       // Calendario compacto, con avisos accesibles
       const rangeInfoEl = document.getElementById('dateRangeInfo');
       rangeInfoEl.setAttribute('aria-live', 'polite');
@@ -293,7 +444,7 @@
       });
 
       // Validación simple
-      document.querySelector('form').addEventListener('submit', function(e) {
+      document.querySelector('form').addEventListener('submit', function (e) {
         const fi = document.getElementById('fecha_inicio').value;
         const ff = document.getElementById('fecha_fin').value;
         if (!fi || !ff) {
@@ -317,6 +468,35 @@
       }
       search.addEventListener('input', applyFilters);
       filtro.addEventListener('change', applyFilters);
+
+      // --- Select All Visibles ---
+      const toggleSelectAllBtn = document.createElement('button');
+      toggleSelectAllBtn.type = 'button';
+      toggleSelectAllBtn.textContent = 'Seleccionar Visibles';
+      toggleSelectAllBtn.style.cssText = "padding: 6px 12px; border-radius: 8px; background: #6c757d; color: white; border: none; cursor: pointer; margin-right: 12px;";
+
+      // Insert before the apply dropdown
+      const actionsContainer = document.querySelector('.selection-actions');
+      actionsContainer.insertBefore(toggleSelectAllBtn, actionsContainer.firstChild);
+
+      toggleSelectAllBtn.addEventListener('click', () => {
+        // Get all visible rows
+        const rows = Array.from(document.querySelectorAll('#columnsContainer .row'));
+        const visibleRows = rows.filter(r => r.style.display !== 'none');
+
+        if (visibleRows.length === 0) return;
+
+        // Check if all are currently checked
+        const allChecked = visibleRows.every(r => r.querySelector('.select-row').checked);
+
+        // Toggle
+        visibleRows.forEach(r => {
+          r.querySelector('.select-row').checked = !allChecked;
+        });
+
+        toggleSelectAllBtn.textContent = allChecked ? 'Seleccionar Visibles' : 'Deseleccionar Visibles';
+      });
+      // ---------------------------
 
       // Aplicar a selección
       const applySelectedState = document.getElementById('applySelectedState');
@@ -344,4 +524,5 @@
     });
   </script>
 </body>
+
 </html>

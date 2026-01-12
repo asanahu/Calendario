@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from functools import wraps
 from pymongo import MongoClient, ASCENDING
 from bson.objectid import ObjectId
+import pandas as pd
+from io import BytesIO
 from bson import ObjectId
 import os
 from werkzeug.utils import secure_filename
@@ -115,7 +117,63 @@ def invalidate_cache():
     global last_data_modification
     last_data_modification = time.time()
     events_cache.clear()
+    global DUPLICATES_CACHE
+    DUPLICATES_CACHE = None
     print("🗑️ Caché invalidado por modificación de datos")
+
+# Cache para la alerta de duplicados (True/False)
+DUPLICATES_CACHE = None
+
+def check_duplicates_cached():
+    """Verifica si existen duplicados, usando caché para evitar carga DB."""
+    global DUPLICATES_CACHE
+    
+    if DUPLICATES_CACHE is not None:
+        return DUPLICATES_CACHE
+
+    # Pipeline optimizado para detección rápida (limit 1)
+    pipeline = [
+        {"$addFields": {"_fechaDate": {"$toDate": "$fecha_inicio"}}},
+        {"$match": {"$expr": {"$not": {"$in": [{"$isoDayOfWeek": "$_fechaDate"}, [6, 7]]}}}},
+        {
+            "$match": {
+                "$expr": {
+                    "$not": {
+                        "$in": [
+                            {"$dateToString": {"format": "%Y-%m-%d", "date": "$_fechaDate"}},
+                            FESTIVOS_LIST
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "trabajador": "$trabajador",
+                    "fecha_inicio": "$fecha_inicio",
+                    "fecha_fin": "$fecha_fin"
+                },
+                "count": {"$sum": 1}
+            }
+        },
+        {
+            "$match": {
+                "count": {"$gt": 1}
+            }
+        },
+        {"$limit": 1}
+    ]
+    
+    try:
+        # Si la agregación devuelve al menos un resultado, hay duplicados
+        result = list(events_collection.aggregate(pipeline))
+        DUPLICATES_CACHE = len(result) > 0
+    except Exception as e:
+        print(f"Error checking duplicates: {e}")
+        DUPLICATES_CACHE = False
+        
+    return DUPLICATES_CACHE
 
 # Lista de festivos utilizados en la aplicación
 FESTIVOS = {
@@ -378,7 +436,13 @@ def calendar_page():
         })
 
     usuarios_context.sort(key=lambda x: x["display_name"].lower())
-    return render_template('index.html', usuarios=usuarios_context)
+    
+    # Check for duplicates warning (only for admins)
+    duplicates_warning = False
+    if current_user.puesto == "Administrador/a":
+        duplicates_warning = check_duplicates_cached()
+        
+    return render_template('index.html', usuarios=usuarios_context, duplicates_warning=duplicates_warning)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -446,13 +510,24 @@ def add_user():
         # Convertir la cadena recibida en un booleano de forma segura
         visible = visible_str.lower() == "true"
         
+        # Procesar Skills
+        new_skills = []
+        if request.form.get('skill_tarde'):
+            new_skills.append("Tarde")
+        if request.form.get('skill_flexibilidad'):
+            new_skills.append("Flexibilidad")
+        if request.form.get('skill_mail'):
+            new_skills.append("Mail")
+            
         user_data = {
             "nombre": request.form.get('nombre'),
             "apellidos": request.form.get('apellidos'),
             "usuario": request.form.get('usuario'),
             "puesto": request.form.get('puesto'),
             "password": generate_password_hash(password),
-            "visible_calendario": visible
+            "visible_calendario": visible,
+            "skills": new_skills,
+            "fixed_shift_role": request.form.getlist('fixed_shift_role')
         }
         if users_collection.find_one({"usuario": user_data["usuario"]}):
             return "El usuario ya existe", 400
@@ -508,7 +583,12 @@ def edit_user(user_id):
                 'apellidos': apellidos,
                 'usuario': usuario_login,
                 'puesto': puesto,
-                'visible_calendario': visible
+                'visible_calendario': visible,
+                'skills': [
+                    s for s in ['Tarde', 'Flexibilidad', 'Mail'] 
+                    if request.form.get(f'skill_{s.lower()}')
+                ],
+                'fixed_shift_role': request.form.getlist('fixed_shift_role')
             }}
         )
 
@@ -538,7 +618,13 @@ def delete_user(user_id):
         return jsonify({"message": "No puedes eliminarte a ti mismo"}), 403
 
     users_collection.delete_one({"_id": ObjectId(user_id)})
+
+    # 🔹 Eliminar también los eventos asociados al usuario
+    nombre_completo = f"{usuario['nombre']} {usuario['apellidos']}".strip()
+    result = events_collection.delete_many({"trabajador": nombre_completo})
+    
     invalidate_cache()  # Invalidar caché al eliminar usuario
+    flash(f"Usuario {usuario['usuario']} eliminado correctamente. Se eliminaron {result.deleted_count} eventos asociados.", "success")
     return redirect('/admin/users')
 
 # Página para que los super administradores puedan resetear contraseñas
@@ -594,6 +680,51 @@ def cambiar_password():
         return redirect(url_for('dashboard'))
     
     return render_template("cambiar_password.html")
+
+@app.route('/admin/skills', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_skills():
+    # Solo usuarios TS
+    query = {"puesto": "TS"}
+    
+    if request.method == 'POST':
+        # Procesar actualizaciones en bloque
+        users = list(users_collection.find(query))
+        count = 0
+        
+        for u in users:
+            uid = str(u["_id"])
+            
+            # 1. Fixed Roles
+            new_roles = request.form.getlist(f'roles_{uid}')
+            
+            # 2. Skills
+            # Reconstruct skills list based on checkboxes
+            new_skills = []
+            if request.form.get(f'tarde_{uid}'):
+                new_skills.append("Tarde")
+            if request.form.get(f'flexibilidad_{uid}'):
+                new_skills.append("Flexibilidad")
+            if request.form.get(f'mail_{uid}'):
+                new_skills.append("Mail")
+            
+            # Update DB
+            users_collection.update_one(
+                {"_id": u["_id"]},
+                {"$set": {
+                    "fixed_shift_role": new_roles,
+                    "skills": new_skills
+                }}
+            )
+            count += 1
+            
+        flash(f"Actualizados {count} usuarios correctamente.", "success")
+        return redirect(url_for('admin_skills'))
+
+    # GET
+    users = list(users_collection.find(query).sort("nombre", 1))
+    return render_template('skills_matrix.html', users=users)
 
 def agrupar_vacaciones(vacaciones):
     """
@@ -939,7 +1070,7 @@ def events():
                 user_events = eventos_por_trabajador.get(nombre_completo, {})
                 evento_asignado = None
                 # Verifica en orden de prioridad: Vacaciones, CADE 30, CADE 50, Mail.
-                for tipo in ["Baja", "CADE 30", "CADE 50", "CADE Tardes", "Guardia CADE", "Refuerzo Cade", "Mail", "Vacaciones"]:
+                for tipo in ["Ausencia", "Baja", "CADE 30", "CADE 50", "CADE Tardes", "Guardia CADE", "Refuerzo Cade", "Mail", "Vacaciones"]:
                     if tipo in user_events:
                         for inicio, fin in user_events[tipo]:
                             # Suponiendo que inicio y fin son strings "YYYY-MM-DD"
@@ -952,6 +1083,9 @@ def events():
                     if evento_asignado == "Vacaciones":
                         event_label += " (Ausente)"
                         color = "#E53935"  # Rojo brillante
+                    elif evento_asignado == "Ausencia":
+                        event_label += " (Ausente)"
+                        color = "#757575"  # Gris medio
                     elif evento_asignado == "Baja":
                         event_label += " (Baja)"
                         color = "#757575"  # Gris medio
@@ -1060,7 +1194,7 @@ def asignar_estados():
                     "trabajador": nombre_completo,
                     "fecha_inicio": day_str,
                     "fecha_fin": day_str,
-                    "tipo": {"$in": ["Baja", "CADE 30", "CADE 50", "CADE Tardes", "Guardia CADE", "Refuerzo Cade", "Mail"]}
+                    "tipo": {"$in": ["Baja", "Baja Médica", "Ausencia", "CADE 30", "CADE 50", "CADE Tardes", "Guardia CADE", "Refuerzo Cade", "Mail", "PIAS"]}
                 }
 
                 # Saltar fines de semana y festivos, pero permitir limpieza de eventos si se selecciona "normal"
@@ -1137,7 +1271,7 @@ def duplicados():
         },
         {
             "$match": {
-                "$expr": {"$gt": [{"$size": "$tipos"}, 1]}
+                "count": {"$gt": 1}
             }
         },
         {"$sort": {"_id.fecha_inicio": 1}},
@@ -1155,6 +1289,114 @@ def duplicados():
         else:
             dup["display_trabajador"] = real_name
     return render_template("duplicados.html", duplicados=duplicados, hide_real_names=demo_mode)
+
+
+@app.route('/admin/clean_redundant_duplicates', methods=['POST'])
+@login_required
+@admin_required
+def clean_redundant_duplicates():
+    """
+    Elimina duplicados técnicos: Mismo trabajador, misma fecha, MISMO tipo.
+    Mantiene 1, borra el resto.
+    """
+    pipeline = [
+        {"$group": {
+            "_id": {
+                "trabajador": "$trabajador",
+                "fecha_inicio": "$fecha_inicio",
+                "fecha_fin": "$fecha_fin",
+                "tipo": "$tipo"
+            },
+            "count": {"$sum": 1},
+            "ids": {"$push": "$_id"}
+        }},
+        {"$match": {"count": {"$gt": 1}}}
+    ]
+    
+    redundancias = list(events_collection.aggregate(pipeline))
+    bajas_count = 0
+    
+    for red in redundancias:
+        # red['ids'] es una lista de todos los IDs. Borramos todos menos el primero (-1 para dejar 1)
+        ids_to_delete = red['ids'][1:]
+        if ids_to_delete:
+            result = events_collection.delete_many({"_id": {"$in": ids_to_delete}})
+            bajas_count += result.deleted_count
+
+    if bajas_count > 0:
+        invalidate_cache()
+        flash(f"🧹 Limpieza completada: Se eliminaron {bajas_count} registros redundantes (idénticos).", "success")
+    else:
+        flash("No se encontraron registros idénticos redundantes para limpiar.", "info")
+
+    return redirect(url_for('duplicados'))
+
+
+@app.route('/admin/approve_vacations_conflicts', methods=['POST'])
+@login_required
+@admin_required
+def approve_vacations_conflicts():
+    """
+    Resuelve conflictos automáticos: Si un día tiene 'Vacaciones' y otros eventos,
+    mantiene 'Vacaciones' y borra el resto.
+    """
+    pipeline = [
+        {"$addFields": {"_fechaDate": {"$toDate": "$fecha_inicio"}}},
+        {"$match": {"$expr": {"$not": {"$in": [{"$isoDayOfWeek": "$_fechaDate"}, [6, 7]]}}}},
+         {
+            "$match": {
+                "$expr": {
+                    "$not": {
+                        "$in": [
+                            {"$dateToString": {"format": "%Y-%m-%d", "date": "$_fechaDate"}},
+                            FESTIVOS_LIST
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "trabajador": "$trabajador",
+                    "fecha_inicio": "$fecha_inicio",
+                    "fecha_fin": "$fecha_fin"
+                },
+                "tipos": {"$addToSet": "$tipo"},
+                "ids": {"$push": "$_id"}
+            }
+        },
+        {
+            "$match": {
+                "$expr": {"$gt": [{"$size": "$tipos"}, 1]}
+            }
+        }
+    ]
+    
+    duplicados = list(events_collection.aggregate(pipeline))
+    count_deleted = 0
+    
+    for dup in duplicados:
+        tipos = dup.get("tipos", [])
+        if "Vacaciones" in tipos:
+            trabajador = dup["_id"]["trabajador"]
+            fecha = dup["_id"]["fecha_inicio"]
+            
+            # Borrar todo lo que NO sea Vacaciones para ese trabajador y fecha
+            result = events_collection.delete_many({
+                "trabajador": trabajador,
+                "fecha_inicio": fecha,
+                "tipo": {"$ne": "Vacaciones"}
+            })
+            count_deleted += result.deleted_count
+
+    if count_deleted > 0:
+        invalidate_cache()
+        flash(f"✅ Se han resuelto conflictos en {count_deleted} eventos. Las Vacaciones prevalecen.", "success")
+    else:
+        flash("No se encontraron conflictos de Vacaciones para aprobar.", "info")
+
+    return redirect(url_for('duplicados'))
 
 
 def _parse_metrics_date(value):
@@ -1918,6 +2160,371 @@ def informe_uso_ia():
         fecha_faqs=fecha_faqs,
         fecha_origen=fecha_origen
     )
+
+@app.route('/admin/generate_shifts', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def generate_shifts():
+    if request.method == 'POST':
+        try:
+            months_raw = request.form.getlist('months')
+            year = int(request.form.get('year'))
+            
+            if not months_raw:
+                flash("Por favor selecciona al menos un mes.", "warning")
+                return redirect(url_for('generate_shifts'))
+
+            months = sorted([int(m) for m in months_raw])
+            
+            # Importación diferida para evitar ciclos
+            from shift_generator import ShiftGenerator
+            import json
+            
+            generator = ShiftGenerator()
+            generator.fetch_data()
+            
+            # --- Dynamic Requirements from Form ---
+            req_c30 = request.form.get('req_cade_30', 3)
+            req_c50 = request.form.get('req_cade_50', 4)
+            req_tardes = request.form.get('req_tardes', 4)
+            req_mail = request.form.get('req_mail', 1)
+            generator.set_requirements(req_c30, req_c50, req_tardes, req_mail)
+            # --------------------------------------
+            
+            all_results = []
+            for month in months:
+                generator.load_existing_events(year, month)
+                month_results = generator.generate(year, month)
+                all_results.extend(month_results)
+
+            # Agrupar por Semana -> Día -> Tipo
+            # Agrupar por Semana -> Día -> Tipo
+            from collections import defaultdict
+            # from datetime import datetime removed to avoid shadowing global datetime module
+            
+            # {WeekNum: {DayStr: {Type: [Users]}}}
+            grouped_weeks = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+            
+            for r in all_results:
+                d_obj = datetime.strptime(r['fecha_inicio'], "%Y-%m-%d")
+                week_num = d_obj.isocalendar()[1]
+                grouped_weeks[week_num][r['fecha_inicio']][r['tipo']].append(r['trabajador'])
+            
+            # Custom Type Order
+            TYPE_ORDER = {
+                "CADE 30": 1,
+                "CADE 50": 2,
+                "CADE Tardes": 3,
+                "Refuerzo Cade": 4,
+                "Mail": 5,
+                "PIAS": 6, 
+                "Ausente": 7,
+                "Vacaciones": 7,
+                "Ausencia": 7,
+                "Baja": 8
+            }
+            def type_rank(t):
+                return TYPE_ORDER.get(t, 99)
+
+            # Ordenar semanas y días
+            sorted_weeks = dict(sorted(grouped_weeks.items()))
+            for w in sorted_weeks:
+                # Sort days in week
+                sorted_weeks[w] = dict(sorted(sorted_weeks[w].items()))
+                for day in sorted_weeks[w]:
+                    # Sort Types by custom rank
+                    day_data = sorted_weeks[w][day]
+                    sorted_types = dict(sorted(day_data.items(), key=lambda x: type_rank(x[0])))
+                    
+                    # Sort USERS alphabetically within each type
+                    for tipo in sorted_types:
+                        sorted_types[tipo].sort()
+                    
+                    sorted_weeks[w][day] = sorted_types
+
+            return render_template(
+                'generated_shifts_preview.html', 
+                results=all_results, 
+                grouped_weeks=sorted_weeks,
+                logs=generator.logs,
+                warnings=generator.warnings,
+                events_json=json.dumps(all_results)
+            )
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            flash(f"Error generando turnos: {str(e)}", "error")
+            return redirect(url_for('generate_shifts'))
+
+    return render_template('admin_generate_shifts.html', now=datetime.now())
+
+@app.route('/admin/save_shifts', methods=['POST'])
+@login_required
+@admin_required
+def save_shifts():
+    import json
+    try:
+        events_json = request.form.get('events_json')
+        if not events_json:
+            flash("No hay datos para guardar", "error")
+            return redirect(url_for('generate_shifts'))
+            
+        events = json.loads(events_json)
+        if events:
+            # 1. Eliminar PIAS existentes que entren en conflicto con los nuevos turnos
+            # (Para evitar duplicados si se re-genera sobre días con PIAS)
+            cleanup_targets = [{"trabajador": e["trabajador"], "fecha_inicio": e["fecha_inicio"]} for e in events]
+            if cleanup_targets:
+                events_collection.delete_many({"tipo": "PIAS", "$or": cleanup_targets})
+                
+            # 2. Insertar nuevos turnos
+            events_collection.insert_many(events)
+            invalidate_cache()
+            flash(f"Se han guardado {len(events)} turnos correctamente.", "success")
+        else:
+            flash("La lista de eventos estaba vacía.", "warning")
+            
+        return redirect(url_for('calendar_page'))
+    except Exception as e:
+        flash(f"Error guardando: {str(e)}", "error")
+        return redirect(url_for('generate_shifts'))
+
+
+# --- ROSTER VIEW & EXPORT ROUTES ---
+
+@app.route('/admin/view_roster_select')
+@login_required
+@admin_required
+def view_roster_select():
+    return render_template('admin_view_roster_select.html', now=datetime.now())
+
+@app.route('/admin/view_roster', methods=['POST'])
+@login_required
+@admin_required
+def view_roster():
+    try:
+        year = int(request.form.get('year'))
+        months_raw = request.form.getlist('months')
+        
+        if not months_raw:
+            flash("Selecciona al menos un mes.", "warning")
+            return redirect(url_for('view_roster_select'))
+            
+        months = sorted([int(m) for m in months_raw])
+        
+        # Calculate date range
+        start_date = date(year, months[0], 1)
+        _, last_day = monthrange(year, months[-1])
+        end_date = date(year, months[-1], last_day)
+        
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
+        
+        # Fetch Events
+        query = {
+            "fecha_inicio": {"$gte": start_str, "$lte": end_str}
+        }
+        events = list(events_collection.find(query))
+        
+        # Grouping Logic
+        from collections import defaultdict
+        
+        # {WeekNum: {DayStr: {Type: [Users]}}}
+        grouped_weeks = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+        
+        for r in events:
+            if 'fecha_inicio' not in r: continue
+            
+            d_obj = datetime.strptime(r['fecha_inicio'], "%Y-%m-%d")
+            week_num = d_obj.isocalendar()[1]
+            
+            tipo = r.get('tipo', 'Desconocido')
+            trabajador = r.get('trabajador', 'Desconocido')
+            
+            grouped_weeks[week_num][r['fecha_inicio']][tipo].append(trabajador)
+        
+        # --- Generate PIAS (Implicit Availability) ---
+        # 1. Get all visible "TS" users (PIAS is only for TS)
+        all_users_cursor = users_collection.find({"visible_calendario": {"$ne": False}, "puesto": "TS"})
+        all_users = [f"{u['nombre']} {u['apellidos']}".strip() for u in all_users_cursor]
+        
+        # 2. Identify busy users per day from the events we just fetched
+        busy_users_by_day = defaultdict(set)
+        for r in events:
+            if 'fecha_inicio' in r and 'trabajador' in r:
+                busy_users_by_day[r['fecha_inicio']].add(r['trabajador'])
+        
+        # 3. Iterate through every day in the range to fill gaps
+        curr = start_date
+        while curr <= end_date:
+            day_str = curr.strftime("%Y-%m-%d")
+            
+            # Only generate PIAS for working days
+            if es_dia_habil(curr):
+                busy = busy_users_by_day.get(day_str, set())
+                pias_users = [u for u in all_users if u not in busy]
+                
+                if pias_users:
+                    w_num = curr.isocalendar()[1]
+                    # Add strictly if not empty
+                    grouped_weeks[w_num][day_str]['PIAS'] = pias_users
+            
+            curr += timedelta(days=1)
+        # ---------------------------------------------
+        
+        # Custom Type Order
+        TYPE_ORDER = {
+            "CADE 30": 1,
+            "CADE 50": 2,
+            "CADE Tardes": 3,
+            "Refuerzo Cade": 4,
+            "Mail": 5,
+            "PIAS": 6, 
+            "Ausente": 7, # Alias for Vacaciones sometimes
+            "Vacaciones": 7,
+            "Ausencia": 7, # New Baja name
+            "Baja": 8
+        }
+        def type_rank(t):
+            return TYPE_ORDER.get(t, 99)
+
+        # Sort
+        sorted_weeks = dict(sorted(grouped_weeks.items()))
+        for w in sorted_weeks:
+            # Sort days (Mon, Tue, Wed...)
+            sorted_weeks[w] = dict(sorted(sorted_weeks[w].items()))
+            
+            for day in sorted_weeks[w]:
+                # Sort Types within Day Key
+                types_dict = sorted_weeks[w][day]
+                # Re-order based on Rank
+                sorted_types = dict(sorted(types_dict.items(), key=lambda x: type_rank(x[0])))
+                
+                # Sort Users alphabetically within each type
+                for t in sorted_types:
+                    sorted_types[t].sort()
+                
+                # Reassign
+                sorted_weeks[w][day] = sorted_types
+
+        # Generate Week -> Month Header Map
+        week_month_map = {}
+        MONTH_NAMES = {
+            1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril", 5: "Mayo", 6: "Junio",
+            7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+        }
+        
+        for w, days_dict in sorted_weeks.items():
+            if not days_dict:
+                week_month_map[w] = ""
+                continue
+            
+            # Get first day of the week present in data
+            first_day_str = sorted(days_dict.keys())[0]
+            try:
+                dt = datetime.strptime(first_day_str, "%Y-%m-%d")
+                m_name = MONTH_NAMES.get(dt.month, "")
+                week_month_map[w] = m_name
+            except:
+                week_month_map[w] = ""
+        
+        return render_template(
+            'roster_view.html',
+            grouped_weeks=sorted_weeks,
+            week_month_map=week_month_map,
+            selected_year=year,
+            selected_months=months_raw,
+            results=events
+        )
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        flash(f"Error cargando cuadrante: {str(e)}", "error")
+        return redirect(url_for('view_roster_select'))
+
+@app.route('/admin/export_roster', methods=['POST'])
+@login_required
+@admin_required
+def export_roster():
+    try:
+        year = int(request.form.get('year'))
+        months_raw = request.form.getlist('months')
+        
+        if not months_raw:
+            flash("Error en parámetros de exportación.", "error")
+            return redirect(url_for('view_roster_select'))
+            
+        months = sorted([int(m) for m in months_raw])
+        
+        start_date = date(year, months[0], 1)
+        _, last_day = monthrange(year, months[-1])
+        end_date = date(year, months[-1], last_day)
+        
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
+        
+        query = {
+            "fecha_inicio": {"$gte": start_str, "$lte": end_str}
+        }
+        events = list(events_collection.find(query))
+        
+        if not events:
+            flash("No hay datos para exportar en ese periodo.", "warning")
+            return redirect(url_for('view_roster_select'))
+            
+        # Create DataFrame
+        data = []
+        dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+        
+        for e in events:
+            d_str = e['fecha_inicio']
+            d_obj = datetime.strptime(d_str, "%Y-%m-%d")
+            dia_sem = dias_semana[d_obj.weekday()]
+            
+            data.append({
+                "Fecha": d_str,
+                "Día": dia_sem,
+                "Tipo Turno": e.get('tipo', ''),
+                "Trabajador": e.get('trabajador', '')
+            })
+            
+        df = pd.DataFrame(data)
+        df = df.sort_values(by=["Fecha", "Tipo Turno", "Trabajador"])
+        
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Turnos')
+            
+            # Auto-adjust columns
+            worksheet = writer.sheets['Turnos']
+            for column in worksheet.columns:
+                max_length = 0
+                column = [cell for cell in column]
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except:
+                        pass
+                adjusted_width = (max_length + 2)
+                worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+                
+        output.seek(0)
+        filename = f"Cuadrante_{year}_{months[0]}-{months[-1]}.xlsx"
+        
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        flash(f"Error exportando Excel: {str(e)}", "error")
+        return redirect(url_for('view_roster_select'))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))

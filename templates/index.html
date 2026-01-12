@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,65 +12,480 @@
 
     <!-- JS de FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+    <style>
+        /* 🔹 New Navigation & Header Styles */
+        body {
+            margin: 0;
+            background-color: #f4f6f9;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Navbar (Top Bar) */
+        .app-header {
+            background: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0 40px;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .brand {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1f2d3d;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 500;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-link:hover {
+            color: #0d6efd;
+        }
+
+        .nav-link.danger {
+            color: #dc3545;
+        }
+
+        .nav-link.danger:hover {
+            color: #a71d2a;
+        }
+
+        /* Action Toolbar */
+        .action-bar {
+            background: #fff;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ebebeb;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .primary-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-modern {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #007BFF;
+            color: white;
+            border-color: #007BFF;
+        }
+
+        .btn-primary:hover {
+            background-color: #0069d9;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background-color: white;
+            color: #495057;
+            border-color: #dee2e6;
+        }
+
+        .btn-outline:hover {
+            background-color: #f8f9fa;
+            border-color: #ccedff;
+            color: #007BFF;
+        }
+
+        .btn-admin {
+            background-color: #343a40;
+            color: white;
+            border-color: #343a40;
+        }
+
+        .btn-admin:hover {
+            background-color: #23272b;
+        }
+
+        /* Dropdown Menu */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Bridge the gap so hover isn't lost */
+        .dropdown::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            /* Cover the gap created by top: calc */
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 5px);
+            /* Push down slightly but covered by bridge */
+            background-color: #fff;
+            min-width: 240px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            z-index: 1001;
+            border: 1px solid #f0f0f0;
+            /* margin-top: 8px; REMOVED */
+            overflow: hidden;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-item {
+            color: #333;
+            padding: 12px 20px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            transition: background 0.1s;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #007BFF;
+        }
+
+        .dropdown-header {
+            padding: 8px 20px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #adb5bd;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: #fff;
+            margin-top: 5px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Filter Bar Redesign */
+        .calendar-controls {
+            max-width: 95%;
+            margin: 0 auto 20px;
+            padding: 0;
+            background: transparent;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .filters-container {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+            justify-content: space-between;
+        }
+
+        .filter-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-divider {
+            height: 24px;
+            width: 1px;
+            background: #e0e0e0;
+            margin: 0 5px;
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Modern State Pills */
+        .state-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .state-pill {
+            cursor: pointer;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: #f1f3f5;
+            color: #495057;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+
+        .state-pill:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .state-pill input {
+            display: none;
+        }
+
+        .state-pill.active {
+            background: #e7f5ff;
+            color: #0d6efd;
+            border-color: #bad3ff;
+            box-shadow: 0 2px 5px rgba(13, 110, 253, 0.1);
+        }
+
+        /* Selects & Search */
+        .modern-select {
+            padding: 8px 30px 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            background: #fff url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") no-repeat right 0.75rem center/8px 10px;
+            font-size: 0.9rem;
+            color: #495057;
+            appearance: none;
+            min-width: 140px;
+            cursor: pointer;
+        }
+
+        .modern-select:focus {
+            outline: none;
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .modern-search {
+            padding: 8px 12px 8px 35px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            min-width: 200px;
+            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'%3E%3C/path%3E%3C/svg%3E") no-repeat 10px center;
+        }
+
+        .modern-search:focus {
+            outline: none;
+            border-color: #86b7fe;
+        }
+
+        .legend {
+            margin: 0 auto;
+            width: fit-content;
+            max-width: 100%;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #calendar {
+            max-width: 95%;
+            margin: 0 auto 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-title {
+            display: none;
+        }
+
+        /* Hide old title */
+    </style>
 </head>
+
 <body>
 
-    <h1 class="page-title">Calendario de {{ current_user.nombre }} {{ current_user.apellidos }}</h1>
+    <!-- 🔹 1. Top Navigation Bar (Branding & User) -->
+    <header class="app-header">
+        <div class="brand">
+            <span>📅 Calendario</span>
+            <span style="font-weight: 400; color: #adb5bd;">|</span>
+            <span style="font-weight: 400;">{{ current_user.nombre }} {{ current_user.apellidos }}</span>
+        </div>
+        <div class="user-menu">
+            <button onclick="window.location.href='/dashboard'" class="btn-modern btn-outline">↩ Volver al Menú</button>
+            <a href="{{ url_for('logout') }}" class="nav-link danger">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Salir
+            </a>
+        </div>
+    </header>
 
-    <!-- 🔹 Contenedor de botones centrado -->
-    <div class="button-container">
-        <button onclick="window.location.href='/add-vacation'">✈️ Gestión de Vacaciones</button>
-        <button onclick="window.location.href='/calendar'">📅 Ver Calendario</button>
-        <button onclick="window.location.href='/logout'">❌ Cerrar Sesión</button>
-        <button onclick="window.location.href='/dashboard'" class="back-button">🔙 Volver al Menú Principal</button>
+    <!-- 🔹 2. Action Toolbar (Main Controls) -->
+    <div class="action-bar">
+        <div class="primary-actions">
+            <!-- Universal Actions -->
+            <button onclick="window.location.href='/add-vacation'" class="btn-modern btn-primary">
+                ✈️ Pedir Vacaciones
+            </button>
+            <button onclick="window.location.href='/calendar'" class="btn-modern btn-outline" style="display: none;">
+                📅 Ver Calendario <!-- Redundante aquí si ya estamos en calendario, pero lo dejo oculto por si acaso -->
+            </button>
+        </div>
+
+        <!-- Admin Dropdown (Only for Admins) -->
         {% if current_user.is_authenticated and current_user.puesto == "Administrador/a" %}
-        <button onclick="window.location.href='/admin/users'">👩‍🔧 Administrar Usuarios</button>
-        <button onclick="window.location.href='/admin/asignar-estados'">⚙️ Administrar Estados</button>
-        <button onclick="window.location.href='/dashboard-metrics'">📈 Ver Métricas</button>
+        <div class="dropdown">
+            <button class="btn-modern btn-admin" style="position: relative;">
+                ⚙️ Herramientas de Admin ▼
+                {% if duplicates_warning %}
+                <span
+                    style="position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; background-color: #dc3545; border-radius: 50%; border: 2px solid white;"></span>
+                {% endif %}
+            </button>
+            <div class="dropdown-menu">
+                <div class="dropdown-header">Gestión</div>
+                <a href="/admin/users" class="dropdown-item">👩‍🔧 Usuarios y Roles</a>
+                <a href="/admin/asignar-estados" class="dropdown-item">⚡ Asignar Estados Manual</a>
+                <a href="/admin/duplicados" class="dropdown-item"
+                    style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>⚠️ Ver Estados Duplicados</span>
+                    {% if duplicates_warning %}
+                    <span
+                        style="background-color: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">!</span>
+                    {% endif %}
+                </a>
+
+                <div class="dropdown-header">Operativa</div>
+                <a href="/admin/generate_shifts" class="dropdown-item">🤖 Generar Turnos</a>
+                <a href="/admin/view_roster_select" class="dropdown-item">📋 Ver Cuadrante Mensual</a>
+                <a href="/add-recurring" class="dropdown-item">🔄 Asignar Recurrencia</a>
+
+                <div class="dropdown-header">Datos</div>
+                <a href="/dashboard-metrics" class="dropdown-item">📊 Métricas y KPIs</a>
+                <a href="/admin/skills" class="dropdown-item">🛠️ Matriz de Skills</a>
+            </div>
+        </div>
         {% endif %}
     </div>
 
-    <!-- 🔹 Filtros + Leyenda -->
+    <!-- 🔹 3. Filtros + Leyenda -->
     <div class="calendar-controls">
-        <div class="filters">
-            <span>Estado:</span>
-            <div id="stateFilterGroup" class="state-group" role="group" aria-label="Filtrar por estados">
-                <label class="state-chip"><input type="checkbox" value="todos" checked>Todos</label>
-                <label class="state-chip"><input type="checkbox" value="PIAS">PIAS</label>
-                <label class="state-chip"><input type="checkbox" value="Ausente">Vacaciones</label>
-                <label class="state-chip"><input type="checkbox" value="CADE 30">CADE 30</label>
-                <label class="state-chip"><input type="checkbox" value="CADE 50">CADE 50</label>
-                <label class="state-chip"><input type="checkbox" value="CADE Tardes">CADE Tardes</label>
-                <label class="state-chip"><input type="checkbox" value="Guardia CADE">Guardia CADE</label>
-                <label class="state-chip"><input type="checkbox" value="Refuerzo Cade">Refuerzo Cade</label>
-                <label class="state-chip"><input type="checkbox" value="Mail">Mail</label>
-                <label class="state-chip"><input type="checkbox" value="Baja">Baja</label>
+        <div class="filters-container">
+            <!-- Left: States -->
+            <div class="filter-section">
+                <span class="filter-label">Estados:</span>
+                <div id="stateFilterGroup" class="state-group" role="group">
+                    <label class="state-pill active"><input type="checkbox" value="todos" checked>Todos</label>
+                    <label class="state-pill"><input type="checkbox" value="PIAS">PIAS</label>
+                    <label class="state-pill"><input type="checkbox" value="Ausente">Vacaciones</label>
+                    <label class="state-pill"><input type="checkbox" value="CADE 30">CADE 30</label>
+                    <label class="state-pill"><input type="checkbox" value="CADE 50">CADE 50</label>
+                    <label class="state-pill"><input type="checkbox" value="CADE Tardes">Tardes</label>
+                    <label class="state-pill"><input type="checkbox" value="Guardia CADE">Guardia</label>
+                    <label class="state-pill"><input type="checkbox" value="Refuerzo Cade">Refuerzo</label>
+                    <label class="state-pill"><input type="checkbox" value="Mail">Mail</label>
+                    <!-- <label class="state-pill"><input type="checkbox" value="Ausencia">Ausencia</label> -->
+                </div>
             </div>
 
-            <label for="roleFilter">Rol:</label>
-            <select id="roleFilter">
-                <option value="todos">Todos</option>
-                <option value="TS">TS</option>
-                <option value="ADM">ADM</option>
-                <option value="Administrador/a">Administrador/a</option>
-            </select>
+            <div class="filter-divider"></div>
 
-            <label for="personFilter">Persona:</label>
-            <select id="personFilter">
-                <option value="todos">Todos</option>
-                {% if usuarios %}
+            <!-- Right: Search & Dropdowns -->
+            <div class="filter-section">
+                <select id="roleFilter" class="modern-select">
+                    <option value="todos">Todos los Roles</option>
+                    <option value="TS">TS</option>
+                    <option value="ADM">ADM</option>
+                    <option value="Administrador/a">Administrador/a</option>
+                </select>
+
+                <select id="personFilter" class="modern-select">
+                    <option value="todos">Todas las Personas</option>
+                    {% if usuarios %}
                     {% for usuario in usuarios %}
-                        <option value="{{ usuario.id }}">
-                            {{ usuario.display_name }}
-                        </option>
+                    <option value="{{ usuario.id }}">
+                        {{ usuario.display_name }}
+                    </option>
                     {% endfor %}
-                {% else %}
-                    <option value="" disabled>No hay usuarios disponibles</option>
-                {% endif %}
-            </select>
+                    {% else %}
+                    <option value="" disabled>No hay usuarios</option>
+                    {% endif %}
+                </select>
 
-            <label for="searchInput">Buscar:</label>
-            <input id="searchInput" type="search" placeholder="Nombre o apellido" />
+                <input id="searchInput" type="search" class="modern-search" placeholder="Buscar..." />
+            </div>
         </div>
 
         <div class="legend">
@@ -78,7 +494,7 @@
             <span class="dot dot-adm" title="ADM"></span> ADM
             <span class="dot dot-admin" title="Admin"></span> Admin
             <span class="pill pill-ausente">Vacaciones</span>
-            <span class="pill pill-baja">Baja</span>
+            <span class="pill pill-ausente">Ausencia</span>
             <span class="pill pill-cade30">CADE 30</span>
             <span class="pill pill-cade50">CADE 50</span>
             <span class="pill pill-cadetardes">CADE Tardes</span>
@@ -92,12 +508,12 @@
     <div id="calendar"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             try {
                 // Parse usuarios safely
                 const usuarios = JSON.parse('{{ usuarios|tojson|safe }}');
                 console.log("Usuarios disponibles:", usuarios);
-                
+
                 var calendarEl = document.getElementById('calendar');
                 var allEvents = [];
                 const selectedStates = new Set(); // vacío = Todos
@@ -106,30 +522,27 @@
                 let currentRoleFilter = 'todos';
                 let debounceTimer = null;
 
-                function cleanTitle(title) {
-                    // Remove extra spaces and normalize text
-                    return title.replace(/\s+/g, ' ').trim();
-                }
-
-                function normalizeString(str) {
-                    return str
-                        .normalize('NFD')
-                        .replace(/[\u0300-\u036f]/g, '')
-                        .toLowerCase()
-                        .replace(/\s+/g, ' ')
-                        .trim();
+                // --- Helper de UX para pills ---
+                function updatePillVisuals() {
+                    const group = document.getElementById('stateFilterGroup');
+                    if (!group) return;
+                    group.querySelectorAll('.state-pill').forEach(label => {
+                        const inp = label.querySelector('input');
+                        if (inp.checked) label.classList.add('active');
+                        else label.classList.remove('active');
+                    });
                 }
 
                 function buildApiUrl() {
                     const params = new URLSearchParams();
-                    
+
                     // Añadir estados seleccionados
                     if (selectedStates.size > 0) {
                         selectedStates.forEach(estado => {
                             params.append('estados', estado);
                         });
                     }
-                    
+
                     // Añadir otros filtros
                     if (currentPersonFilter !== 'todos') {
                         params.append('persona', currentPersonFilter);
@@ -140,7 +553,7 @@
                     if (currentSearch) {
                         params.append('busqueda', currentSearch);
                     }
-                    
+
                     return `/api/events?${params.toString()}`;
                 }
 
@@ -157,24 +570,24 @@
 
                 var calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: 'dayGridMonth',
-                    firstDay: 1, 
+                    firstDay: 1,
                     locale: 'es',
                     selectable: true,
                     eventOrder: "title",  // Mantener el orden enviado por el backend
                     headerToolbar: {
-                      left: 'prev,today,next',
-                      center: 'title',
-                      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        left: 'prev,today,next',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
                     },
                     footerToolbar: {
-                      left: 'prev,today,next',
-                      center: '',
-                      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        left: 'prev,today,next',
+                        center: '',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
                     },
-                    events: function(fetchInfo, successCallback, failureCallback) {
+                    events: function (fetchInfo, successCallback, failureCallback) {
                         const apiUrl = buildApiUrl();
                         console.log("🚀 Llamando a:", apiUrl);
-                        
+
                         fetch(apiUrl)
                             .then(response => response.json())
                             .then(data => {
@@ -187,14 +600,14 @@
                                 failureCallback(error);
                             });
                     },
-                    eventContent: function(arg) {
+                    eventContent: function (arg) {
                         // Render compacto: punto por puesto + nombre + chip de estado
                         const title = arg.event.title || '';
                         const ext = arg.event.extendedProps || {};
                         const estado = ext.estado || (title.match(/\(([^)]+)\)/)?.[1]);
                         const nombre = ext.nombre || title.split('(')[0].replace(/^(TS|ADM|Administrador\/a)\s*-\s*/, '').trim();
                         const puesto = (ext.puesto || title.split(' - ')[0] || '').toLowerCase();
-                        
+
                         // Festivo u otros
                         if (/^festivo$/i.test(title)) return { html: `<div class="evt evt-festivo">${title}</div>` };
 
@@ -204,6 +617,7 @@
                             const key = (estado || '').toLowerCase();
                             const map = {
                                 'ausente': 'pill-ausente',
+                                'ausencia': 'pill-ausente',
                                 'baja': 'pill-baja',
                                 'cade 30': 'pill-cade30',
                                 'cade 50': 'pill-cade50',
@@ -213,15 +627,17 @@
                                 'mail': 'pill-mail'
                             };
                             const cls = map[key] || 'pill-other';
-                            pill = `<span class="pill ${cls}">${estado}</span>`;
+                            let label = estado;
+                            if (key === 'ausencia') label = 'Ausente';
+                            pill = `<span class="pill ${cls}">${label}</span>`;
                         }
                         return { html: `<div class="evt"><span class="dot ${dotClass}"></span><span class="name">${nombre}</span>${pill}</div>` };
                     },
-                    eventDidMount: function(info) {
+                    eventDidMount: function (info) {
                         // Sin fondos especiales: mantenemos eventos neutros
                     }
                 });
-        
+
                 calendar.render();
 
                 // Event listeners
@@ -230,7 +646,7 @@
                 const searchInput = document.getElementById('searchInput');
                 const roleFilter = document.getElementById('roleFilter');
 
-                personFilter.addEventListener('change', function() {
+                personFilter.addEventListener('change', function () {
                     currentPersonFilter = this.value;
                     console.log(`Aplicando filtro de persona: "${currentPersonFilter}"`);
                     calendar.refetchEvents();
@@ -239,36 +655,49 @@
                 // Gestión de selección múltiple de estados
                 const allBox = stateFilterGroup.querySelector('input[value="todos"]');
                 const stateBoxes = Array.from(stateFilterGroup.querySelectorAll('input[type="checkbox"]:not([value="todos"])'));
+
                 function syncSelectedStates() {
                     selectedStates.clear();
                     stateBoxes.forEach(cb => { if (cb.checked) selectedStates.add(cb.value); });
+                    updatePillVisuals();
                     calendar.refetchEvents();
                 }
+
                 allBox.addEventListener('change', () => {
                     if (allBox.checked) {
                         stateBoxes.forEach(cb => cb.checked = false);
+                    } else if (!stateBoxes.some(b => b.checked)) {
+                        // If unchecking All results in nothing, check All back (or handle empty = all)
+                        // allBox.checked = true; // optional logic
                     }
+                    updatePillVisuals(); // Update UI
                     syncSelectedStates();
                 });
+
                 stateBoxes.forEach(cb => cb.addEventListener('change', () => {
                     if (cb.checked) allBox.checked = false;
                     const any = stateBoxes.some(b => b.checked);
                     if (!any) allBox.checked = true; // sin selección = todos
+
+                    updatePillVisuals(); // Update UI
                     syncSelectedStates();
                 }));
 
-                roleFilter.addEventListener('change', function() {
+                // Initialize Pills UI
+                updatePillVisuals();
+
+                roleFilter.addEventListener('change', function () {
                     currentRoleFilter = this.value;
                     calendar.refetchEvents();
                 });
 
                 // Debounced search input
-                const debouncedSearch = debounce(function() {
+                const debouncedSearch = debounce(function () {
                     console.log(`Aplicando búsqueda: "${currentSearch}"`);
                     calendar.refetchEvents();
                 }, 300);
-                
-                searchInput.addEventListener('input', function() {
+
+                searchInput.addEventListener('input', function () {
                     currentSearch = this.value;
                     debouncedSearch();
                 });
@@ -279,4 +708,5 @@
     </script>
 
 </body>
+
 </html>
