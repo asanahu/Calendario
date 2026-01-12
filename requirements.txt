@@ -12,3 +12,4 @@ PyMuPDF
 frontend
 Flask-Admin
 openpyxl
+pandas
