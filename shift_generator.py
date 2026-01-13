@@ -32,7 +32,9 @@ class ShiftGenerator:
         self.REQ_MAIL = 1
         
         # WEEKLY STABILITY TRACKER (Persists between generate calls)
-        self.last_assignments = {} # UserID -> Role
+        self.last_assignments = {} # UserID -> Role (Daily stickiness)
+        self.last_week_roles = {}   # UserID -> Role (Projected/Dominant role of previous week)
+        self.current_week_roles = {} # UserID -> Role (Roles assigned this week)
         
         # Identificadores especiales (nombres exactos o IDs, ajustar según DB real)
         # TODO: Idealmente estos deberían venir de configuración o tags en DB
@@ -141,7 +143,12 @@ class ShiftGenerator:
         }
         events = list(events_collection.find(query))
         
-        balance = defaultdict(int)
+        events = list(events_collection.find(query))
+        
+        # Initialize dictionary of counters
+        # counts[role_type][user_id] = count
+        counts = defaultdict(lambda: defaultdict(int))
+        
         exclude_start = exclude_start_date.strftime("%Y-%m-%d")
         exclude_end = exclude_end_date.strftime("%Y-%m-%d")
         
@@ -168,12 +175,21 @@ class ShiftGenerator:
              if exclude_start <= e["fecha_inicio"] <= exclude_end:
                 continue
              
-             if e["tipo"] == "CADE Tardes":
-                 w_name = e["trabajador"]
-                 if w_name in name_to_id:
-                     balance[name_to_id[w_name]] += 1
-                     
-        return balance
+             w_name = e["trabajador"]
+             if w_name in name_to_id:
+                 uid = name_to_id[w_name]
+                 if e["tipo"] == "CADE Tardes":
+                     counts["CADE Tardes"][uid] += 1
+                 elif e["tipo"] == "Refuerzo Cade":
+                     counts["Refuerzo Cade"][uid] += 1
+                 elif e["tipo"] == "CADE 30":
+                     counts["CADE 30"][uid] += 1
+                 elif e["tipo"] == "CADE 50":
+                     counts["CADE 50"][uid] += 1
+                 elif e["tipo"] == "Mail":
+                     counts["Mail"][uid] += 1
+
+        return counts
 
     def get_available_users(self, day_str, required_skill=None):
         """Devuelve usuarios disponibles (sin Vacaciones/Baja) para un día."""
@@ -208,8 +224,15 @@ class ShiftGenerator:
         
         # Contadores para equidad HISTÓRICA (Key: UserID, Value: Count)
         self.log("Fetching annual history for balancing...")
-        tarde_count = self.get_annual_balance(year, start_date_ex, end_date_ex)
-        self.log(f"Initialized balance with historical data: {dict(sorted(tarde_count.items(), key=lambda x: x[1], reverse=True)[:5])}")
+        all_counts = self.get_annual_balance(year, start_date_ex, end_date_ex)
+        
+        # Extract specific counters
+        tarde_count = all_counts["CADE Tardes"]
+        refuerzo_count = all_counts["Refuerzo Cade"]
+        cade30_count = all_counts["CADE 30"]
+        cade50_count = all_counts["CADE 50"]
+        
+        self.log(f"Initialized Refuerzo balance: {dict(sorted(refuerzo_count.items(), key=lambda x: x[1], reverse=True)[:5])}")
         
         # Iterar por días HÁBILES
         for day in range(1, last_day + 1):
@@ -222,6 +245,9 @@ class ShiftGenerator:
             # RESET on Mondays (Start of Week)
             if date_obj.weekday() == 0:
                 self.last_assignments = {}
+                # Rotate weekly history
+                self.last_week_roles = self.current_week_roles.copy()
+                self.current_week_roles = {}
 
             self.log(f"Processing Day: {day_str}")
             
@@ -254,11 +280,27 @@ class ShiftGenerator:
                 if len(roles) == 1:
                     # CASO: 1 Rol Fijo -> Asignación Inmediata
                     role_target = roles[0]
-                    self._add_event(u, day_str, role_target)
-                    assigned_today.add(str(u["_id"]))
                     
-                    if role_target == "CADE Tardes":
-                         tarde_count[str(u["_id"])] += 1
+                    assigned_today.add(str(u["_id"]))
+
+                    # Special Case: PIAS means NO EVENT
+                    if role_target == "PIAS":
+                        # We mark them as assigned so they don't get other jobs,
+                        # but we do NOT generate an event.
+                        # Also track tracking:
+                        self.current_week_roles[str(u["_id"])] = "PIAS"
+                    else:
+                        self._add_event(u, day_str, role_target)
+                        
+                        # Increment counters for fixed roles too so they count towards fairness
+                        if role_target == "CADE Tardes":
+                             tarde_count[str(u["_id"])] += 1
+                        elif role_target == "Refuerzo Cade":
+                             refuerzo_count[str(u["_id"])] += 1
+                        elif role_target == "CADE 30":
+                             cade30_count[str(u["_id"])] += 1
+                        elif role_target == "CADE 50":
+                             cade50_count[str(u["_id"])] += 1
                 else:
                     # CASO: Multiple Roles -> Se guarda para asignación prioritaria luego
                     multi_role_constrained[str(u["_id"])] = roles
@@ -291,6 +333,7 @@ class ShiftGenerator:
             random.shuffle(tarde_finalists)
             tarde_finalists.sort(key=lambda u: (
                 0 if str(u["_id"]) in self.last_assignments and self.last_assignments[str(u["_id"])] == "CADE Tardes" else 1,
+                1 if str(u["_id"]) in self.last_week_roles and self.last_week_roles[str(u["_id"])] == "CADE Tardes" else 0,
                 tarde_count[str(u["_id"])]
             ))
 
@@ -363,12 +406,19 @@ class ShiftGenerator:
                          valid_candidates.append(c)
 
                     if valid_candidates:
-                        valid_candidates.sort(key=lambda u: 0 if str(u["_id"]) in self.last_assignments and self.last_assignments[str(u["_id"])] == "Refuerzo Cade" else 1)
+                        # Shuffle first to break deterministic ties
+                        random.shuffle(valid_candidates)
+                        valid_candidates.sort(key=lambda u: (
+                            0 if str(u["_id"]) in self.last_assignments and self.last_assignments[str(u["_id"])] == "Refuerzo Cade" else 1,
+                            1 if str(u["_id"]) in self.last_week_roles and self.last_week_roles[str(u["_id"])] == "Refuerzo Cade" else 0,
+                            refuerzo_count[str(u["_id"])]
+                        ))
                         chosen = valid_candidates[0]
                         self._add_event(chosen, day_str, "Refuerzo Cade")
                         uid = str(chosen["_id"])
                         assigned_today.add(uid)
                         current_assignments[uid] = "Refuerzo Cade"
+                        refuerzo_count[uid] += 1
                     else:
                         self.log(f"WARNING: No candidate for Flexibilidad (Refuerzo) on {day_str}")
 
@@ -392,16 +442,24 @@ class ShiftGenerator:
                 return False
 
             # Helper to pick best candidate
-            def pick_candidate(user_list, role_target):
-                candidates = [u for u in user_list if can_do(str(u["_id"]), role_target)]
-                if not candidates:
-                    return None
+            def pick_candidate_key(u, role_target):
+                candidates = [u] # Dummy wrapper
+                # We reuse the logic but return the key tuple instead of sorting a list
+
                 # Prioritize: 1. Restricted Users (0), 2. Sticky Users (0)
-                candidates.sort(key=lambda u: (
-                    0 if str(u["_id"]) in multi_role_constrained else 1,
-                    0 if str(u["_id"]) in self.last_assignments and self.last_assignments[str(u["_id"])] == role_target else 1
-                ))
-                return candidates[0]
+                
+                # Determine metric based on role
+                sort_metric = 0
+                uid = str(u["_id"])
+                if role_target == "CADE 30": sort_metric = cade30_count[uid]
+                elif role_target == "CADE 50": sort_metric = cade50_count[uid]
+                
+                return (
+                    0 if uid in multi_role_constrained else 1,
+                    0 if uid in self.last_assignments and self.last_assignments[uid] == role_target else 1,
+                    1 if uid in self.last_week_roles and self.last_week_roles[uid] == role_target else 0,
+                    sort_metric
+                )
 
             remaining = [u for u in self.get_available_users(day_str) if str(u["_id"]) not in assigned_today]
             random.shuffle(remaining) 
@@ -416,16 +474,30 @@ class ShiftGenerator:
             needed_30 = self.REQ_CADE_30 - filled_30
             self.log(f"   [Debug] CADE 30 Needed: {needed_30}. Pool size: {len(remaining)}")
 
+            remaining.sort(key=lambda u: pick_candidate_key(u, "CADE 30"))
+
             while filled_30 < self.REQ_CADE_30 and remaining:
-                chosen = pick_candidate(remaining, "CADE 30")
+                # Re-sort occasionally or just pick first valid
+                # Since list is already sorted by fairness, we just iterate
+                # But we need to filter for capabillity "can_do"
+                
+                # Simplified loop: Find best candidate in list
+                chosen = None
+                for candidate in remaining:
+                    if can_do(str(candidate["_id"]), "CADE 30"):
+                        chosen = candidate
+                        break
+                
                 if not chosen:
                     self.log(f"   [Debug] No valid candidate found for CADE 30 among {len(remaining)} remaining.")
                     break
+                
                 self._add_event(chosen, day_str, "CADE 30")
                 uid = str(chosen["_id"])
                 assigned_today.add(uid)
                 current_assignments[uid] = "CADE 30"
                 remaining.remove(chosen)
+                cade30_count[uid] += 1
                 filled_30 += 1
 
             if filled_30 < self.REQ_CADE_30:
@@ -441,8 +513,15 @@ class ShiftGenerator:
             needed_50 = self.REQ_CADE_50 - filled_50
             self.log(f"   [Debug] CADE 50 Needed: {needed_50}. Pool size: {len(remaining)}")
 
+            remaining.sort(key=lambda u: pick_candidate_key(u, "CADE 50"))
+
             while filled_50 < self.REQ_CADE_50 and remaining:
-                chosen = pick_candidate(remaining, "CADE 50")
+                chosen = None
+                for candidate in remaining:
+                    if can_do(str(candidate["_id"]), "CADE 50"):
+                        chosen = candidate
+                        break
+
                 if not chosen:
                     self.log(f"   [Debug] No valid candidate found for CADE 50 among {len(remaining)} remaining.")
                     break  
@@ -451,6 +530,7 @@ class ShiftGenerator:
                 assigned_today.add(uid)
                 current_assignments[uid] = "CADE 50"
                 remaining.remove(chosen)
+                cade50_count[uid] += 1
                 filled_50 += 1
             
             if filled_50 < self.REQ_CADE_50:
@@ -475,7 +555,10 @@ class ShiftGenerator:
                     break
                     
                 # Sort: Sticky > Shuffled
-                mail_candidates.sort(key=lambda u: 0 if str(u["_id"]) in self.last_assignments and self.last_assignments[str(u["_id"])] == "Mail" else 1)
+                mail_candidates.sort(key=lambda u: (
+                    0 if str(u["_id"]) in self.last_assignments and self.last_assignments[str(u["_id"])] == "Mail" else 1,
+                    1 if str(u["_id"]) in self.last_week_roles and self.last_week_roles[str(u["_id"])] == "Mail" else 0
+                ))
                 
                 chosen = mail_candidates[0]
                 self._add_event(chosen, day_str, "Mail")
@@ -491,15 +574,9 @@ class ShiftGenerator:
                 self.warnings.append({"date": day_str, "type": "Mail", "message": msg, "severity": "warning"})
 
             # --- RESTO (PIAS) ---
-            while remaining:
-                u = remaining.pop()
-                uid = str(u["_id"])
-                if can_do(uid, "PIAS"):
-                    self._add_event(u, day_str, "PIAS")
-                    assigned_today.add(uid)
-                    current_assignments[uid] = "PIAS"
-                else:
-                    self.log(f"WARNING: User {u.get('nombre')} restricted and no valid slots left (Skipped PIAS).")
+            # REMOVED EXPLICIT PIAS GENERATION
+            # Users remaining without assignment are implicitly "Available/PIAS"
+            # and will show as blank/default in the calendar.
             
             # UPDATE LAST ASSIGNMENTS FOR NEXT DAY
             self.last_assignments = current_assignments
@@ -515,6 +592,17 @@ class ShiftGenerator:
             "fecha_fin": date_str,
             "tipo": tipo
         })
+        
+        # Track role for weekly history
+        if "id" in user:
+             uid = str(user["id"])
+        elif "_id" in user:
+             uid = str(user["_id"])
+        else:
+             uid = user.get("usuario") # Fallback
+             
+        if uid:
+             self.current_week_roles[uid] = tipo
 
     def save_results(self):
         """Persiste los resultados a Mongo."""
