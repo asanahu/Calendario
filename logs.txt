@@ -1,0 +1,550 @@
+2026-01-26T12:03:48.168009298Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 11
+2026-01-26T12:03:48.168014338Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 11
+2026-01-26T12:03:48.168016818Z [2026-01-26 12:03:48] Processing Day: 2026-03-26
+2026-01-26T12:03:48.168019098Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 11
+2026-01-26T12:03:48.168021398Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 11
+2026-01-26T12:03:48.168023608Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 11
+2026-01-26T12:03:48.168025859Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 11
+2026-01-26T12:03:48.168028149Z [2026-01-26 12:03:48] Processing Day: 2026-03-27
+2026-01-26T12:03:48.168030379Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 11
+2026-01-26T12:03:48.168032609Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 11
+2026-01-26T12:03:48.168034809Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 11
+2026-01-26T12:03:48.168069582Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 11
+2026-01-26T12:03:48.168072062Z [2026-01-26 12:03:48] Processing Day: 2026-03-30
+2026-01-26T12:03:48.168074422Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 10
+2026-01-26T12:03:48.168076952Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 10
+2026-01-26T12:03:48.168079312Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 10
+2026-01-26T12:03:48.168081533Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 10
+2026-01-26T12:03:48.168083773Z [2026-01-26 12:03:48] Processing Day: 2026-03-31
+2026-01-26T12:03:48.168086043Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 10
+2026-01-26T12:03:48.168088343Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 10
+2026-01-26T12:03:48.168090613Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 10
+2026-01-26T12:03:48.168092884Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 10
+2026-01-26T12:03:48.168095074Z [2026-01-26 12:03:48] Loaded existing events for 303 records.
+2026-01-26T12:03:48.168097354Z [2026-01-26 12:03:48] Starting generation for 4/2026
+2026-01-26T12:03:48.168099684Z [2026-01-26 12:03:48] Fetching annual history for balancing...
+2026-01-26T12:03:48.168102624Z [2026-01-26 12:03:48] Initialized Refuerzo balance: {'691719366c721ec584de470f': 48, '67b4c574b844e2340e055bc2': 10, '67b4c574b844e2340e055bc4': 5, '691719c66c721ec584de4710': 5, '6853cc06693c924f7fba1316': 5}
+2026-01-26T12:03:48.168104994Z [2026-01-26 12:03:48] Processing Day: 2026-04-01
+2026-01-26T12:03:48.168107215Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 10
+2026-01-26T12:03:48.168109415Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 10
+2026-01-26T12:03:48.168111635Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 10
+2026-01-26T12:03:48.168113895Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 10
+2026-01-26T12:03:48.168116195Z [2026-01-26 12:03:48] Processing Day: 2026-04-02
+2026-01-26T12:03:48.168118566Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 13
+2026-01-26T12:03:48.168120775Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 13
+2026-01-26T12:03:48.168123326Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 13
+2026-01-26T12:03:48.168125636Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 13
+2026-01-26T12:03:48.168128006Z [2026-01-26 12:03:48] Processing Day: 2026-04-03
+2026-01-26T12:03:48.168136157Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 13
+2026-01-26T12:03:48.168138957Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 13
+2026-01-26T12:03:48.168141417Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 13
+2026-01-26T12:03:48.168143947Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 13
+2026-01-26T12:03:48.168146057Z [2026-01-26 12:03:48] Processing Day: 2026-04-06
+2026-01-26T12:03:48.168148208Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 13
+2026-01-26T12:03:48.168150358Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 13
+2026-01-26T12:03:48.168152448Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 13
+2026-01-26T12:03:48.168154778Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 13
+2026-01-26T12:03:48.168156938Z [2026-01-26 12:03:48] Processing Day: 2026-04-07
+2026-01-26T12:03:48.168159038Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.168161238Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.168163579Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.168165959Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.168168259Z [2026-01-26 12:03:48] Processing Day: 2026-04-08
+2026-01-26T12:03:48.168170749Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.16817321Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.1681759Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.16817862Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.16818136Z [2026-01-26 12:03:48] Processing Day: 2026-04-09
+2026-01-26T12:03:48.16818397Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.16818645Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.168189171Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.168191651Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.168194021Z [2026-01-26 12:03:48] Processing Day: 2026-04-10
+2026-01-26T12:03:48.168196221Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.168198481Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.168200721Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.168215122Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171548186Z [2026-01-26 12:03:48] Processing Day: 2026-04-13
+2026-01-26T12:03:48.171561027Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.171564378Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171566918Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171569188Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171571478Z [2026-01-26 12:03:48] Processing Day: 2026-04-14
+2026-01-26T12:03:48.171573728Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.171575939Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171578379Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171580589Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171582839Z [2026-01-26 12:03:48] Processing Day: 2026-04-15
+2026-01-26T12:03:48.171585129Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.17159512Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.17159788Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.1716002Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.17160243Z [2026-01-26 12:03:48] Processing Day: 2026-04-16
+2026-01-26T12:03:48.17160465Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.171606931Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171609251Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171611541Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171613851Z [2026-01-26 12:03:48] Processing Day: 2026-04-17
+2026-01-26T12:03:48.171616041Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.171618291Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171620652Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171622952Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171625212Z [2026-01-26 12:03:48] Processing Day: 2026-04-20
+2026-01-26T12:03:48.171627462Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 15
+2026-01-26T12:03:48.171629722Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 15
+2026-01-26T12:03:48.171631943Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 1. Pool size: 15
+2026-01-26T12:03:48.171634293Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171636593Z [2026-01-26 12:03:48] Processing Day: 2026-04-21
+2026-01-26T12:03:48.171638823Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 15
+2026-01-26T12:03:48.171641063Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 15
+2026-01-26T12:03:48.171643263Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 1. Pool size: 15
+2026-01-26T12:03:48.171645484Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171647734Z [2026-01-26 12:03:48] Processing Day: 2026-04-22
+2026-01-26T12:03:48.171649924Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 15
+2026-01-26T12:03:48.171652124Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 15
+2026-01-26T12:03:48.171654364Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 1. Pool size: 15
+2026-01-26T12:03:48.171656574Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171658834Z [2026-01-26 12:03:48] Processing Day: 2026-04-24
+2026-01-26T12:03:48.171661055Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 13
+2026-01-26T12:03:48.171663265Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 13
+2026-01-26T12:03:48.171665515Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 1. Pool size: 13
+2026-01-26T12:03:48.171667825Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 12
+2026-01-26T12:03:48.171670055Z [2026-01-26 12:03:48] Processing Day: 2026-04-27
+2026-01-26T12:03:48.171672255Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.171674506Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171676706Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171678926Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171693737Z [2026-01-26 12:03:48] Processing Day: 2026-04-28
+2026-01-26T12:03:48.171695987Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.171702438Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171704798Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171707028Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171709298Z [2026-01-26 12:03:48] Processing Day: 2026-04-29
+2026-01-26T12:03:48.171711578Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.171713769Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171716039Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171718309Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171720509Z [2026-01-26 12:03:48] Processing Day: 2026-04-30
+2026-01-26T12:03:48.171722729Z [2026-01-26 12:03:48]    [Debug] Remaining Users for Phase 4: 14
+2026-01-26T12:03:48.171724919Z [2026-01-26 12:03:48]    [Debug] CADE 30 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171727239Z [2026-01-26 12:03:48]    [Debug] CADE 50 Needed: 0. Pool size: 14
+2026-01-26T12:03:48.17172946Z [2026-01-26 12:03:48]    [Debug] Mail Needed: 0. Pool size: 14
+2026-01-26T12:03:48.171743931Z 127.0.0.1 - - [26/Jan/2026:12:03:48 +0000] "POST /admin/generate_shifts HTTP/1.1" 200 66290 "https://calendario-1.onrender.com/admin/generate_shifts" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:03:48.336242335Z 127.0.0.1 - - [26/Jan/2026:12:03:48 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/generate_shifts" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:04:09.267391377Z 127.0.0.1 - - [26/Jan/2026:12:04:09 +0000] "GET /admin/generate_shifts HTTP/1.1" 200 11206 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:04:12.56137452Z 🚀 Sirviendo desde caché: []_todos_todos_|anon=0
+2026-01-26T12:04:12.561393801Z 127.0.0.1 - - [26/Jan/2026:12:04:12 +0000] "GET /api/events? HTTP/1.1" 200 6564873 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:04:20.814459267Z 127.0.0.1 - - [26/Jan/2026:12:04:20 +0000] "GET /admin/asignar-estados HTTP/1.1" 200 52651 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:04:21.000019432Z 127.0.0.1 - - [26/Jan/2026:12:04:20 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:04:21.029499709Z 127.0.0.1 - - [26/Jan/2026:12:04:21 +0000] "GET /static/js/range-calendar.js HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:05:15.822941579Z [2026-01-26 12:05:15 +0000] [36] [CRITICAL] WORKER TIMEOUT (pid:51)
+2026-01-26T12:05:15.95651445Z [2026-01-26 12:05:15 +0000] [51] [ERROR] Error handling request /admin/asignar-estados
+2026-01-26T12:05:15.956535782Z Traceback (most recent call last):
+2026-01-26T12:05:15.956541372Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/gunicorn/workers/sync.py", line 134, in handle
+2026-01-26T12:05:15.956547733Z     self.handle_request(listener, req, client, addr)
+2026-01-26T12:05:15.956551573Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+2026-01-26T12:05:15.956564194Z     respiter = self.wsgi(environ, resp.start_response)
+2026-01-26T12:05:15.956566834Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956570024Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 1536, in __call__
+2026-01-26T12:05:15.956572714Z     return self.wsgi_app(environ, start_response)
+2026-01-26T12:05:15.956575135Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956577575Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+2026-01-26T12:05:15.956580175Z     response = self.full_dispatch_request()
+2026-01-26T12:05:15.956582605Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956585375Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+2026-01-26T12:05:15.956588405Z     rv = self.dispatch_request()
+2026-01-26T12:05:15.956590806Z          ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956593276Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+2026-01-26T12:05:15.956595786Z     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+2026-01-26T12:05:15.956599246Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956603126Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+2026-01-26T12:05:15.956605837Z     return current_app.ensure_sync(func)(*args, **kwargs)
+2026-01-26T12:05:15.956608677Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956611507Z   File "/opt/render/project/src/app.py", line 396, in wrapper
+2026-01-26T12:05:15.956614067Z     return func(*args, **kwargs)
+2026-01-26T12:05:15.956616398Z            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956618988Z   File "/opt/render/project/src/app.py", line 1203, in asignar_estados
+2026-01-26T12:05:15.956621538Z     events_collection.delete_many(query_filter)
+2026-01-26T12:05:15.956624268Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1711, in delete_many
+2026-01-26T12:05:15.956626808Z     self._delete_retryable(
+2026-01-26T12:05:15.956630288Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1587, in _delete_retryable
+2026-01-26T12:05:15.956632749Z     return self._database.client._retryable_write(
+2026-01-26T12:05:15.956635269Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956637679Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+2026-01-26T12:05:15.956640379Z     return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+2026-01-26T12:05:15.95664306Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.9566457Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+2026-01-26T12:05:15.95664832Z     return self._retry_internal(
+2026-01-26T12:05:15.95665076Z            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.95665327Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+2026-01-26T12:05:15.95665545Z     return func(self, *args, **kwargs)
+2026-01-26T12:05:15.956657681Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956666151Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+2026-01-26T12:05:15.956668801Z     ).run()
+2026-01-26T12:05:15.956671562Z       ^^^^^
+2026-01-26T12:05:15.956674332Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+2026-01-26T12:05:15.956677022Z     return self._read() if self._is_read else self._write()
+2026-01-26T12:05:15.956679752Z                                               ^^^^^^^^^^^^^
+2026-01-26T12:05:15.956682382Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2895, in _write
+2026-01-26T12:05:15.956685003Z     return self._func(self._session, conn, self._retryable)  # type: ignore
+2026-01-26T12:05:15.956687653Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956690323Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1572, in _delete
+2026-01-26T12:05:15.956693463Z     return self._delete(
+2026-01-26T12:05:15.956696363Z            ^^^^^^^^^^^^^
+2026-01-26T12:05:15.956700704Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1542, in _delete
+2026-01-26T12:05:15.956703544Z     result = conn.command(
+2026-01-26T12:05:15.956705974Z              ^^^^^^^^^^^^^
+2026-01-26T12:05:15.956720965Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/helpers.py", line 47, in inner
+2026-01-26T12:05:15.956723715Z     return func(*args, **kwargs)
+2026-01-26T12:05:15.956726546Z            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956729056Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/pool.py", line 426, in command
+2026-01-26T12:05:15.956731536Z     self._raise_connection_failure(error)
+2026-01-26T12:05:15.956734276Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/pool.py", line 398, in command
+2026-01-26T12:05:15.956736866Z     return command(
+2026-01-26T12:05:15.956739247Z            ^^^^^^^^
+2026-01-26T12:05:15.956741687Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/network.py", line 198, in command
+2026-01-26T12:05:15.956744207Z     reply = receive_message(conn, request_id)
+2026-01-26T12:05:15.956746767Z             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956749257Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/network_layer.py", line 759, in receive_message
+2026-01-26T12:05:15.956751788Z     length, _, response_to, op_code = _UNPACK_HEADER(receive_data(conn, 16, deadline))
+2026-01-26T12:05:15.956754258Z                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956756998Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/network_layer.py", line 353, in receive_data
+2026-01-26T12:05:15.956759448Z     chunk_length = conn.conn.recv_into(mv[bytes_read:])
+2026-01-26T12:05:15.956762038Z                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956764878Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/network_layer.py", line 469, in recv_into
+2026-01-26T12:05:15.956767459Z     return self.conn.recv_into(buffer)
+2026-01-26T12:05:15.956769809Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956772309Z   File "/opt/render/project/python/Python-3.11.11/lib/python3.11/ssl.py", line 1314, in recv_into
+2026-01-26T12:05:15.956774839Z     return self.read(nbytes, buffer)
+2026-01-26T12:05:15.95678447Z            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.95678633Z 127.0.0.1 - - [26/Jan/2026:12:05:15 +0000] "POST /admin/asignar-estados HTTP/1.1" 500 0 "-" "-"
+2026-01-26T12:05:15.95678764Z   File "/opt/render/project/python/Python-3.11.11/lib/python3.11/ssl.py", line 1166, in read
+2026-01-26T12:05:15.95679087Z     return self._sslobj.read(len, buffer)
+2026-01-26T12:05:15.95679356Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:15.956796251Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/gunicorn/workers/base.py", line 204, in handle_abort
+2026-01-26T12:05:15.956807652Z     sys.exit(1)
+2026-01-26T12:05:15.956811212Z SystemExit: 1
+2026-01-26T12:05:15.957023077Z [2026-01-26 12:05:15 +0000] [51] [INFO] Worker exiting (pid: 51)
+2026-01-26T12:05:16.967400787Z [2026-01-26 12:05:16 +0000] [36] [ERROR] Worker (pid:51) was sent SIGKILL! Perhaps out of memory?
+2026-01-26T12:05:17.06231713Z [2026-01-26 12:05:17 +0000] [59] [INFO] Booting worker with pid: 59
+2026-01-26T12:05:51.098486209Z [2026-01-26 12:05:51 +0000] [36] [CRITICAL] WORKER TIMEOUT (pid:59)
+2026-01-26T12:05:51.103526388Z 127.0.0.1 - - [26/Jan/2026:12:05:51 +0000] "POST /admin/asignar-estados HTTP/1.1" 500 0 "-" "-"
+2026-01-26T12:05:51.104329387Z [2026-01-26 12:05:51 +0000] [59] [ERROR] Error handling request /admin/asignar-estados
+2026-01-26T12:05:51.104341108Z Traceback (most recent call last):
+2026-01-26T12:05:51.10436652Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/gunicorn/workers/sync.py", line 134, in handle
+2026-01-26T12:05:51.1043725Z     self.handle_request(listener, req, client, addr)
+2026-01-26T12:05:51.10437714Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+2026-01-26T12:05:51.104381241Z     respiter = self.wsgi(environ, resp.start_response)
+2026-01-26T12:05:51.104385411Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104391212Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 1536, in __call__
+2026-01-26T12:05:51.104395382Z     return self.wsgi_app(environ, start_response)
+2026-01-26T12:05:51.104400172Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104404702Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+2026-01-26T12:05:51.104410103Z     response = self.full_dispatch_request()
+2026-01-26T12:05:51.104414263Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104418363Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+2026-01-26T12:05:51.104423764Z     rv = self.dispatch_request()
+2026-01-26T12:05:51.104427954Z          ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104432355Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+2026-01-26T12:05:51.104436585Z     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+2026-01-26T12:05:51.104441225Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104445135Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+2026-01-26T12:05:51.104449286Z     return current_app.ensure_sync(func)(*args, **kwargs)
+2026-01-26T12:05:51.104453246Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104457376Z   File "/opt/render/project/src/app.py", line 396, in wrapper
+2026-01-26T12:05:51.104476928Z     return func(*args, **kwargs)
+2026-01-26T12:05:51.104481528Z            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104495519Z   File "/opt/render/project/src/app.py", line 1209, in asignar_estados
+2026-01-26T12:05:51.104498669Z     events_collection.delete_many(query_filter)
+2026-01-26T12:05:51.10450138Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1711, in delete_many
+2026-01-26T12:05:51.10450406Z     self._delete_retryable(
+2026-01-26T12:05:51.10450818Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1587, in _delete_retryable
+2026-01-26T12:05:51.10451111Z     return self._database.client._retryable_write(
+2026-01-26T12:05:51.10451372Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.10451625Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+2026-01-26T12:05:51.104519131Z     return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+2026-01-26T12:05:51.104521511Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104524041Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+2026-01-26T12:05:51.104526651Z     return self._retry_internal(
+2026-01-26T12:05:51.104529222Z            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104531822Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+2026-01-26T12:05:51.104534192Z     return func(self, *args, **kwargs)
+2026-01-26T12:05:51.104536582Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104539262Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+2026-01-26T12:05:51.104541692Z     ).run()
+2026-01-26T12:05:51.104544293Z       ^^^^^
+2026-01-26T12:05:51.104546943Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+2026-01-26T12:05:51.104549533Z     return self._read() if self._is_read else self._write()
+2026-01-26T12:05:51.104552073Z                                               ^^^^^^^^^^^^^
+2026-01-26T12:05:51.104554653Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2895, in _write
+2026-01-26T12:05:51.104557133Z     return self._func(self._session, conn, self._retryable)  # type: ignore
+2026-01-26T12:05:51.104559834Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104562434Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1572, in _delete
+2026-01-26T12:05:51.104565604Z     return self._delete(
+2026-01-26T12:05:51.104568174Z            ^^^^^^^^^^^^^
+2026-01-26T12:05:51.104570894Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1542, in _delete
+2026-01-26T12:05:51.104573625Z     result = conn.command(
+2026-01-26T12:05:51.104576045Z              ^^^^^^^^^^^^^
+2026-01-26T12:05:51.104587166Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/helpers.py", line 47, in inner
+2026-01-26T12:05:51.104589966Z     return func(*args, **kwargs)
+2026-01-26T12:05:51.104592496Z            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104595216Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/pool.py", line 426, in command
+2026-01-26T12:05:51.104597707Z     self._raise_connection_failure(error)
+2026-01-26T12:05:51.104600207Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/pool.py", line 398, in command
+2026-01-26T12:05:51.104607577Z     return command(
+2026-01-26T12:05:51.104610277Z            ^^^^^^^^
+2026-01-26T12:05:51.104613128Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/network.py", line 198, in command
+2026-01-26T12:05:51.104615948Z     reply = receive_message(conn, request_id)
+2026-01-26T12:05:51.104618478Z             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104620958Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/network_layer.py", line 759, in receive_message
+2026-01-26T12:05:51.104623549Z     length, _, response_to, op_code = _UNPACK_HEADER(receive_data(conn, 16, deadline))
+2026-01-26T12:05:51.104626079Z                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104628569Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/network_layer.py", line 353, in receive_data
+2026-01-26T12:05:51.104631259Z     chunk_length = conn.conn.recv_into(mv[bytes_read:])
+2026-01-26T12:05:51.104633719Z                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104636509Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/network_layer.py", line 469, in recv_into
+2026-01-26T12:05:51.10463909Z     return self.conn.recv_into(buffer)
+2026-01-26T12:05:51.10464162Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.10464427Z   File "/opt/render/project/python/Python-3.11.11/lib/python3.11/ssl.py", line 1314, in recv_into
+2026-01-26T12:05:51.10464682Z     return self.read(nbytes, buffer)
+2026-01-26T12:05:51.10464938Z            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104651951Z   File "/opt/render/project/python/Python-3.11.11/lib/python3.11/ssl.py", line 1166, in read
+2026-01-26T12:05:51.104654571Z     return self._sslobj.read(len, buffer)
+2026-01-26T12:05:51.104657231Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:05:51.104659821Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/gunicorn/workers/base.py", line 204, in handle_abort
+2026-01-26T12:05:51.104662371Z     sys.exit(1)
+2026-01-26T12:05:51.104664941Z SystemExit: 1
+2026-01-26T12:05:51.104671642Z [2026-01-26 12:05:51 +0000] [59] [INFO] Worker exiting (pid: 59)
+2026-01-26T12:05:52.176272586Z [2026-01-26 12:05:52 +0000] [36] [ERROR] Worker (pid:59) was sent SIGKILL! Perhaps out of memory?
+2026-01-26T12:05:52.270003272Z [2026-01-26 12:05:52 +0000] [67] [INFO] Booting worker with pid: 67
+2026-01-26T12:06:05.867429425Z 127.0.0.1 - - [26/Jan/2026:12:06:05 +0000] "GET /calendar HTTP/1.1" 200 34524 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:06.034104547Z 127.0.0.1 - - [26/Jan/2026:12:06:06 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:10.662434544Z 🔄 Generando datos frescos para: []_todos_todos_|anon=0
+2026-01-26T12:06:10.662452276Z 127.0.0.1 - - [26/Jan/2026:12:06:10 +0000] "GET /api/events? HTTP/1.1" 200 6556039 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:10.672035226Z 127.0.0.1 - - [26/Jan/2026:12:06:10 +0000] "GET /admin/view_roster_select HTTP/1.1" 200 8908 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:10.825973486Z 127.0.0.1 - - [26/Jan/2026:12:06:10 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/view_roster_select" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:13.369975525Z 127.0.0.1 - - [26/Jan/2026:12:06:13 +0000] "POST /admin/view_roster HTTP/1.1" 200 128503 "https://calendario-1.onrender.com/admin/view_roster_select" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:13.550282484Z 127.0.0.1 - - [26/Jan/2026:12:06:13 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/view_roster" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:21.578137559Z 127.0.0.1 - - [26/Jan/2026:12:06:21 +0000] "GET /admin/view_roster_select HTTP/1.1" 200 8908 "https://calendario-1.onrender.com/admin/view_roster" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:21.748125283Z 127.0.0.1 - - [26/Jan/2026:12:06:21 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/view_roster_select" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:31.740167326Z 127.0.0.1 - - [26/Jan/2026:12:06:31 +0000] "GET /calendar HTTP/1.1" 200 34524 "https://calendario-1.onrender.com/admin/view_roster_select" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:31.934809982Z 127.0.0.1 - - [26/Jan/2026:12:06:31 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:32.868525956Z 🚀 Sirviendo desde caché: []_todos_todos_|anon=0
+2026-01-26T12:06:32.868549548Z 127.0.0.1 - - [26/Jan/2026:12:06:32 +0000] "GET /api/events? HTTP/1.1" 200 6556039 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:37.167820963Z 127.0.0.1 - - [26/Jan/2026:12:06:37 +0000] "GET /admin/users HTTP/1.1" 200 33671 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:37.372119285Z 127.0.0.1 - - [26/Jan/2026:12:06:37 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:40.054099539Z 127.0.0.1 - - [26/Jan/2026:12:06:40 +0000] "GET /calendar HTTP/1.1" 200 34524 "https://calendario-1.onrender.com/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:40.214428815Z 127.0.0.1 - - [26/Jan/2026:12:06:40 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:41.175124351Z 🚀 Sirviendo desde caché: []_todos_todos_|anon=0
+2026-01-26T12:06:41.175156094Z 127.0.0.1 - - [26/Jan/2026:12:06:41 +0000] "GET /api/events? HTTP/1.1" 200 6556039 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:44.252088532Z 127.0.0.1 - - [26/Jan/2026:12:06:44 +0000] "GET /admin/asignar-estados HTTP/1.1" 200 52651 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:44.452499481Z 127.0.0.1 - - [26/Jan/2026:12:06:44 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:06:44.466606082Z 127.0.0.1 - - [26/Jan/2026:12:06:44 +0000] "GET /static/js/range-calendar.js HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:07:39.530109748Z 127.0.0.1 - - [26/Jan/2026:12:07:39 +0000] "POST /admin/asignar-estados HTTP/1.1" 500 0 "-" "-"
+2026-01-26T12:07:39.530345515Z [2026-01-26 12:07:39 +0000] [36] [CRITICAL] WORKER TIMEOUT (pid:67)
+2026-01-26T12:07:39.548500433Z [2026-01-26 12:07:39 +0000] [67] [ERROR] Error handling request /admin/asignar-estados
+2026-01-26T12:07:39.548507753Z Traceback (most recent call last):
+2026-01-26T12:07:39.548512554Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/gunicorn/workers/sync.py", line 134, in handle
+2026-01-26T12:07:39.548516844Z     self.handle_request(listener, req, client, addr)
+2026-01-26T12:07:39.548520714Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+2026-01-26T12:07:39.548524395Z     respiter = self.wsgi(environ, resp.start_response)
+2026-01-26T12:07:39.548528045Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548532035Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 1536, in __call__
+2026-01-26T12:07:39.548535855Z     return self.wsgi_app(environ, start_response)
+2026-01-26T12:07:39.548539676Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548543736Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+2026-01-26T12:07:39.548547596Z     response = self.full_dispatch_request()
+2026-01-26T12:07:39.548551406Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548555297Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+2026-01-26T12:07:39.548559357Z     rv = self.dispatch_request()
+2026-01-26T12:07:39.548562907Z          ^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548566678Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+2026-01-26T12:07:39.548570388Z     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+2026-01-26T12:07:39.548574648Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548578478Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+2026-01-26T12:07:39.548582179Z     return current_app.ensure_sync(func)(*args, **kwargs)
+2026-01-26T12:07:39.548585949Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548589589Z   File "/opt/render/project/src/app.py", line 396, in wrapper
+2026-01-26T12:07:39.54859326Z     return func(*args, **kwargs)
+2026-01-26T12:07:39.54859694Z            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.54860104Z   File "/opt/render/project/src/app.py", line 1203, in asignar_estados
+2026-01-26T12:07:39.54860506Z     events_collection.delete_many(query_filter)
+2026-01-26T12:07:39.548608841Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1711, in delete_many
+2026-01-26T12:07:39.548623512Z     self._delete_retryable(
+2026-01-26T12:07:39.548626752Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1587, in _delete_retryable
+2026-01-26T12:07:39.548628902Z     return self._database.client._retryable_write(
+2026-01-26T12:07:39.548631212Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548633342Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2083, in _retryable_write
+2026-01-26T12:07:39.548635963Z     return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+2026-01-26T12:07:39.548638223Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548642193Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 1968, in _retry_with_session
+2026-01-26T12:07:39.548644443Z     return self._retry_internal(
+2026-01-26T12:07:39.548646773Z            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548649064Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/_csot.py", line 125, in csot_wrapper
+2026-01-26T12:07:39.548651384Z     return func(self, *args, **kwargs)
+2026-01-26T12:07:39.548653484Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548655654Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2014, in _retry_internal
+2026-01-26T12:07:39.548657994Z     ).run()
+2026-01-26T12:07:39.548660424Z       ^^^^^
+2026-01-26T12:07:39.548662654Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2763, in run
+2026-01-26T12:07:39.548664985Z     return self._read() if self._is_read else self._write()
+2026-01-26T12:07:39.548667195Z                                               ^^^^^^^^^^^^^
+2026-01-26T12:07:39.548669435Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/mongo_client.py", line 2895, in _write
+2026-01-26T12:07:39.548671705Z     return self._func(self._session, conn, self._retryable)  # type: ignore
+2026-01-26T12:07:39.548673855Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548678156Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1572, in _delete
+2026-01-26T12:07:39.548680906Z     return self._delete(
+2026-01-26T12:07:39.548683346Z            ^^^^^^^^^^^^^
+2026-01-26T12:07:39.548685746Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/collection.py", line 1542, in _delete
+2026-01-26T12:07:39.548687906Z     result = conn.command(
+2026-01-26T12:07:39.548690116Z              ^^^^^^^^^^^^^
+2026-01-26T12:07:39.548704517Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/helpers.py", line 47, in inner
+2026-01-26T12:07:39.548707108Z     return func(*args, **kwargs)
+2026-01-26T12:07:39.548709428Z            ^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548711698Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/pool.py", line 426, in command
+2026-01-26T12:07:39.548713948Z     self._raise_connection_failure(error)
+2026-01-26T12:07:39.548716238Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/pool.py", line 398, in command
+2026-01-26T12:07:39.548718579Z     return command(
+2026-01-26T12:07:39.548720759Z            ^^^^^^^^
+2026-01-26T12:07:39.548722869Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/synchronous/network.py", line 198, in command
+2026-01-26T12:07:39.548730359Z     reply = receive_message(conn, request_id)
+2026-01-26T12:07:39.54873284Z             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.54873538Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/network_layer.py", line 759, in receive_message
+2026-01-26T12:07:39.54873771Z     length, _, response_to, op_code = _UNPACK_HEADER(receive_data(conn, 16, deadline))
+2026-01-26T12:07:39.54874003Z                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.54874228Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/network_layer.py", line 353, in receive_data
+2026-01-26T12:07:39.548744431Z     chunk_length = conn.conn.recv_into(mv[bytes_read:])
+2026-01-26T12:07:39.548746661Z                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548748971Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/pymongo/network_layer.py", line 469, in recv_into
+2026-01-26T12:07:39.548751281Z     return self.conn.recv_into(buffer)
+2026-01-26T12:07:39.548753521Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548755911Z   File "/opt/render/project/python/Python-3.11.11/lib/python3.11/ssl.py", line 1314, in recv_into
+2026-01-26T12:07:39.548758201Z     return self.read(nbytes, buffer)
+2026-01-26T12:07:39.548760492Z            ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548762642Z   File "/opt/render/project/python/Python-3.11.11/lib/python3.11/ssl.py", line 1166, in read
+2026-01-26T12:07:39.548764832Z     return self._sslobj.read(len, buffer)
+2026-01-26T12:07:39.548775583Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-26T12:07:39.548778013Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/gunicorn/workers/base.py", line 204, in handle_abort
+2026-01-26T12:07:39.548780283Z     sys.exit(1)
+2026-01-26T12:07:39.548782503Z SystemExit: 1
+2026-01-26T12:07:39.548784774Z [2026-01-26 12:07:39 +0000] [67] [INFO] Worker exiting (pid: 67)
+2026-01-26T12:07:40.665504304Z [2026-01-26 12:07:40 +0000] [36] [ERROR] Worker (pid:67) was sent SIGKILL! Perhaps out of memory?
+2026-01-26T12:07:40.763520742Z [2026-01-26 12:07:40 +0000] [75] [INFO] Booting worker with pid: 75
+2026-01-26T12:07:55.475251097Z 127.0.0.1 - - [26/Jan/2026:12:07:55 +0000] "GET /admin/skills HTTP/1.1" 200 153989 "https://calendario-1.onrender.com/admin/skills" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:08:05.401640122Z 127.0.0.1 - - [26/Jan/2026:12:08:05 +0000] "POST /admin/skills HTTP/1.1" 302 213 "https://calendario-1.onrender.com/admin/skills" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:08:05.518082297Z 127.0.0.1 - - [26/Jan/2026:12:08:05 +0000] "GET /admin/skills HTTP/1.1" 200 153989 "https://calendario-1.onrender.com/admin/skills" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:08:05.700779598Z 127.0.0.1 - - [26/Jan/2026:12:08:05 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/skills" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:08:14.367031927Z 127.0.0.1 - - [26/Jan/2026:12:08:14 +0000] "GET /admin/users HTTP/1.1" 200 33671 "https://calendario-1.onrender.com/admin/skills" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:08:14.559028178Z 127.0.0.1 - - [26/Jan/2026:12:08:14 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:08:17.185682875Z 127.0.0.1 - - [26/Jan/2026:12:08:17 +0000] "GET /calendar HTTP/1.1" 200 34524 "https://calendario-1.onrender.com/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:08:17.36515666Z 127.0.0.1 - - [26/Jan/2026:12:08:17 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:08:22.887441472Z 🔄 Generando datos frescos para: []_todos_todos_|anon=0
+2026-01-26T12:08:22.887461534Z 127.0.0.1 - - [26/Jan/2026:12:08:22 +0000] "GET /api/events? HTTP/1.1" 200 6556039 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:08:22.897093278Z 127.0.0.1 - - [26/Jan/2026:12:08:22 +0000] "GET /calendar HTTP/1.1" 302 233 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:08:23.113123216Z 127.0.0.1 - - [26/Jan/2026:12:08:23 +0000] "GET /login?next=%2Fcalendar HTTP/1.1" 200 938 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:08:23.435922282Z 127.0.0.1 - - [26/Jan/2026:12:08:23 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/login?next=%2Fcalendar" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:08:23.669439019Z 127.0.0.1 - - [26/Jan/2026:12:08:23 +0000] "GET /static/background.jpg HTTP/1.1" 200 0 "https://calendario-1.onrender.com/static/styles.css" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:08:23.686474675Z 127.0.0.1 - - [26/Jan/2026:12:08:23 +0000] "GET /favicon.ico HTTP/1.1" 404 207 "https://calendario-1.onrender.com/login?next=%2Fcalendar" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:08:26.765860197Z 🚀 Sirviendo desde caché: []_todos_todos_|anon=0
+2026-01-26T12:08:26.765880218Z 127.0.0.1 - - [26/Jan/2026:12:08:26 +0000] "GET /api/events? HTTP/1.1" 200 6556039 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:08:58.36255702Z 127.0.0.1 - - [26/Jan/2026:12:08:58 +0000] "POST /login HTTP/1.1" 302 207 "https://calendario-1.onrender.com/login?next=%2Fcalendar" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:08:58.508599349Z 127.0.0.1 - - [26/Jan/2026:12:08:58 +0000] "GET /dashboard HTTP/1.1" 200 957 "https://calendario-1.onrender.com/login?next=%2Fcalendar" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:08:58.668138325Z 127.0.0.1 - - [26/Jan/2026:12:08:58 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/dashboard" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:09:02.802507921Z 127.0.0.1 - - [26/Jan/2026:12:09:02 +0000] "GET /calendar HTTP/1.1" 200 34528 "https://calendario-1.onrender.com/dashboard" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:09:03.021004288Z 127.0.0.1 - - [26/Jan/2026:12:09:03 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:09:03.969749225Z 🚀 Sirviendo desde caché: []_todos_todos_|anon=0
+2026-01-26T12:09:03.969765716Z 127.0.0.1 - - [26/Jan/2026:12:09:03 +0000] "GET /api/events? HTTP/1.1" 200 6556039 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+2026-01-26T12:09:44.488962827Z 127.0.0.1 - - [26/Jan/2026:12:09:44 +0000] "GET /admin/asignar-estados HTTP/1.1" 200 52651 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:09:44.693178679Z 127.0.0.1 - - [26/Jan/2026:12:09:44 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:09:44.694632455Z 127.0.0.1 - - [26/Jan/2026:12:09:44 +0000] "GET /static/js/range-calendar.js HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:09:56.246833846Z 127.0.0.1 - - [26/Jan/2026:12:09:56 +0000] "GET /admin/users HTTP/1.1" 200 33671 "https://calendario-1.onrender.com/admin/skills" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:09:56.40826705Z 127.0.0.1 - - [26/Jan/2026:12:09:56 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:09:59.191579832Z 127.0.0.1 - - [26/Jan/2026:12:09:59 +0000] "GET /calendar HTTP/1.1" 200 34524 "https://calendario-1.onrender.com/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:09:59.369719228Z 127.0.0.1 - - [26/Jan/2026:12:09:59 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:03.975295009Z 🔄 Generando datos frescos para: []_todos_todos_|anon=0
+2026-01-26T12:10:03.975665556Z 127.0.0.1 - - [26/Jan/2026:12:10:03 +0000] "GET /api/events? HTTP/1.1" 200 6556039 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:05.061918521Z 🚀 Sirviendo desde caché: []_todos_todos_|anon=0
+2026-01-26T12:10:05.061947583Z 127.0.0.1 - - [26/Jan/2026:12:10:05 +0000] "GET /api/events? HTTP/1.1" 200 6556039 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:17.017575935Z 127.0.0.1 - - [26/Jan/2026:12:10:17 +0000] "GET /calendar HTTP/1.1" 200 33125 "https://calendario-1.onrender.com/add-vacation" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:17.20734665Z 127.0.0.1 - - [26/Jan/2026:12:10:17 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:17.773901925Z 🚀 Sirviendo desde caché: []_todos_todos_|anon=0
+2026-01-26T12:10:17.773919856Z 127.0.0.1 - - [26/Jan/2026:12:10:17 +0000] "GET /api/events? HTTP/1.1" 200 6556039 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:24.674336258Z 🔄 Generando datos frescos para: []_todos_TS_|anon=0
+2026-01-26T12:10:24.674375071Z 127.0.0.1 - - [26/Jan/2026:12:10:24 +0000] "GET /api/events?rol=TS HTTP/1.1" 200 5242660 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:26.178997692Z 🔄 Generando datos frescos para: []_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:10:26.179025494Z 127.0.0.1 - - [26/Jan/2026:12:10:26 +0000] "GET /api/events?persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 190598 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:37.023019213Z 🚀 Sirviendo desde caché: []_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:10:37.023068707Z 127.0.0.1 - - [26/Jan/2026:12:10:37 +0000] "GET /api/events?persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 190598 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:41.577735147Z 🚀 Sirviendo desde caché: []_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:10:41.577763229Z 127.0.0.1 - - [26/Jan/2026:12:10:41 +0000] "GET /api/events?persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 190598 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:47.534482276Z 🚀 Sirviendo desde caché: []_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:10:47.534503388Z 127.0.0.1 - - [26/Jan/2026:12:10:47 +0000] "GET /api/events?persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 190598 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:53.455625948Z 🚀 Sirviendo desde caché: []_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:10:53.4556479Z 127.0.0.1 - - [26/Jan/2026:12:10:53 +0000] "GET /api/events?persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 190598 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:10:59.937129596Z 🚀 Sirviendo desde caché: []_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:10:59.937149607Z 127.0.0.1 - - [26/Jan/2026:12:10:59 +0000] "GET /api/events?persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 190598 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:08.28157045Z 🔄 Generando datos frescos para: ['CADE 30']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:08.281590972Z 127.0.0.1 - - [26/Jan/2026:12:11:08 +0000] "GET /api/events?estados=CADE+30&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 20509 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:11.64318104Z 🚀 Sirviendo desde caché: ['CADE 30']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:11.643208492Z 127.0.0.1 - - [26/Jan/2026:12:11:11 +0000] "GET /api/events?estados=CADE+30&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 20509 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:15.040272913Z 🚀 Sirviendo desde caché: ['CADE 30']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:15.040291745Z 127.0.0.1 - - [26/Jan/2026:12:11:15 +0000] "GET /api/events?estados=CADE+30&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 20509 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:18.125425989Z 🚀 Sirviendo desde caché: ['CADE 30']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:18.125447291Z 127.0.0.1 - - [26/Jan/2026:12:11:18 +0000] "GET /api/events?estados=CADE+30&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 20509 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:21.502529128Z 🚀 Sirviendo desde caché: ['CADE 30']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:21.50255202Z 127.0.0.1 - - [26/Jan/2026:12:11:21 +0000] "GET /api/events?estados=CADE+30&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 20509 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:26.302833305Z 🚀 Sirviendo desde caché: ['CADE 30']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:26.302862977Z 127.0.0.1 - - [26/Jan/2026:12:11:26 +0000] "GET /api/events?estados=CADE+30&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 20509 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:31.073631622Z 🔄 Generando datos frescos para: []_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:31.073653534Z 127.0.0.1 - - [26/Jan/2026:12:11:31 +0000] "GET /api/events?persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 190598 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:31.666259628Z 🔄 Generando datos frescos para: ['CADE 50']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:31.66627916Z 127.0.0.1 - - [26/Jan/2026:12:11:31 +0000] "GET /api/events?estados=CADE+50&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 17363 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:35.475138609Z 🚀 Sirviendo desde caché: ['CADE 50']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:35.47515789Z 127.0.0.1 - - [26/Jan/2026:12:11:35 +0000] "GET /api/events?estados=CADE+50&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 17363 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:37.773793819Z 🚀 Sirviendo desde caché: ['CADE 50']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:37.77381612Z 127.0.0.1 - - [26/Jan/2026:12:11:37 +0000] "GET /api/events?estados=CADE+50&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 17363 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:41.36522338Z 🚀 Sirviendo desde caché: ['CADE 50']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:41.365247272Z 127.0.0.1 - - [26/Jan/2026:12:11:41 +0000] "GET /api/events?estados=CADE+50&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 17363 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:43.982671725Z 🚀 Sirviendo desde caché: ['CADE 50']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:43.982719408Z 127.0.0.1 - - [26/Jan/2026:12:11:43 +0000] "GET /api/events?estados=CADE+50&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 17363 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:46.789303579Z 🚀 Sirviendo desde caché: []_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:46.789327741Z 127.0.0.1 - - [26/Jan/2026:12:11:46 +0000] "GET /api/events?persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 190598 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:50.069240534Z 🔄 Generando datos frescos para: ['PIAS']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:50.069280747Z 127.0.0.1 - - [26/Jan/2026:12:11:50 +0000] "GET /api/events?estados=PIAS&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 166247 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:52.167951133Z 🔄 Generando datos frescos para: ['Ausente', 'PIAS']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:52.167988215Z 127.0.0.1 - - [26/Jan/2026:12:11:52 +0000] "GET /api/events?estados=PIAS&estados=Ausente&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 182461 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:54.867064024Z 🔄 Generando datos frescos para: ['Ausente', 'PIAS', 'Refuerzo Cade']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:54.867086596Z 127.0.0.1 - - [26/Jan/2026:12:11:54 +0000] "GET /api/events?estados=PIAS&estados=Ausente&estados=Refuerzo+Cade&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 182461 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:11:59.603667397Z 🚀 Sirviendo desde caché: ['Ausente', 'PIAS', 'Refuerzo Cade']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:11:59.603686969Z 127.0.0.1 - - [26/Jan/2026:12:11:59 +0000] "GET /api/events?estados=PIAS&estados=Ausente&estados=Refuerzo+Cade&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 182461 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:09.914571466Z 🗑️ Caché invalidado por modificación de datos
+2026-01-26T12:12:09.914592677Z 127.0.0.1 - - [26/Jan/2026:12:12:09 +0000] "POST /admin/asignar-estados HTTP/1.1" 302 231 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:10.068695093Z 🔄 Generando datos frescos para: ['Ausente', 'Mail', 'PIAS', 'Refuerzo Cade']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:12:10.068715834Z 127.0.0.1 - - [26/Jan/2026:12:12:10 +0000] "GET /api/events?estados=PIAS&estados=Ausente&estados=Refuerzo+Cade&estados=Mail&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 186709 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:10.263827308Z 🔄 Generando datos frescos para: ['Ausente', 'Mail', 'PIAS']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:12:10.263866601Z 127.0.0.1 - - [26/Jan/2026:12:12:10 +0000] "GET /api/events?estados=PIAS&estados=Ausente&estados=Mail&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 186709 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:10.374469416Z 🔄 Generando datos frescos para: ['Mail', 'PIAS']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:12:10.374496948Z 127.0.0.1 - - [26/Jan/2026:12:12:10 +0000] "GET /api/events?estados=PIAS&estados=Mail&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 170495 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:10.473526728Z 🔄 Generando datos frescos para: ['Mail']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:12:10.473547519Z 127.0.0.1 - - [26/Jan/2026:12:12:10 +0000] "GET /api/events?estados=Mail&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 21611 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:10.563186112Z 127.0.0.1 - - [26/Jan/2026:12:12:10 +0000] "GET /admin/asignar-estados HTTP/1.1" 200 52651 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:10.67970115Z 🚀 Sirviendo desde caché: ['Mail']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:12:10.679722292Z 127.0.0.1 - - [26/Jan/2026:12:12:10 +0000] "GET /api/events?estados=Mail&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 21611 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:10.747935368Z 127.0.0.1 - - [26/Jan/2026:12:12:10 +0000] "GET /static/js/range-calendar.js HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:10.880568654Z 127.0.0.1 - - [26/Jan/2026:12:12:10 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/admin/asignar-estados" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:11.007460781Z 127.0.0.1 - - [26/Jan/2026:12:12:11 +0000] "GET /static/background.jpg HTTP/1.1" 304 0 "https://calendario-1.onrender.com/static/styles.css" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:11.317463883Z 🚀 Sirviendo desde caché: ['Mail']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:12:11.317482444Z 127.0.0.1 - - [26/Jan/2026:12:12:11 +0000] "GET /api/events?estados=Mail&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 21611 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:12.040832304Z 🚀 Sirviendo desde caché: ['Mail']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:12:12.040850596Z 127.0.0.1 - - [26/Jan/2026:12:12:12 +0000] "GET /api/events?estados=Mail&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 21611 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:12.582152197Z 🚀 Sirviendo desde caché: ['Mail']_67b4c574b844e2340e055bc4_TS_|anon=0
+2026-01-26T12:12:12.582167008Z 127.0.0.1 - - [26/Jan/2026:12:12:12 +0000] "GET /api/events?estados=Mail&persona=67b4c574b844e2340e055bc4&rol=TS HTTP/1.1" 200 21611 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:14.550659483Z 127.0.0.1 - - [26/Jan/2026:12:12:14 +0000] "GET /calendar HTTP/1.1" 200 34524 "https://calendario-1.onrender.com/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:14.724994787Z 127.0.0.1 - - [26/Jan/2026:12:12:14 +0000] "GET /static/styles.css HTTP/1.1" 304 0 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:14.845598564Z 127.0.0.1 - - [26/Jan/2026:12:12:14 +0000] "GET /static/background.jpg HTTP/1.1" 304 0 "https://calendario-1.onrender.com/static/styles.css" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:20.162332336Z 🔄 Generando datos frescos para: []_todos_todos_|anon=0
+2026-01-26T12:12:20.162356717Z 127.0.0.1 - - [26/Jan/2026:12:12:20 +0000] "GET /api/events? HTTP/1.1" 200 6552761 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:21.472204711Z 🚀 Sirviendo desde caché: []_todos_todos_|anon=0
+2026-01-26T12:12:21.472227443Z 127.0.0.1 - - [26/Jan/2026:12:12:21 +0000] "GET /api/events? HTTP/1.1" 200 6552761 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-01-26T12:12:38.073557738Z 🚀 Sirviendo desde caché: []_todos_todos_|anon=0
+2026-01-26T12:12:38.073596081Z 127.0.0.1 - - [26/Jan/2026:12:12:38 +0000] "GET /api/events? HTTP/1.1" 200 6552761 "https://calendario-1.onrender.com/calendar" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"

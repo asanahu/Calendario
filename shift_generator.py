@@ -3,6 +3,7 @@ from datetime import timedelta, date
 from calendar import monthrange
 import random
 from collections import defaultdict, deque
+from bson import ObjectId
 
 # Importar referencias a la BD desde app (asumiendo que están inicializadas allí)
 # Si esto causa problemas de importación circular, moveremos la inicialización aquí.
@@ -603,6 +604,244 @@ class ShiftGenerator:
              
         if uid:
              self.current_week_roles[uid] = tipo
+
+    def save_results(self):
+        """Persiste los resultados a Mongo."""
+        if not self.generated_events:
+            return
+            
+        self.log(f"Saving {len(self.generated_events)} events to DB...")
+        # TODO: Borrar eventos generados previos si se re-ejecuta? 
+        # Por seguridad, el flujo debería ser: Preview en UI -> Confirmar -> Save.
+        # Aquí solo implemento la inserción.
+        if events_collection is not None:
+            events_collection.insert_many(self.generated_events)
+            self.log("Saved successfully.")
+
+    def repair_schedule(self, start_date_str, end_date_str, target_user_id):
+        """
+        Regenera turnos para UN usuario específico en un rango de fechas.
+        Maneja:
+            1. Eliminación de eventos previos del usuario.
+            2. Asignación forzosa de Roles Fijos (con desplazamiento de otros si hay overbooking).
+            3. Relleno de huecos (underbooking) generados por el cambio.
+        """
+        try:
+            start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            self.log(f"Error parsing dates: {start_date_str} - {end_date_str}")
+            return False
+
+        target_user = users_collection.find_one({"_id": ObjectId(target_user_id)})
+        if not target_user:
+            self.log(f"User not found: {target_user_id}")
+            return False
+        
+        full_name_target = f"{target_user.get('nombre', '')} {target_user.get('apellidos', '')}".strip()
+        self.log(f"Repairing schedule for {full_name_target} from {start_date_str} to {end_date_str}")
+        
+        summary_changes = []
+
+        # 1. DELETE TARGET USER EVENTS IN RANGE
+        delete_query = {
+            "trabajador": full_name_target,
+            "fecha_inicio": {"$gte": start_date_str, "$lte": end_date_str},
+            # Optional: Restrict types to avoid deleting vacations? 
+            # For "Regeneration", we assume we want to clear calculated shifts.
+            # Keeping "Vacaciones" safe usually.
+            "tipo": {"$nin": ["Vacaciones", "Baja", "Baja Médica", "Ausencia"]} 
+        }
+        delete_result = events_collection.delete_many(delete_query)
+        summary_changes.append(f"Eliminados {delete_result.deleted_count} eventos previos de {full_name_target}.")
+
+        # 2. LOAD CONTEXT (Just like Generate)
+        # Need to query day by day to fix deficits/surpluses
+        
+        # Pre-load annual balances for displacement fairness logic
+        # We'll use the year of the start_date (assuming mostly within same year)
+        # Or just use current counters if we had them. Since this is a new run, we fetch them.
+        year = start_date.year
+        # Exclude the repair range from history to avoid double counting the removed events? 
+        # Yes, passing the range to exclude.
+        self.fetch_data() # Load users
+        all_counts = self.get_annual_balance(year, start_date, end_date)
+        
+        # Mapping for counters
+        counts_map = {
+            "CADE 30": all_counts["CADE 30"],
+            "CADE 50": all_counts["CADE 50"],
+            "CADE Tardes": all_counts["CADE Tardes"],
+            "Refuerzo Cade": all_counts["Refuerzo Cade"],
+            "Mail": all_counts["Mail"]
+        }
+
+        curr = start_date
+        changes_made = []
+
+        while curr <= end_date:
+            day_str = curr.strftime("%Y-%m-%d")
+            if not es_dia_habil(curr):
+                curr += timedelta(days=1)
+                continue
+            
+            # Load events for this day
+            day_events = list(events_collection.find({"fecha_inicio": day_str, "fecha_fin": day_str}))
+            
+            # Counts for this day
+            type_counts = defaultdict(int)
+            users_with_event = {} # Name -> EventType
+            event_map = {} # Name -> EventID (for deletion)
+            
+            for e in day_events:
+                t = e["tipo"]
+                type_counts[t] += 1
+                users_with_event[e["trabajador"]] = t
+                event_map[e["trabajador"]] = e["_id"]
+
+            # --- STEP 1: FORCE FIXED ROLE ---
+            fixed_role = target_user.get("fixed_shift_role")
+            if fixed_role and isinstance(fixed_role, list): fixed_role = fixed_role[0] # Simplify
+            
+            if fixed_role and fixed_role != "PIAS":
+                # If user has a fixed role, we MUST assign it (if they don't have it already or Vacations)
+                # Check if user is absent (Vacations/Baja) - Is "Vacaciones" in DB?
+                # We didn't delete Vacaciones, so if it exists, `users_with_event` has it.
+                
+                current_status = users_with_event.get(full_name_target)
+                if current_status in ["Vacaciones", "Baja", "Baja Médica", "Ausencia"]:
+                    # User is absent, cannot force fixed role.
+                    curr += timedelta(days=1)
+                    continue
+                
+                # User is available (we deleted their other shifts). Assign Fixed Role.
+                self._insert_single_event(full_name_target, day_str, fixed_role)
+                type_counts[fixed_role] += 1
+                users_with_event[full_name_target] = fixed_role
+                msg = f"{day_str}: Asignado Rol Fijo '{fixed_role}' a {full_name_target}"
+                self.log(f"   [Repair] {msg}")
+                summary_changes.append(msg)
+
+            # --- STEP 2: HANDLE OVER-SUBSCRIPTION (DISPLACEMENT) ---
+            # Check all managed roles
+            managed_roles = {
+                "CADE 30": self.REQ_CADE_30,
+                "CADE 50": self.REQ_CADE_50,
+                "CADE Tardes": self.REQ_TARDES,
+                "Mail": self.REQ_MAIL
+            }
+            
+            for role, limit in managed_roles.items():
+                if type_counts[role] > limit:
+                    # We have too many! Need to remove someone.
+                    excess = type_counts[role] - limit
+                    self.log(f"   [Repair] {day_str}: Excess of {excess} in {role}. Displacing...")
+                    
+                    # Candidates to remove: Users having this role TODAY
+                    # EXCLUDING:
+                    # 1. The target_user (we just added them, or they have fixed role)
+                    # 2. Anyone else with a FIXED role for this type (don't break their fixed shift)
+                    # 3. Absences (shouldn't be here anyway)
+                    
+                    candidates_to_remove = []
+                    
+                    for u_name, u_role in users_with_event.items():
+                        if u_role == role:
+                            # Check if it's the target user
+                            if u_name == full_name_target:
+                                continue # Don't remove the one we just fixed!
+                            
+                            # Check if this user has this as a FIXED role
+                            # Need to match name to user object
+                            u_obj = next((u for u in self.users if f"{u.get('nombre','')} {u.get('apellidos','')}".strip() == u_name), None)
+                            if u_obj:
+                                u_fixed = u_obj.get("fixed_shift_role")
+                                if isinstance(u_fixed, list): u_fixed = u_fixed[0] if u_fixed else None
+                                if u_fixed == role:
+                                    continue # Protected by Fixed Role
+                                    
+                            candidates_to_remove.append(u_obj or u_name)
+
+                    # Sort candidates by Fairness (Highest Balance = Most likely to be removed)
+                    # If u is string (not found), put at end?
+                    def get_balance(u_input):
+                        if isinstance(u_input, str): return -1
+                        uid = str(u_input["_id"])
+                        return counts_map.get(role, defaultdict(int)).get(uid, 0)
+                    
+                    # Sort Descending (Highest count goes first)
+                    candidates_to_remove.sort(key=get_balance, reverse=True)
+                    
+                    for i in range(min(excess, len(candidates_to_remove))):
+                        victim = candidates_to_remove[i]
+                        v_name = f"{victim.get('nombre','')} {victim.get('apellidos','')}".strip() if isinstance(victim, dict) else victim
+                        
+                        # Delete event
+                        if v_name in event_map:
+                            events_collection.delete_one({"_id": event_map[v_name]})
+                            msg = f"{day_str}: Desplazado {v_name} de '{role}' para resolver exceso (Equidad Histórica)"
+                            self.log(f"   [Repair] {msg}")
+                            summary_changes.append(msg)
+                            type_counts[role] -= 1
+                            del users_with_event[v_name] # Now they are effectively PIAS/Available
+                            
+            # --- STEP 3: HANDLE UNDER-SUBSCRIPTION (GAP FILLING) ---
+            # Check deficits
+            for role, limit in managed_roles.items():
+                if type_counts[role] < limit:
+                    deficit = limit - type_counts[role]
+                    self.log(f"   [Repair] {day_str}: Deficit of {deficit} in {role}. Filling...")
+                    
+                    # Candidates: Everyone NOT assigned today (Available/PIAS)
+                    # Get all users
+                    avail_candidates = []
+                    for u in self.users:
+                        u_name = f"{u.get('nombre','')} {u.get('apellidos','')}".strip()
+                        if u_name not in users_with_event: # Is Available
+                            # Check Skill
+                            skills = u.get("skills", [])
+                            role_check = role
+                            if role == "CADE Tardes": role_check = "Tarde" # Map if needed, simplified
+                            # Assuming straightforward mapping or "can_do" logic
+                            # "CADE 30" needs "CADE 30" skill? Or just generic? 
+                            # Using previous generator logic: default to allow unless restricted?
+                            # Let's check skills if present.
+                            
+                            # Basic skill check (if skills populated)
+                            # 'Tarde' is the main strict one.
+                            if role == "CADE Tardes" and "Tarde" not in skills:
+                                continue
+                                
+                            avail_candidates.append(u)
+
+                    # Sort Candidates by Fairness (Lowest Balance = Priority)
+                    def get_balance_asc(u_input):
+                        uid = str(u_input["_id"])
+                        return counts_map.get(role, defaultdict(int)).get(uid, 0)
+                    
+                    avail_candidates.sort(key=get_balance_asc)
+                    
+                    # Take top needed
+                    for i in range(min(deficit, len(avail_candidates))):
+                        winner = avail_candidates[i]
+                        w_name = f"{winner.get('nombre','')} {winner.get('apellidos','')}".strip()
+                        self._insert_single_event(w_name, day_str, role)
+                        msg = f"{day_str}: Asignado {w_name} a '{role}' para cubrir hueco"
+                        self.log(f"   [Repair] {msg}")
+                        summary_changes.append(msg)
+                        users_with_event[w_name] = role # Mark assigned
+                        
+            curr += timedelta(days=1)
+            
+        return True, summary_changes
+
+    def _insert_single_event(self, worker_name, date_str, tipo):
+        events_collection.insert_one({
+            "trabajador": worker_name,
+            "fecha_inicio": date_str,
+            "fecha_fin": date_str,
+            "tipo": tipo
+        })
 
     def save_results(self):
         """Persiste los resultados a Mongo."""

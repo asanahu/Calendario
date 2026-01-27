@@ -10,6 +10,18 @@
 <body>
     <h1 class="page-title">Usuarios Registrados</h1>
 
+    <!-- Bloque para mostrar mensajes flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="flash-message {{ category }}"
+        style="padding: 10px; margin-bottom: 15px; border-radius: 5px; {% if category == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% elif category == 'danger' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
     <a href="/admin/add_user" class="add-user-button">➕ Añadir Usuario</a>
     <a href="{{ url_for('admin_skills') }}" class="add-user-button" style="background-color: #17a2b8;">🧠 Matriz de
         Habilidades (TS)</a>
@@ -34,17 +46,76 @@
             <td> <!-- 🔹 Acciones en una sola celda -->
                 <a href="/admin/user_vacations/{{ usuario._id }}">📅 Ver Vacaciones</a>
                 <a href="{{ url_for('edit_user', user_id=usuario._id) }}">✏️ Editar</a>
+                <button onclick="openRegenModal('{{ usuario._id }}', '{{ usuario.nombre }} {{ usuario.apellidos }}')"
+                    style="background-color: #ffc107; cursor: pointer;">🔄
+                    Regenerar Turnos</button>
                 <form method="POST" action="/admin/delete_user/{{ usuario._id }}" style="display:inline;">
                     <button type="submit"
                         onclick="return confirm('¿Seguro que deseas eliminar este usuario?\n\n⚠️ ESTO ELIMINARÁ TAMBIÉN TODOS SUS ESTADOS ASIGNADOS EN EL CALENDARIO.');">❌
                         Eliminar</button>
                 </form>
-
             </td>
         </tr>
         {% endfor %}
     </table>
 
+    <!-- Modal para Regenerar Turnos -->
+    <div id="regenModal" class="modal"
+        style="display:none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-content"
+            style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 400px; text-align: center;">
+            <span class="close" onclick="closeRegenModal()"
+                style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            <h2>Regenerar Turnos</h2>
+            <p>Usuario: <span id="regenUserName" style="font-weight: bold;"></span></p>
+            <p style="font-size: 0.9em; color: #555;">Esto eliminará los turnos actuales del usuario (excepto
+                vacaciones/bajas) en el rango seleccionado y los reasignará según sus nuevas skills/rol, rellenando
+                huecos con disponibles.</p>
+
+            <form action="{{ url_for('regenerate_user_shifts') }}" method="POST">
+                <input type="hidden" id="regenUserId" name="user_id">
+
+                <label for="start_date">Desde:</label>
+                <input type="date" id="start_date" name="start_date" required><br><br>
+
+                <label for="end_date">Hasta:</label>
+                <input type="date" id="end_date" name="end_date" required><br><br>
+
+                <button type="submit" class="add-user-button">Confirmar Regeneración</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openRegenModal(userId, userName) {
+            document.getElementById('regenModal').style.display = "block";
+            document.getElementById('regenUserId').value = userId;
+            document.getElementById('regenUserName').innerText = userName;
+
+            // Set defaults to next month? Or current? Let's assume current month range by default or empty.
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const firstDay = `${yyyy}-${mm}-01`;
+            // Last day of current month
+            const lastDayDate = new Date(yyyy, today.getMonth() + 1, 0);
+            const lastDay = `${yyyy}-${mm}-${String(lastDayDate.getDate()).padStart(2, '0')}`;
+
+            document.getElementById('start_date').value = firstDay;
+            document.getElementById('end_date').value = lastDay;
+        }
+
+        function closeRegenModal() {
+            document.getElementById('regenModal').style.display = "none";
+        }
+
+        // Close when clicking outside
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('regenModal')) {
+                closeRegenModal();
+            }
+        }
+    </script>
 
     <br>
     <a href="/calendar">⬅️ Volver al Calendario</a>

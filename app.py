@@ -183,9 +183,10 @@ FESTIVOS = {
     "2025-11-01", "2025-12-06", "2025-12-08", "2025-12-25", "2026-01-01",
     "2025-04-17", "2025-04-18", "2025-12-24", "2025-12-31",
     # Festivos 2026
-    "2026-01-01", "2026-01-06", "2026-01-29", "2026-03-05", "2026-04-23", 
-    "2026-05-01", "2026-08-15", "2026-10-12", "2026-11-02", "2026-12-07", 
-    "2026-12-08", "2026-12-25", "2026-12-24", "2026-12-31",
+    "2026-01-01", "2026-01-06", "2026-01-29", "2026-03-05", "2026-04-02",
+    "2026-04-03", "2026-04-23", "2026-05-01", "2026-08-15", "2026-10-12", 
+    "2026-11-02", "2026-12-07", "2026-12-08", "2026-12-25", "2026-12-24", 
+    "2026-12-31",
     # Festivos 2027 (para futuro)
     "2027-01-01", "2027-01-06", "2027-01-29", "2027-03-05", "2027-04-23",
     "2027-05-01", "2027-08-16", "2027-10-12", "2027-11-01", "2027-12-06", 
@@ -1178,6 +1179,19 @@ def asignar_estados():
 
         trabajadores = list(users_collection.find())
         
+        # Pre-calcular días hábiles y totales en el rango
+        dias_rango = []
+        dias_habiles = []
+        current_day = fecha_inicio_dt
+        while current_day <= fecha_fin_dt:
+            dias_rango.append(current_day.strftime("%Y-%m-%d"))
+            if es_dia_habil(current_day):
+                dias_habiles.append(current_day.strftime("%Y-%m-%d"))
+            current_day += timedelta(days=1)
+        
+        # Tipos de eventos a limpiar
+        tipos_a_limpiar = ["Baja", "Baja Médica", "Ausencia", "CADE 30", "CADE 50", "CADE Tardes", "Guardia CADE", "Refuerzo Cade", "Mail", "PIAS"]
+
         for trabajador in trabajadores:
             estado = request.form.get(f"tipo_{trabajador['_id']}")
             if not estado:
@@ -1185,42 +1199,35 @@ def asignar_estados():
 
             nombre_completo = f"{trabajador['nombre']} {trabajador['apellidos']}"
 
-            # Iterar por cada día del rango
-            current_day = fecha_inicio_dt
-            while current_day <= fecha_fin_dt:
-                day_str = current_day.strftime("%Y-%m-%d")
-
-                query_filter = {
-                    "trabajador": nombre_completo,
-                    "fecha_inicio": day_str,
-                    "fecha_fin": day_str,
-                    "tipo": {"$in": ["Baja", "Baja Médica", "Ausencia", "CADE 30", "CADE 50", "CADE Tardes", "Guardia CADE", "Refuerzo Cade", "Mail", "PIAS"]}
-                }
-
-                # Saltar fines de semana y festivos, pero permitir limpieza de eventos si se selecciona "normal"
-                if not es_dia_habil(current_day):
-                    if estado == "normal":
-                        events_collection.delete_many(query_filter)
-                    current_day += timedelta(days=1)
-                    continue
-
-                if estado == "normal":
-                    # Intentamos eliminar los eventos especiales para este trabajador y este rango
-                    events_collection.delete_many(query_filter)
-                else:
-                    # Primero eliminamos cualquier evento previo especial en ese rango (para evitar duplicados)
-                    events_collection.delete_many(query_filter)
-                    # Luego insertamos el nuevo evento
-                    nuevo_evento = {
+            if estado == "normal":
+                # Si es normal, borramos eventos de los tipos especiales en TOOOODO el rango (hábiles y no hábiles)
+                if dias_rango:
+                    events_collection.delete_many({
                         "trabajador": nombre_completo,
-                        "fecha_inicio": day_str,
-                        "fecha_fin": day_str,
-                        "tipo": estado
-                    }
-                    events_collection.insert_one(nuevo_evento)
+                        "fecha_inicio": {"$in": dias_rango},
+                        "tipo": {"$in": tipos_a_limpiar}
+                    })
+            else:
+                # Si es un estado especial (Vacaciones, etc), solo afectamos días hábiles
+                if dias_habiles:
+                    # 1. Borrar conflictos en días hábiles
+                    events_collection.delete_many({
+                        "trabajador": nombre_completo,
+                        "fecha_inicio": {"$in": dias_habiles},
+                        "tipo": {"$in": tipos_a_limpiar}
+                    })
                     
-                current_day += timedelta(days=1)
-            
+                    # 2. Insertar nuevos eventos en bloque
+                    nuevos_eventos = [{
+                        "trabajador": nombre_completo,
+                        "fecha_inicio": dia,
+                        "fecha_fin": dia,
+                        "tipo": estado
+                    } for dia in dias_habiles]
+                    
+                    if nuevos_eventos:
+                        events_collection.insert_many(nuevos_eventos)
+
         invalidate_cache()  # Invalidar caché al asignar estados masivos
         return redirect(url_for('asignar_estados'))
     else:
@@ -1671,6 +1678,66 @@ def dashboard_metrics():
         puesto=puesto,
         hide_real_names=demo_mode
     )
+
+@app.route('/admin/regenerate_user_shifts', methods=['POST'])
+@login_required
+@admin_required
+def regenerate_user_shifts():
+    """
+    Recalcula los turnos de UN usuario para un rango de fechas.
+    Útil cuando cambian sus skills o rol fijo.
+    """
+    user_id = request.form.get('user_id')
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+
+    if not user_id or not start_date or not end_date:
+        flash("Faltan parámetros", "danger")
+        return redirect(url_for('admin_users'))
+
+    try:
+        from shift_generator import ShiftGenerator
+        generator = ShiftGenerator(debug=True)
+        # No fetch_data call here? repair_schedule calls fetch_data itself.
+        
+        success, summary_list = generator.repair_schedule(start_date, end_date, user_id)
+        generator.save_results() # Save the changes (deletions and insertions)
+        
+        if success:
+            invalidate_cache()
+            
+            # Format detailed message
+            if summary_list:
+                msg_html = "Turnos regenerados correctamente. Resumen:<br>" + "<br>".join(summary_list)
+                flash(msg_html, "success_html") # Custom category for safe rendering if template supports it, or use normal "success" but need 'safe' filter
+                # If template doesn't check specific category, we pass it as "success" but maybe formatted?
+                # For standard usage without changing template too much, let's use "success" and hope for best or just use newlines.
+                # Flash messages in many templates are auto-escaped. 
+                # Let's try to be safe: If I cannot touch layout easily, I might use a long string.
+                # But <br> will escape to &lt;br&gt;. 
+                # Let's try rendering with 'Markup' if available or just use newlines and rely on browser or logging.
+                # Simpler: Just flash the COUNT and ask to check logs, OR flash the list via session/template.
+                # Given user prompt, I will assume flash messages might support 'safe' OR I will edit Admin Users template to render it.
+                # Let's just flash it as a string with newlines for now.
+                # Actually, standard Flask flash messages are usually iterated. 
+                # Let's use a simpler approach: Just flash a few key items or "See logs". 
+                # BETTER: Just flash it. If it looks raw, I fix template.
+                # But wait, user asked "Me dará un resumen?". This implies VISIBILITY.
+                # I will store it in 'flash' and ensure 'admin_users' can render HTML in flash or use 'safe'.
+                # Let's pass it via Markup.
+                from markupsafe import Markup
+                flash(Markup(msg_html), "success")
+            else:
+                flash("Turnos regenerados. No hubo cambios necesarios.", "success")
+        else:
+            flash("Error al regenerar turnos. Revisa los logs.", "danger")
+
+    except Exception as e:
+        print(f"Error regenerando: {e}")
+        flash(f"Error interno: {e}", "danger")
+
+    return redirect(url_for('admin_users'))
+
 
 
 @app.route('/dashboard-metrics/export', methods=['GET'])
